@@ -22,7 +22,8 @@
     pavucontrol
     nerd-fonts.jetbrains-mono
     nordzy-cursor-theme
-    blueman           # Bluetooth manager
-    networkmanagerapplet  # Network manager GUI
+    blueman
+    networkmanagerapplet
+    obs-studio
   ];
 }

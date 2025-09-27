@@ -12,8 +12,11 @@
     ./zsh.nix
     ./hyprland.nix
     ./alacritty.nix
+    ./waybar.nix
+    ./rofi.nix
   ];
 
+  # nord everforest onedark
   colorScheme = inputs.nix-colors.colorSchemes.nord;
 
   programs.home-manager.enable = true;

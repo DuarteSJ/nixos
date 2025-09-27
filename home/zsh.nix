@@ -2,7 +2,6 @@
 {
   programs.zsh = {
     enable = true;
-
     history = {
       size = 1000;
       save = 1000;
@@ -12,9 +11,7 @@
       ignoreSpace = true;
       share = true;
     };
-
     defaultKeymap = "viins";
-
     setOptions = [
       "hist_ignore_dups"
       "hist_ignore_all_dups"
@@ -24,7 +21,6 @@
       "share_history"
       "auto_cd"
     ];
-
     shellAliases = {
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
@@ -43,14 +39,13 @@
       caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
     };
-
-    initContent = ''
+    initContent = with config.colorScheme.palette; ''
       # Custom prompt
-      export PS1=$'\n%F{110}%B%b %F{117}%1~%f%F{110} ❯ %f'
-
-      # Color vars
-      GREEN="\e[32m"; RED="\e[31m"; YELLOW="\e[33m"; BLUE="\e[34m"; RESET="\e[0m"
-
+      export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
+      
+      # Color vars using nix-colors
+      GREEN="#${base0B}"; RED="#${base08}"; YELLOW="#${base0A}"; BLUE="#${base0D}"; RESET="\e[0m"
+      
       # Tree with depth
       ltl() {
         if [[ -z "$1" ]]; then
@@ -59,7 +54,7 @@
         fi
         eza --color=always --tree --level="$1"
       }
-
+      
       # Copy file content
       copyfile() {
         if [[ -z "$1" ]]; then
@@ -77,7 +72,7 @@
           return 1
         fi
       }
-
+      
       # Copy pwd
       cpwd() {
         local current_path=$(pwd)
@@ -88,7 +83,7 @@
           return 1
         fi
       }
-
+      
       # Weather
       weather() {
         local city="''${1:-Lisbon}"
@@ -98,7 +93,7 @@
           return 1
         }
       }
-
+      
       weatherfull() {
         local city="''${1:-Lisbon}"
         curl -s "wttr.in/''${city}" || {
@@ -107,10 +102,8 @@
         }
       }
     '';
-
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
   };
 }
-

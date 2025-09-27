@@ -11,7 +11,7 @@
 
       # Programs
       "$terminal" = "alacritty";
-      "$menu" = "/home/duartesj/.config/rofi/scripts/launcher.sh";
+      "$menu" = "~/.local/bin/rofi-launcher";
 
       # Autostart
       exec-once = [
@@ -181,7 +181,7 @@
         "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
         "$mainMod SHIFT, D, exec, /home/duartesj/scripts/pomodoro.sh"
         "$mainMod SHIFT, M, exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle"
-        "$mainMod SHIFT, P, exec, /home/duartesj/.config/rofi/scripts/powermenu.sh"
+        "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
         "$mainMod SHIFT, N, exec, /home/duartesj/scripts/alter_background.sh"
         "$mainMod SHIFT, X, exec, sh -c 'grim -g \"$(slurp)\" - | tee ~/Pictures/screenshots/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png | wl-copy'"
         "$mainMod SHIFT, R, exec, /home/duartesj/scripts/keyviz.sh"
