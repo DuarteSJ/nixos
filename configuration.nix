@@ -113,24 +113,11 @@
     zsh.enable = true;
   };
 
+  hardware.bluetooth.enable = true;  # if you use Bluetooth
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    # nix
-    home-manager
-    # goat
-    git
-    neovim
-    # hyprland
-    alacritty
-    waybar
-    rofi-wayland
-    swww
-    dunst
-    hyprlock
-    brightnessctl
-    # bloat
-    nordzy-cursor-theme
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

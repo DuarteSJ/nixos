@@ -1,13 +1,28 @@
 { pkgs, ... }:
 {
   home.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
+    git
+    neovim
+    curl
+    home-manager
+    alacritty
     eza
     fastfetch
-    curl
+    waybar
+    rofi-wayland
+    swww
+    dunst
+    hyprlock
     wl-clipboard
+    brightnessctl
+    playerctl
+    grim
+    slurp
     cava
+    pavucontrol
+    nerd-fonts.jetbrains-mono
+    nordzy-cursor-theme
+    blueman           # Bluetooth manager
+    networkmanagerapplet  # Network manager GUI
   ];
 }
-
-
