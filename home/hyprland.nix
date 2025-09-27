@@ -2,7 +2,7 @@
 {
   wayland.windowManager.hyprland = {
     enable = true;
-    settings = {
+    settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
         "eDP-1, disable"
@@ -29,8 +29,9 @@
         gaps_in = 4;
         gaps_out = 4;
         border_size = 2;
-        "col.active_border" = "rgba(81a1c1ff) rgba(8fbcbbff) 45deg";
-        "col.inactive_border" = "rgba(565c64aa)";
+        # Using nix-colors for borders
+        "col.active_border" = "rgba(${base0D}ff) rgba(${base0C}ff) 45deg";
+        "col.inactive_border" = "rgba(${base02}aa)";
         resize_on_border = true;
         allow_tearing = false;
         layout = "dwindle";
@@ -46,7 +47,7 @@
           enabled = false;
           range = 96;
           render_power = 3;
-          color = "rgba(ffffffff)";
+          color = "rgba(${base00}ff)";
         };
 
         blur = {
@@ -180,7 +181,6 @@
         "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
         "$mainMod SHIFT, D, exec, /home/duartesj/scripts/pomodoro.sh"
         "$mainMod SHIFT, M, exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle"
-        "$mainMod SHIFT, A, exec, /home/duartesj/.config/rofi/scripts/set_theme.sh"
         "$mainMod SHIFT, P, exec, /home/duartesj/.config/rofi/scripts/powermenu.sh"
         "$mainMod SHIFT, N, exec, /home/duartesj/scripts/alter_background.sh"
         "$mainMod SHIFT, X, exec, sh -c 'grim -g \"$(slurp)\" - | tee ~/Pictures/screenshots/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png | wl-copy'"
@@ -243,4 +243,3 @@
     };
   };
 }
-
