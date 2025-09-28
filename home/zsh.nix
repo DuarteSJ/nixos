@@ -36,6 +36,7 @@
       nv = "nvim";
       colors = "$HOME/scripts/print_colors.sh";
       timer = "$HOME/scripts/live_timer.sh";
+      packages = "nvim $HOME/nixos/home/packages.nix";
       caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
     };

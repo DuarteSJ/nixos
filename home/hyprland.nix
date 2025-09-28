@@ -15,7 +15,8 @@
 
       # Autostart
       exec-once = [
-        "/home/duartesj/scripts/autostart.sh"
+	"waybar &"
+      	"swww &"
       ];
 
       # Environment variables

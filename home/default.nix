@@ -14,6 +14,7 @@
     ./alacritty.nix
     ./waybar.nix
     ./rofi.nix
+    ./scripts/switch-bg.nix
   ];
 
   # nord everforest onedark
