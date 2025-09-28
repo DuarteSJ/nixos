@@ -6,5 +6,6 @@
 		./zsh.nix
 		./alacritty.nix
 		./cava.nix
+		./fastfetch.nix
 	];
 }
