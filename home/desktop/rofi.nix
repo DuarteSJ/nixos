@@ -32,7 +32,7 @@
 
     /*****----- Global Properties -----*****/
     * {
-        font:                        "JetBrainsMono Nerd Font 12";
+        font:                        "JetBrainsMono Nerd Font 13";
         
         /* nix-colors integration */
         background:                  #${base00};
