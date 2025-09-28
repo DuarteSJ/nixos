@@ -16,7 +16,7 @@
       # Autostart
       exec-once = [
 	"waybar &"
-      	"swww &"
+      	"swww-daemon &"
       ];
 
       # Environment variables
