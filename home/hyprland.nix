@@ -178,15 +178,12 @@
         "$mainMod, mouse_up, workspace, e-1"
 
         # Script keybindings
-        "$mainMod, Tab, exec, /home/duartesj/scripts/alt_tab.sh"
+        "$mainMod, Tab, exec, alt-tab"
         "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
-        "$mainMod SHIFT, D, exec, /home/duartesj/scripts/pomodoro.sh"
         "$mainMod SHIFT, M, exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle"
         "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
         "$mainMod SHIFT, N, exec, switch-bg"
         "$mainMod SHIFT, X, exec, sh -c 'grim -g \"$(slurp)\" - | tee ~/Pictures/screenshots/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png | wl-copy'"
-        "$mainMod SHIFT, R, exec, /home/duartesj/scripts/keyviz.sh"
-        "$mainMod, M, exec, /home/duartesj/scripts/music.sh"
 
         # Fullscreen toggle
         "$mainMod, F, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 0 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; pkill waybar; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"

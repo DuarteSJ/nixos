@@ -11,13 +11,17 @@
     ./git.nix
     ./zsh.nix
     ./hyprland.nix
+    ./hyprlock.nix
     ./alacritty.nix
     ./waybar.nix
     ./rofi.nix
+    ./cava.nix
     ./scripts/switch-bg.nix
+    ./scripts/timer.nix
+    ./scripts/alt-tab.nix
+    ./scripts/toggle-mic.nix
   ];
 
-  # nord everforest onedark
   colorScheme = inputs.nix-colors.colorSchemes.nord;
 
   programs.home-manager.enable = true;
