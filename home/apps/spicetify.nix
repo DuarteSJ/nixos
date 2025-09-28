@@ -40,25 +40,18 @@ in
   programs.spicetify = {
     enable = true;
     
-    # Use our custom Flow theme with nix-colors
     theme = flowThemeWithColors;
     
-    # Optional: Add some useful extensions
     enabledExtensions = with spicePkgs.extensions; [
       adblock
       shuffle
       keyboardShortcut
-      popupLyrics
+      loopyLoop
     ];
     
-    # Optional: Add custom apps
     enabledCustomApps = with spicePkgs.apps; [
       newReleases
-    ];
-    
-    # Optional: Add snippets for enhanced functionality
-    enabledSnippets = with spicePkgs.snippets; [
-      pointer
+      lyricsPlus
     ];
   };
 }
