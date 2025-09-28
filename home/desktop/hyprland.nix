@@ -180,7 +180,7 @@
         # Script keybindings
         "$mainMod, Tab, exec, alt-tab"
         "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
-        "$mainMod SHIFT, M, exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle"
+        "$mainMod SHIFT, M, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
         "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
         "$mainMod SHIFT, N, exec, switch-bg"
         "$mainMod SHIFT, X, exec, sh -c 'grim -g \"$(slurp)\" - | tee ~/Pictures/screenshots/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png | wl-copy'"
@@ -205,8 +205,8 @@
       bindel = [
         ",XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_SINK@ 0.05+"
         ",XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_SINK@ 0.05-"
-        ",XF86AudioMute, exec, wpctl set-sink-mute @DEFAULT_SINK@ toggle"
-        ",XF86AudioMicMute, exec, wpctl set-source-mute @DEFAULT_SOURCE@ toggle"
+	",XF86AudioMicMute, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
+        ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_SINK@ toggle"
         ",XF86MonBrightnessUp, exec, brightnessctl s 2%+"
         ",XF86MonBrightnessDown, exec, brightnessctl s 2%-"
       ];
