@@ -6,10 +6,16 @@
 
 	imports = [
 		inputs.nix-colors.homeManagerModules.default
-			./environment.nix
-			./packages.nix
-			./git.nix
-	] ++ (import ./desktop) ++ (import ./terminal) ++ (import ./scripts);
+		inputs.spicetify-nix.homeManagerModules.default
+		./environment.nix
+		./packages.nix
+		./git.nix
+		./scripts
+		./apps
+		./desktop
+		./scripts
+		./terminal
+	];
 	colorScheme = inputs.nix-colors.colorSchemes.nord;
 
 	programs.home-manager.enable = true;

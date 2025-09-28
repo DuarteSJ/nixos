@@ -228,9 +228,9 @@
       # Window rules
       windowrulev2 = [
         # Spotify
-        "float, class:^(Spotify)$"
-        "size 1255 686, class:^(Spotify)$"
-        "center, class:^(Spotify)$"
+        "float, class:^(spotify)$"
+        "size 1255 686, class:^(spotify)$"
+        "center, class:^(spotify)$"
 
         # Vesktop
         "bordersize 0, class:vesktop"

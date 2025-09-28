@@ -1,5 +1,10 @@
-[
-	./switch-bg.nix
-	./timer.nix
-	./alt-tab.nix
-]
+{ pkgs, ... }:
+
+{
+	imports = [
+		./alt-tab.nix
+		./switch-bg.nix
+		./timer.nix
+	];
+}
+

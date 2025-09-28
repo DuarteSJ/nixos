@@ -1,6 +1,11 @@
-[
-	./hyprland.nix
-	./hyprlock.nix
-	./waybar.nix
-	./rofi.nix
-]
+{ pkgs, ... }:
+
+{
+	imports = [
+		./hyprland.nix
+		./hyprlock.nix
+		./waybar.nix
+		./rofi.nix
+	];
+}
+
