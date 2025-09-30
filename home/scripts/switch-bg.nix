@@ -5,7 +5,6 @@ let
 in {
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''
-      #!/usr/bin/env bash
       set -euo pipefail
 
       cur_theme_name="${themeName}"

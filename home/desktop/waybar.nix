@@ -60,14 +60,14 @@
             critical = 90;
           };
           format = " {}%";
-          on-click = "alacritty -e htop";
+          on-click = "alacritty -e btop";
         };
 
         temperature = {
           critical-threshold = 80;
           format = "{icon} {temperatureC}°C";
           format-icons = ["" "" ""];
-          on-click = "alacritty -e htop";
+          on-click = "alacritty -e btop";
         };
 
         battery = {
@@ -79,7 +79,7 @@
           format-full = "{icon} {capacity}%";
           format-charging = "󰂄 {capacity}%";
           format-plugged = " {capacity}%";
-          format-icons = ["" "" ""];
+          format-icons = ["" "" "" "" ""];
           on-click = "bash -c '~/scripts/battery_times.sh'";
         };
 

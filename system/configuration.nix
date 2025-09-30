@@ -106,9 +106,6 @@
       xwayland.enable=true;
     };
 
-    # Enable firefox.
-    firefox.enable = true;
-
     # Enable zsh
     zsh.enable = true;
   };

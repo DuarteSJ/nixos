@@ -2,7 +2,6 @@
 {
   home.packages = [
     (pkgs.writeShellScriptBin "timer" ''
-      #!/run/current-system/sw/bin/bash
       # Ensure at least one argument is provided
       if [[ -z "$1" ]]; then
           echo "Usage: $0 [--title \"Custom Title\"] [--symbol \"⏳\"] [--silent] <time>"

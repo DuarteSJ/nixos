@@ -2,8 +2,6 @@
 {
   home.packages = [
     (pkgs.writeShellScriptBin "alt-tab" ''
-	#/run/current-system/sw/bin/bash
-
 	# Get current workspace
 	current_workspace=$(hyprctl activewindow | grep "workspace:" | awk '{print $2}' 2>/dev/null)
 
