@@ -9,6 +9,7 @@
 		./fastfetch.nix
 		./bat.nix
 		./btop.nix
+		./nvf.nix
 	];
 
 }

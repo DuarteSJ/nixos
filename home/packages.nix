@@ -2,7 +2,6 @@
 {
   home.packages = with pkgs; [
     git
-    neovim
     curl
     home-manager
     alacritty
