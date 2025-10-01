@@ -8,36 +8,12 @@
       name = "default";
       isDefault = true;
       
+      # Browser settings via user.js with nix-colors integration
       settings = {
-        # Privacy & Data collection
-        "datareporting.healthreport.uploadEnabled" = false;
-        "toolkit.telemetry.enabled" = false;
-        "toolkit.telemetry.unified" = false;
-        "toolkit.telemetry.server" = "";
-        "browser.ping-centre.telemetry" = false;
-        "extensions.pocket.enabled" = false;
-        "browser.newtabpage.activity-stream.feeds.snippets" = false;
-        "browser.newtabpage.activity-stream.showSponsored" = false;
-        "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
-
-        # Tracking & Fingerprinting
+        # Privacy settings
+        "browser.contentblocking.category" = "strict";
         "privacy.donottrackheader.enabled" = true;
-        "privacy.resistFingerprinting" = true;
-        "privacy.firstparty.isolate" = true;
-        "privacy.query_stripping.enabled" = true;
-
-        # Clean UI
-        "extensions.htmlaboutaddons.recommendations.enabled" = false;
-        "browser.urlbar.suggest.quicksuggest.sponsored" = false;
-        "browser.urlbar.suggest.quicksuggest.nonsponsored" = false;
-
-        # QoL
-        "media.autoplay.default" = 5; # block all autoplay
-        "browser.aboutConfig.showWarning" = false;
-        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        "privacy.userContext.enabled" = true;
-        "privacy.userContext.ui.enabled" = true;
-
+        
         # File handling (open inline instead of auto-download)
         "browser.download.useDownloadDir" = false;
         "browser.download.always_ask_before_save" = true;
@@ -48,20 +24,37 @@
         "browser.helperApps.neverAsk.openFile" = "application/pdf,text/plain,text/html,application/json,image/png,image/jpeg,image/gif,audio/mpeg,audio/ogg,video/mp4,video/webm";
         "browser.helperApps.neverAsk.saveToDisk" = "";
 
-        # Theme & Dark mode
+        # Performance
+        "browser.sessionstore.interval" = 15000;
+        
+        # UI preferences
+        "browser.tabs.warnOnClose" = false;
+        
+        # Enable dark theme
         "browser.theme.dark-private-windows" = false;
         "extensions.activeThemeID" = "firefox-compact-dark@mozilla.org";
+        
+        # Force dark mode
         "ui.systemUsesDarkTheme" = 1;
         "browser.in-content.dark-mode" = true;
         "browser.theme.toolbar-theme" = 0;
         "browser.theme.content-theme" = 0;
-
-        # Tabs / UX
-        "browser.tabs.warnOnClose" = false;
-        "browser.sessionstore.interval" = 15000;
+        
+        # Enable custom CSS
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        
+        # Better dark colors for content
+        "layout.css.prefers-color-scheme.content-override" = 0;
+        
+        # Simplify new tab page
+        "browser.newtabpage.activity-stream.showSponsored" = false;
+        "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
+        "browser.newtabpage.activity-stream.feeds.section.topstories" = false;
+        "browser.newtabpage.activity-stream.feeds.topsites" = false;
+        "browser.newtabpage.activity-stream.showSearch" = true;
       };
       
-      # Custom userChrome.css
+      # Custom userChrome.css for system colors
       userChrome = ''
         :root {
           --nix-base00: #${config.colorScheme.palette.base00};
@@ -82,20 +75,24 @@
           --nix-base0F: #${config.colorScheme.palette.base0F};
         }
 
+        /* Main window background */
         #main-window,
         #navigator-toolbox {
           background-color: var(--nix-base00) !important;
         }
 
+        /* Toolbar */
         toolbar {
           background-color: var(--nix-base00) !important;
           color: var(--nix-base05) !important;
         }
 
+        /* Tab bar */
         #TabsToolbar {
           background-color: var(--nix-base00) !important;
         }
 
+        /* Individual tabs */
         .tabbrowser-tab {
           background-color: var(--nix-base01) !important;
           color: var(--nix-base05) !important;
@@ -110,6 +107,7 @@
           color: var(--nix-base07) !important;
         }
 
+        /* URL bar */
         #urlbar,
         #searchbar {
           background-color: var(--nix-base01) !important;
@@ -123,6 +121,7 @@
           border-color: var(--nix-base0D) !important;
         }
 
+        /* Dropdown and autocomplete */
         #urlbar-results,
         .urlbarView {
           background-color: var(--nix-base01) !important;
@@ -135,12 +134,14 @@
           color: var(--nix-base00) !important;
         }
 
+        /* Sidebar */
         #sidebar-box,
         #sidebar-header {
           background-color: var(--nix-base00) !important;
           color: var(--nix-base05) !important;
         }
 
+        /* Context menus */
         menupopup,
         popup,
         panel {
@@ -155,6 +156,7 @@
           color: var(--nix-base00) !important;
         }
 
+        /* Buttons */
         toolbarbutton {
           fill: var(--nix-base05) !important;
           color: var(--nix-base05) !important;
@@ -164,12 +166,13 @@
           background-color: var(--nix-base02) !important;
         }
 
+        /* New tab page and content area */
         browser {
           background-color: var(--nix-base00) !important;
         }
       '';
       
-      # Custom userContent.css
+      # Custom userContent.css for webpage new tab
       userContent = ''
         @-moz-document url("about:home"), url("about:newtab") {
           body {
@@ -224,4 +227,3 @@
     };
   };
 }
-
