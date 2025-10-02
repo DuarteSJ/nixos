@@ -4,8 +4,8 @@
     (pkgs.writeShellScriptBin "timer" ''
       # Ensure at least one argument is provided
       if [[ -z "$1" ]]; then
-          echo "Usage: $0 [--title \"Custom Title\"] [--symbol \"⏳\"] [--silent] <time>"
-          echo "Example: $0 --title \"Break\" --symbol \"🔥\" 5m 30s"
+          ${pkgs.coreutils}/bin/echo "Usage: $0 [--title \"Custom Title\"] [--symbol \"⏳\"] [--silent] <time>"
+          ${pkgs.coreutils}/bin/echo "Example: $0 --title \"Break\" --symbol \"🔥\" 5m 30s"
           exit 1
       fi
       # Default values
@@ -23,7 +23,7 @@
                       title="$2"
                       shift 2
                   else
-                      echo "Error: --title requires an argument."
+                      ${pkgs.coreutils}/bin/echo "Error: --title requires an argument."
                       exit 1
                   fi
                   ;;
@@ -32,7 +32,7 @@
                       symbol="$2"
                       shift 2
                   else
-                      echo "Error: --symbol requires an argument."
+                      ${pkgs.coreutils}/bin/echo "Error: --symbol requires an argument."
                       exit 1
                   fi
                   ;;
@@ -49,8 +49,8 @@
                   shift
                   ;;
               *)
-                  echo "Invalid argument: $1"
-                  echo "Usage: $0 [--title \"Custom Title\"] [--symbol \"⏳\"] [--silent] <time>"
+                  ${pkgs.coreutils}/bin/echo "Invalid argument: $1"
+                  ${pkgs.coreutils}/bin/echo "Usage: $0 [--title \"Custom Title\"] [--symbol \"⏳\"] [--silent] <time>"
                   exit 1
                   ;;
           esac
@@ -59,7 +59,7 @@
       time_left=$(( minutes * 60 + seconds ))
       # Ensure at least some time was provided
       if (( time_left == 0 )); then
-          echo "Error: You must specify at least minutes or seconds."
+          ${pkgs.coreutils}/bin/echo "Error: You must specify at least minutes or seconds."
           exit 1
       fi
       # Apply the symbol to the title
@@ -69,13 +69,13 @@
           min=$(( time_left / 60 ))
           sec=$(( time_left % 60 ))
           if [[ "$silent_mode" = false ]]; then
-              dunstify -r $notify_id "$title" "Time remaining: ''${min}m ''${sec}s"
+              ${pkgs.dunst}/bin/dunstify -r $notify_id "$title" "Time remaining: ''${min}m ''${sec}s"
           fi
-          sleep 1
+          ${pkgs.coreutils}/bin/sleep 1
           (( time_left-- ))
       done
       # Final notification
-      dunstify -u critical -r $notify_id "$title" " Time's up!"
+      ${pkgs.dunst}/bin/dunstify -u critical -r $notify_id "$title" " Time's up!"
     '')
   ];
 }
