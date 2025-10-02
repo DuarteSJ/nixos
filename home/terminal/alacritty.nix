@@ -32,6 +32,13 @@
         shape = "Underline";
         blinking = "Always";
       };
+      keyboard.bindings = [
+        {
+          key = "Q";
+          mods = "Super|Shift";
+          action = "SpawnNewInstance";
+        }
+      ];
       colors = with config.colorScheme.palette; {
         primary = {
           background = "#${base00}";
