@@ -6,6 +6,7 @@
 		./switch-bg.nix
 		./timer.nix
     ./screenshot.nix
+    ./pydev.nix
 	];
 }
 
