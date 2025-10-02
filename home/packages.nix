@@ -15,8 +15,6 @@
     wl-clipboard
     brightnessctl
     playerctl
-    grim
-    slurp
     cava
     pavucontrol
     nerd-fonts.jetbrains-mono

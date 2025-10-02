@@ -5,8 +5,8 @@
     settings = {
       mainBar = {
         margin-top = 2;
-        margin-left = 2;
-        margin-right = 2;
+        margin-left = 4;
+        margin-right = 4;
         margin-bottom = 1;
         height = 25;
         

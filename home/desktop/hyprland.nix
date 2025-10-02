@@ -27,7 +27,7 @@
 
       # General settings
       general = {
-        gaps_in = 4;
+        gaps_in = 2;
         gaps_out = 4;
         border_size = 2;
         # Using nix-colors for borders
@@ -133,11 +133,11 @@
         # Basic bindings
         "$mainMod, Q, exec, $terminal"
         "$mainMod, C, killactive,"
-        "$mainMod, E, exec, hyprctl dispatch pin"
+        "$mainMod, P, exec, hyprctl dispatch pin"
         "$mainMod, V, togglefloating,"
-        "$mainMod, P, exec, $menu"
-        "$mainMod, R, pseudo," # dwindle
-        "$mainMod, T, togglesplit," # dwindle
+        "$mainMod, E, exec, $menu"
+        "$mainMod, R, pseudo,"
+        "$mainMod, T, togglesplit,"
 
         # Move focus with mainMod + HJKL
         "$mainMod, H, movefocus, l"
@@ -183,10 +183,10 @@
         "$mainMod SHIFT, M, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
         "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
         "$mainMod SHIFT, N, exec, switch-bg"
-        "$mainMod SHIFT, X, exec, sh -c 'grim -g \"$(slurp)\" - | tee ~/Pictures/screenshots/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png | wl-copy'"
+        "$mainMod SHIFT, X, exec, screenshot"
 
         # Fullscreen toggle
-        "$mainMod, F, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 0 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; pkill waybar; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
+        "$mainMod, F, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 1 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; pkill waybar; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
 
         # Moving windows
         "$mainMod SHIFT, h, swapwindow, l"
