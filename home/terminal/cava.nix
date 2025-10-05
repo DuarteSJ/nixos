@@ -25,8 +25,8 @@ in
         # The number of bars (0-200). 0 sets it to auto (fill up console).
         # Bars' width and space between bars in number of characters.
         bars = 0;
-        bar_width = 2;
-        bar_spacing = 1;
+        bar_width = 3;
+        bar_spacing = 2;
         
         # Lower and higher cutoff frequencies for lowest and highest bars
         # the bandwidth of the visualizer.
@@ -107,20 +107,13 @@ in
       color = {
         # Colors can be one of seven predefined: black, blue, cyan, green, magenta, red, white, yellow.
         # Or defined by hex code '#rrggbb' (hex code must be within '').
-        # background = "default";
-        # foreground = "default";
+        background = "default";
+        foreground = "'#${colors.base0C}'"; # nord8 - bright ice blue
 
         # Gradient mode, only hex defined colors are supported,
         # background must also be defined in hex or remain commented out. 1 = on, 0 = off.
         # You can define as many as 8 different colors. They range from bottom to top of screen
-        gradient = 1;
-        gradient_count = 6;
-        gradient_color_1 = "'#${colors.base08}'";
-        gradient_color_2 = "'#${colors.base09}'";
-        gradient_color_3 = "'#${colors.base0A}'";
-        gradient_color_4 = "'#${colors.base0B}'";
-        gradient_color_5 = "'#${colors.base0C}'";
-        gradient_color_6 = "'#${colors.base0D}'";
+        gradient = 0;
       };
 
       smoothing = {

@@ -235,6 +235,13 @@
         # Vesktop
         "bordersize 0, class:vesktop"
 
+        # invis-cava
+        "float, class:^(invis-cava)$"
+        "size 1954 181, class:^(invis-cava)$"
+        "move -15 902, class:^(invis-cava)$"
+        "noborder, class:^(invis-cava)$"
+        "noanim, class:^(invis-cava)$"
+
         # Fix some dragging issues with XWayland
         "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
       ];
