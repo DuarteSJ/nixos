@@ -22,5 +22,7 @@
     blueman
     networkmanagerapplet
     obs-studio
+    telegram-desktop
+    hyprpicker
   ];
 }
