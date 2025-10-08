@@ -22,6 +22,5 @@
     blueman
     networkmanagerapplet
     obs-studio
-    signal-desktop
   ];
 }
