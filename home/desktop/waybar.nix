@@ -44,7 +44,7 @@
           };
           sort-by-number = true;
           persistent-workspaces = {
-            "*" = 1;
+            "*" = 2;
           };
         };
 
