@@ -157,6 +157,12 @@
         "$mainMod, 9, workspace, 9"
         "$mainMod, 0, workspace, 10"
 
+        # Alternative bindings for first four workspaces
+        "$mainMod, A, workspace, 1"
+        "$mainMod, S, workspace, 2"
+        "$mainMod, D, workspace, 3"
+        "$mainMod, F, workspace, 4"
+
         # Move active window to a workspace with mainMod + SHIFT + [0-9]
         "$mainMod SHIFT, 1, movetoworkspace, 1"
         "$mainMod SHIFT, 2, movetoworkspace, 2"
@@ -169,16 +175,21 @@
         "$mainMod SHIFT, 9, movetoworkspace, 9"
         "$mainMod SHIFT, 0, movetoworkspace, 10"
 
+        # Alternative bindings for first four workspaces
+        "$mainMod SHIFT, A, movetoworkspace, 1"
+        "$mainMod SHIFT, S, movetoworkspace, 2"
+        "$mainMod SHIFT, D, movetoworkspace, 3"
+        "$mainMod SHIFT, F, movetoworkspace, 4"
+
         # Special workspace (scratchpad)
-        "$mainMod, S, togglespecialworkspace, magic"
-        "$mainMod SHIFT, S, movetoworkspace, special:magic"
+        "$mainMod, M, togglespecialworkspace, magic"
+        "$mainMod SHIFT, M, movetoworkspace, special:magic"
 
         # Scroll through existing workspaces with mainMod + scroll
         "$mainMod, mouse_down, workspace, e+1"
         "$mainMod, mouse_up, workspace, e-1"
 
         # Script keybindings
-        "$mainMod, Tab, exec, alt-tab"
         "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
         "$mainMod SHIFT, M, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
         "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
@@ -186,7 +197,7 @@
         "$mainMod SHIFT, X, exec, screenshot"
 
         # Fullscreen toggle
-        "$mainMod, F, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 1 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; pkill waybar; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
+        "$mainMod, slash, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 1 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; pkill waybar; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
 
         # Moving windows
         "$mainMod SHIFT, h, swapwindow, l"
