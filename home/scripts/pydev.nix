@@ -55,8 +55,8 @@
           ]))
         ];
         shellHook = '''
-          echo -e "\033[1;36m🐍  Python development shell activated!\033[0m"
-          echo -e "\033[0;90m→ Virtual environment: (py-env)\033[0m"
+          echo -e "\n\033[1;36m🐍 Python development shell activated!\033[0m"
+          echo -e "\033[0;90m    → Virtual environment: (py-env)\033[0m"
           
           export NIX_PS1_OVERRIDE="(py-env) "
           export PYTHONPATH="$PWD:$PYTHONPATH"
