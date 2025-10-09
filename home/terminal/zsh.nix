@@ -40,14 +40,12 @@
     initContent = with config.colorScheme.palette; ''
       # Custom prompt
       export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
-      
-      # Color vars using nix-colors
-      GREEN="#${base0B}"; RED="#${base08}"; YELLOW="#${base0A}"; BLUE="#${base0D}"; RESET="\e[0m"
+      export RPROMPT='%F{#${base0E}}'"''${NIX_PS1_OVERRIDE}"'%f'
       
       # Tree with depth
       ltl() {
         if [[ -z "$1" ]]; then
-          echo -e "''${YELLOW}Usage:''${RESET} ltl <depth_level>"
+          echo -e "\033[1;33mUsage:\033[0m ltl <depth_level>"
           return 1
         fi
         eza --color=always --tree --level="$1"
@@ -56,17 +54,17 @@
       # Copy file content
       copyfile() {
         if [[ -z "$1" ]]; then
-          echo -e "''${YELLOW}Usage:''${RESET} copyfile <filename>"
+          echo -e "\033[1;33mUsage:\033[0m copyfile <filename>"
           return 1
         fi
         if [[ ! -f "$1" ]]; then
-          echo -e "''${RED} Error:''${RESET} File '$1' not found."
+          echo -e "\033[1;31m✗ Error:\033[0m File '$1' not found."
           return 1
         fi
         if wl-copy < "$1"; then
-          echo -e "''${GREEN} Success:''${RESET} $1's content copied."
+          echo -e "\033[1;32m✓ Success:\033[0m $1's content copied."
         else
-          echo -e "''${RED} Error:''${RESET} Failed to copy."
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
           return 1
         fi
       }
@@ -75,9 +73,9 @@
       cpwd() {
         local current_path=$(pwd)
         if echo "$current_path" | wl-copy; then
-          echo -e "''${GREEN} Success:''${RESET} '$current_path' copied."
+          echo -e "\033[1;32m✓ Success:\033[0m '$current_path' copied."
         else
-          echo -e "''${RED} Error:''${RESET} Failed to copy."
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
           return 1
         fi
       }
@@ -87,7 +85,7 @@
         local city="''${1:-Lisbon}"
         local format="''${2:-3}"
         curl -s "wttr.in/''${city}?format=''${format}" || {
-          echo -e "''${RED} Error:''${RESET} Failed to fetch weather."
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to fetch weather."
           return 1
         }
       }
@@ -95,7 +93,7 @@
       weatherfull() {
         local city="''${1:-Lisbon}"
         curl -s "wttr.in/''${city}" || {
-          echo -e "''${RED} Error:''${RESET} Failed to fetch weather."
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to fetch weather."
           return 1
         }
       }

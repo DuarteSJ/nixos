@@ -43,9 +43,6 @@
             active = "";
           };
           sort-by-number = true;
-          persistent-workspaces = {
-            "*" = 2;
-          };
         };
 
         clock = {

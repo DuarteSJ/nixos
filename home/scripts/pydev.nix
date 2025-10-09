@@ -6,7 +6,7 @@
       
       # Check if flake.nix already exists
       if [ -f flake.nix ]; then
-        ${pkgs.coreutils}/bin/echo "Warning: flake.nix already exists."
+        ${pkgs.coreutils}/bin/echo -e "\033[1;33m⚠️  Warning:\033[0m flake.nix already exists."
         ${pkgs.coreutils}/bin/echo -n "Do you want to replace it? (y/N): "
         read -r response
         if [ "$response" != "y" ] && [ "$response" != "Y" ]; then
@@ -15,7 +15,7 @@
         fi
       fi
       
-      ${pkgs.coreutils}/bin/echo "Creating Python development environment..."
+      ${pkgs.coreutils}/bin/echo -e "\033[1;34m🔨 Creating Python development environment...\033[0m"
       
       # Create flake.nix with helpful comments
       ${pkgs.coreutils}/bin/cat > flake.nix << 'FLAKEEOF'
@@ -44,29 +44,34 @@
         packages = [
           (python.withPackages (p: [
             # Add your Python packages here:
-
             # Example packages:
             # p.numpy
             # p.pandas
             # p.matplotlib
-
             # For Jupyter workflow with Jupynium for editing notebooks in nvim (plugin required):
             # p.jupynium
             # p.nbclassic
             # p.notebook
-
           ]))
         ];
+        shellHook = '''
+          echo -e "\033[1;36m🐍  Python development shell activated!\033[0m"
+          echo -e "\033[0;90m→ Virtual environment: (py-env)\033[0m"
+          
+          export NIX_PS1_OVERRIDE="(py-env) "
+          export PYTHONPATH="$PWD:$PYTHONPATH"
+          exec zsh
+        ''';
       };
     };
 }
 FLAKEEOF
       
-      ${pkgs.coreutils}/bin/echo "✓ Created flake.nix"
+      ${pkgs.coreutils}/bin/echo -e "\033[1;32m✓\033[0m Created flake.nix"
       ${pkgs.coreutils}/bin/echo ""
-      ${pkgs.coreutils}/bin/echo "✨ Done! Next steps:"
-      ${pkgs.coreutils}/bin/echo "  1. Edit flake.nix to configure Python version and packages"
-      ${pkgs.coreutils}/bin/echo "  2. Run: nix develop"
+      ${pkgs.coreutils}/bin/echo -e "\033[1;35m✨ Done!\033[0m Next steps:"
+      ${pkgs.coreutils}/bin/echo -e "  \033[0;36m1.\033[0m Edit flake.nix to configure Python version and packages"
+      ${pkgs.coreutils}/bin/echo -e "  \033[0;36m2.\033[0m Run: \033[1;37mnix develop\033[0m"
     '')
   ];
 }
