@@ -213,7 +213,6 @@
       .modules-center {
         background-color: #${base00};
         border-radius: 15px;
-        border: 2px solid #${base0D}; /* remove me */
       }
 
       .modules-right {

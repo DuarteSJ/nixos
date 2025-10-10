@@ -17,6 +17,7 @@
 		./scripts
 		./terminal
 	];
+  
 	colorScheme = inputs.nix-colors.colorSchemes.nord;
 
 	programs.home-manager.enable = true;
