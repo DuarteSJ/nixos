@@ -48,7 +48,7 @@
         clock = {
           format = "{:%a %d %b %H:%M}";
           tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-          on-click = "bash -c 'date +\"%d-%m-%Y %H:%M\" | tee >(wl-copy) | xargs -I{} notify-send \"📋 Date copied\" \"{}\"'";
+          on-click = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y %H:%M\" | ${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy) | ${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'";
         };
 
         memory = {
@@ -213,6 +213,7 @@
       .modules-center {
         background-color: #${base00};
         border-radius: 15px;
+        border: 2px solid #${base0D}; /* remove me */
       }
 
       .modules-right {
