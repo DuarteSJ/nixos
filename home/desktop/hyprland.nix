@@ -5,7 +5,8 @@
     settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
-        "eDP-1, disable"
+        # "eDP-1, preferred, auto, 1"
+        "eDP-1, disabled"
         "HDMI-A-1, 1920x1080@60, 1920x-850x, 1"
       ];
 

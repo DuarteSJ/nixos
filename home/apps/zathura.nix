@@ -30,8 +30,9 @@ in
       notification-warning-bg = "#${colors.base09}";
       notification-warning-fg = "#${colors.base00}";
 
-      highlight-color = "#${colors.base0A}";
-      highlight-active-color = "#${colors.base0D}";
+      # these are opaque
+      # highlight-color = "#${colors.base0A}";
+      # highlight-active-color = "#${colors.base0D}";
 
       recolor-lightcolor = "#${colors.base00}";
       recolor-darkcolor = "#${colors.base06}";
