@@ -24,7 +24,7 @@
         };
       };
       window = {
-        opacity = 0.98;
+        opacity = 1;
         padding = { x = 15; y = 15; };
         dimensions = { columns = 50; lines = 12; };
       };

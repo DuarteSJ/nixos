@@ -25,7 +25,6 @@
     telegram-desktop
     hyprpicker
     texlive.combined.scheme-full
-    zathura
     perl
   ];
 }
