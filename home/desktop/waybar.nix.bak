@@ -8,17 +8,17 @@
         margin-left = 4;
         margin-right = 4;
         margin-bottom = 1;
-        height = 26;
-
+        height = 25;
+        
         modules-left = [
           "hyprland/workspaces"
           "hyprland/window"
         ];
-
+        
         modules-center = [
           "clock"
         ];
-
+        
         modules-right = [
           "pulseaudio"
           "network"
@@ -49,7 +49,7 @@
         };
 
         clock = {
-          format = "<span color='#${config.colorScheme.palette.base0D}'></span> {:%H:%M  <span color='#${config.colorScheme.palette.base07}'></span> %b %d}";
+format = "<span color='#${config.colorScheme.palette.base0D}'></span> {:%H:%M  <span color='#${config.colorScheme.palette.base07}'></span> %b %d}";
           tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
           on-click = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y %H:%M\" | ${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy) | ${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'";
         };
@@ -139,7 +139,9 @@
       #memory:hover,
       #temperature:hover,
       #network:hover,
-      #pulseaudio:hover,
+      #pulseaudio:hover {
+        background-color: #${base02};
+      }
 
       #workspaces button {
         padding: 0 5px;

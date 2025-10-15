@@ -16,8 +16,8 @@
 
       # Autostart
       exec-once = [
-	"waybar &"
-      	"swww-daemon &"
+        "waybar &"
+        "swww-daemon &"
       ];
 
       # Environment variables
@@ -44,7 +44,7 @@
         rounding = 9;
         inactive_opacity = 1;
         active_opacity = 1;
-        
+
         shadow = {
           enabled = false;
           range = 96;
@@ -63,7 +63,7 @@
       # Animations
       animations = {
         enabled = true;
-        
+
         bezier = [
           "easeOutQuint,0.23,1,0.32,1"
           "easeInOutCubic,0.65,0.05,0.36,1"
@@ -192,7 +192,7 @@
 
         # Script keybindings
         "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
-        "$mainMod SHIFT, M, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
+        "$mainMod, N, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
         "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
         "$mainMod SHIFT, N, exec, switch-bg"
         "$mainMod SHIFT, X, exec, screenshot"
@@ -217,10 +217,10 @@
       bindel = [
         ",XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_SINK@ 0.05+"
         ",XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_SINK@ 0.05-"
-	",XF86AudioMicMute, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
+        ",XF86AudioMicMute, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
         ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_SINK@ toggle"
-        ",XF86MonBrightnessUp, exec, brightnessctl s 2%+"
-        ",XF86MonBrightnessDown, exec, brightnessctl s 2%-"
+        ",XF86MonBrightnessUp, exec, brightnessctl s 4%+"
+        ",XF86MonBrightnessDown, exec, brightnessctl s 4%-"
       ];
 
       # Locked bindings (work even when locked)
