@@ -198,7 +198,7 @@
         "$mainMod SHIFT, X, exec, screenshot"
 
         # Fullscreen toggle
-        "$mainMod, slash, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 1 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; pkill waybar; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
+        "$mainMod, slash, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 1 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
 
         # Moving windows
         "$mainMod SHIFT, h, swapwindow, l"
