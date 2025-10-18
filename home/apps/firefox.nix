@@ -2,18 +2,18 @@
 {
   programs.firefox = {
     enable = true;
-    
+
     profiles.default = {
       id = 0;
       name = "default";
       isDefault = true;
-      
+
       # Browser settings via user.js with nix-colors integration
       settings = {
         # Privacy settings
         "browser.contentblocking.category" = "strict";
         "privacy.donottrackheader.enabled" = true;
-        
+
         # File handling (open inline instead of auto-download)
         "browser.download.useDownloadDir" = false;
         "browser.download.always_ask_before_save" = true;
@@ -26,26 +26,26 @@
 
         # Performance
         "browser.sessionstore.interval" = 15000;
-        
+
         # UI preferences
         "browser.tabs.warnOnClose" = false;
-        
+
         # Enable dark theme
         "browser.theme.dark-private-windows" = false;
         "extensions.activeThemeID" = "firefox-compact-dark@mozilla.org";
-        
+
         # Force dark mode
         "ui.systemUsesDarkTheme" = 1;
         "browser.in-content.dark-mode" = true;
         "browser.theme.toolbar-theme" = 0;
         "browser.theme.content-theme" = 0;
-        
+
         # Enable custom CSS
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        
+
         # Better dark colors for content
         "layout.css.prefers-color-scheme.content-override" = 0;
-        
+
         # Simplify new tab page
         "browser.newtabpage.activity-stream.showSponsored" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
@@ -53,7 +53,7 @@
         "browser.newtabpage.activity-stream.feeds.topsites" = false;
         "browser.newtabpage.activity-stream.showSearch" = true;
       };
-      
+
       # Custom userChrome.css for system colors
       userChrome = ''
         :root {
@@ -171,7 +171,7 @@
           background-color: var(--nix-base00) !important;
         }
       '';
-      
+
       # Custom userContent.css for webpage new tab
       userContent = ''
         @-moz-document url("about:home"), url("about:newtab") {
@@ -205,7 +205,7 @@
           }
         }
       '';
-      
+
       # Search engines
       search = {
         force = true;
@@ -221,6 +221,26 @@
             }];
             icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
             definedAliases = [ "@np" ];
+          };
+
+          "Home Manager" = {
+            urls = [{
+              template = "https://mynixos.com/home-manager/options/programs.{searchTerms}";
+            }];
+            icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+            definedAliases = [ "@hm" ];
+          };
+
+          "Reddit" = {
+            urls = [{
+              template = "https://www.reddit.com/search";
+              params = [
+                { name = "q"; value = "{searchTerms}"; }
+              ];
+            }];
+            iconUpdateURL = "https://www.reddit.com/favicon.ico";
+            updateInterval = 24 * 60 * 60 * 1000;
+            definedAliases = [ "@r" ];
           };
         };
       };
