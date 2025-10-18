@@ -6,6 +6,5 @@
 		./firefox.nix
     ./vesktop.nix
     ./zathura.nix
-    ./obsidian.nix
 	];
 }
