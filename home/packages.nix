@@ -26,5 +26,8 @@
     hyprpicker
     texlive.combined.scheme-full
     perl
+    ripgrep
+    obsidian
+    vial
   ];
 }

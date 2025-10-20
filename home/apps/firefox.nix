@@ -231,14 +231,14 @@
             definedAliases = [ "@hm" ];
           };
 
-          "Reddit" = {
+          "reddit" = {
             urls = [{
               template = "https://www.reddit.com/search";
               params = [
                 { name = "q"; value = "{searchTerms}"; }
               ];
             }];
-            iconUpdateURL = "https://www.reddit.com/favicon.ico";
+            icon = "https://www.reddit.com/favicon.ico";
             updateInterval = 24 * 60 * 60 * 1000;
             definedAliases = [ "@r" ];
           };

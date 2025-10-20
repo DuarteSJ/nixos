@@ -34,6 +34,8 @@
       fetchip = "fastfetch --config ~/.config/fastfetch/configs/ip_info.jsonc";
       memfetch = "fastfetch --config ~/.config/fastfetch/configs/mem.jsonc";
       nv = "nvim";
+      remind = "~/notes/remind.sh";
+      dl = "nvim +'ObsidianToday'";
       caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
     };
