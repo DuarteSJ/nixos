@@ -41,6 +41,7 @@
     in
     {
       devShells.x86_64-linux.default = pkgs.mkShell {
+        name = "py"; # for py-env to show in prompt
         packages = [
           (python.withPackages (p: [
             # Add your Python packages here:

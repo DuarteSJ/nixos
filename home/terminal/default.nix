@@ -10,6 +10,7 @@
 		./bat.nix
 		./btop.nix
 		./nvf.nix
+    ./starship.nix
 	];
 
 }

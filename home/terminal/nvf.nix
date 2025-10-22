@@ -93,8 +93,29 @@
         transparent = true;
       };
 
-      # Add extra plugins
       extraPlugins = {
+        # Mini Move for moving lines and selections
+        mini-move = {
+          package = pkgs.vimPlugins.mini-nvim;
+          setup = ''
+            require('mini.move').setup({
+              mappings = {
+                -- Move visual selection in Visual mode
+                left = '<A-h>',
+                right = '<A-l>',
+                down = '<A-j>',
+                up = '<A-k>',
+
+                -- Move current line in Normal mode
+                line_left = '<A-h>',
+                line_right = '<A-l>',
+                line_down = '<A-j>',
+                line_up = '<A-k>',
+              },
+            })
+          '';
+        };
+
         # VimTeX for LaTeX support
         vimtex = {
           package = pkgs.vimPlugins.vimtex;
@@ -126,37 +147,37 @@
             require('jupynium').setup({
               python_host = vim.g.python3_host_prog or "python3",
               default_notebook_URL = "localhost:8888/nbclassic",
-              
+
               auto_start_server = {
                 enable = false,
                 file_pattern = { "*.ju.*" },
               },
-              
+
               auto_attach_to_server = {
                 enable = true,
                 file_pattern = { "*.ju.*", "*.md" },
               },
-              
+
               auto_start_sync = {
                 enable = false,
                 file_pattern = { "*.ju.*" },
               },
-              
+
               auto_download_ipynb = true,
               auto_close_tab = true,
-              
+
               autoscroll = {
                 enable = true,
                 mode = "always",
               },
-              
+
               use_default_keybindings = true,
-              
+
               syntax_highlight = {
                 enable = true,
               },
             })
-            
+
             -- Highlight groups for jupynium cells
             vim.cmd [[
               hi! link JupyniumCodeCellSeparator CursorLine
@@ -166,7 +187,7 @@
             ]]
           '';
         };
-        
+
         # Obsidian.nvim for note-taking
         obsidian = {
           package = pkgs.vimPlugins.obsidian-nvim;
@@ -176,22 +197,21 @@
             if vim.fn.isdirectory(vault_path) == 0 then
               vim.fn.mkdir(vault_path, "p")
             end
-            
+
             -- Create subdirectories for organized structure
             local subdirs = {
               "templates",
               "daily",
-              "reminders",
               "zettelkasten"
             }
-            
+
             for _, dir in ipairs(subdirs) do
               local dir_path = vault_path .. "/" .. dir
               if vim.fn.isdirectory(dir_path) == 0 then
                 vim.fn.mkdir(dir_path, "p")
               end
             end
-            
+
             require('obsidian').setup({
               workspaces = {
                 {
@@ -205,7 +225,7 @@
                 nvim_cmp = true,
                 min_chars = 2,
               },
-              
+
               -- Configure daily notes
               daily_notes = {
                 folder = "daily",
@@ -229,18 +249,17 @@
                   end,
                 },
               },
-              
-              -- Note ID generation - Zettelkasten style
+
+              -- Note ID function - use title as ID
               note_id_func = function(title)
-                -- Generate Zettelkasten ID: YYYYMMDDHHMMSS
-                local suffix = ""
                 if title ~= nil then
-                  -- Add sanitized title as suffix
-                  suffix = " " .. title
+                  return title
                 end
-                return tostring(os.date("%d%m%Y%H%M%S")) .. suffix
+                -- If no title provided, use timestamp
+                vim.notify("No title provided, using timestamp", vim.log.levels.WARN)
+                return tostring(os.date("%d%m%Y%H%M%S"))
               end,
-              
+
               -- Note frontmatter - Zettelkasten style
               note_frontmatter_func = function(note)
                 local out = {
@@ -248,49 +267,41 @@
                   tags = note.tags,
                   created = os.date("%d-%m-%Y %H:%M"),
                 }
-                
-                -- Only include non-empty fields
-                if not note.aliases or #note.aliases == 0 then
-                  out.aliases = nil
-                end
-                if not note.tags or #note.tags == 0 then
-                  out.tags = nil
-                end
-                
+
                 -- Preserve any existing metadata
                 if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
                   for k, v in pairs(note.metadata) do
                     out[k] = v
                   end
                 end
-                
+
                 return out
               end,
-              
+
               -- Follow URL behavior
               follow_url_func = function(url)
                 vim.fn.jobstart({"xdg-open", url})
               end,
-              
+
               -- Use wiki-style links
               use_advanced_uri = false,
-              
+
               -- Finder (telescope integration)
               finder = "telescope.nvim",
-              
+
               -- Notes path - defaults to zettelkasten folder
               notes_subdir = "zettelkasten",
-              
+
               -- Disable some default mappings if desired
               disable_frontmatter = false,
-              
+
               -- UI configuration
               ui = {
                 enable = true,
                 checkboxes = {
                   [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
-                  ["d"] = { char = "", hl_group = "ObsidianDone" },
-                  ["f"] = { char = "", hl_group = "ObsidianTilde" },
+                  ["d"] = { char = "", hl_group = "ObsidianDone" },
+                  ["f"] = { char = "", hl_group = "ObsidianTilde" },
                 },
                 external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
                 reference_text = { hl_group = "ObsidianRefText" },
@@ -298,104 +309,10 @@
                 tags = { hl_group = "ObsidianTag" },
               },
             })
-            
-            -- Custom function to create reminder notes (for script processing)
-            local function create_reminder()
-              -- Ensure directory exists
-              local reminders_dir = vim.fn.expand("~/notes/reminders")
-              if vim.fn.isdirectory(reminders_dir) == 0 then
-                vim.fn.mkdir(reminders_dir, "p")
-              end
-              
-              -- Prompt for reminder title
-              vim.ui.input({ prompt = "Reminder title: " }, function(title)
-                if not title or title == "" then
-                  vim.notify("Reminder creation cancelled", vim.log.levels.INFO)
-                  return
-                end
-                
-                -- Prompt for due date
-                local default_date = os.date("%Y-%m-%d")
-                vim.ui.input({ 
-                  prompt = "Due date (YYYY-MM-DD): ",
-                  default = default_date
-                }, function(due_date)
-                  if not due_date or due_date == "" then
-                    due_date = default_date
-                  end
-                  
-                  -- Prompt for due time
-                  vim.ui.input({ 
-                    prompt = "Due time (HH:MM, optional): "
-                  }, function(due_time)
-                    -- Prompt for extra details
-                    vim.ui.input({ 
-                      prompt = "Extra details (optional): "
-                    }, function(details)
-                      -- Sanitize title for filename
-                      local safe_title = title:gsub("[^%w%s-]", ""):gsub("%s+", "-"):lower()
-                      if safe_title == "" then
-                        safe_title = "reminder"
-                      end
-                      local filename = due_date .. "_" .. safe_title .. ".md"
-                      local filepath = reminders_dir .. "/" .. filename
-                      
-                      -- Check if file exists
-                      if vim.fn.filereadable(filepath) == 1 then
-                        vim.notify("Reminder with this name already exists", vim.log.levels.WARN)
-                        return
-                      end
-                      
-                      -- Create minimal, script-parseable reminder content
-                      local content_template
-                      if due_time and due_time ~= "" then
-                        content_template = [[---
-due: %s
-time: %s
-title: %s
-status: pending
-created: %s
-content: %s
----
-]]
-                        content_template = string.format(content_template, due_date, due_time, title, os.date("%Y-%m-%d %H:%M:%S"), details or "")
-                      else
-                        content_template = [[---
-due: %s
-title: %s
-status: pending
-created: %s
-content: %s
----
-]]
-                        content_template = string.format(content_template, due_date, title, os.date("%Y-%m-%d %H:%M:%S"), details or "")
-                      end
-                      
-                      -- Write file with error handling
-                      local file, err = io.open(filepath, "w")
-                      if file then
-                        file:write(content_template)
-                        file:close()
-                        local due_display = due_date
-                        if due_time and due_time ~= "" then
-                          due_display = due_date .. " " .. due_time
-                        end
-                        vim.notify(string.format("✓ Reminder created: %s (due: %s)", title, due_display), vim.log.levels.INFO)
-                      else
-                        vim.notify(string.format("Failed to create reminder: %s", err or "unknown error"), vim.log.levels.ERROR)
-                      end
-                    end)
-                  end)
-                end)
-              end)
-            end
-            
-            -- Create commands
-            vim.api.nvim_create_user_command("ObsidianReminder", create_reminder, {})
           '';
         };
-        
-        # Optional: nvim-notify for better notifications
+
+        # nvim-notify for better notifications
         nvim-notify = {
           package = pkgs.vimPlugins.nvim-notify;
           setup = ''
@@ -463,27 +380,6 @@ content: %s
           key = "<C-l>";
           action = "<C-w>l";
         }
-        # Move lines up/down
-        {
-          mode = "n";
-          key = "<A-k>";
-          action = ":m .-2<CR>==";
-        }
-        {
-          mode = "n";
-          key = "<A-j>";
-          action = ":m .+1<CR>==";
-        }
-        {
-          mode = "v";
-          key = "<A-k>";
-          action = ":m '<-2<CR>gv=gv";
-        }
-        {
-          mode = "v";
-          key = "<A-j>";
-          action = ":m '>+1<CR>gv=gv";
-        }
         # Obsidian keybindings
         {
           mode = "n";
@@ -514,12 +410,6 @@ content: %s
           mode = "n";
           key = "<leader>ol";
           action = ":ObsidianLinks<CR>";
-        }
-        # Reminder keybindings
-        {
-          mode = "n";
-          key = "<leader>or";
-          action = ":ObsidianReminder<CR>";
         }
       ];
     };

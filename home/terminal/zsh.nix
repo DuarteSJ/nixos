@@ -35,15 +35,18 @@
       memfetch = "fastfetch --config ~/.config/fastfetch/configs/mem.jsonc";
       nv = "nvim";
       remind = "~/notes/remind.sh";
-      dl = "nvim +'ObsidianToday'";
+      # obsidian shortcuts
+      odl = "nvim +'ObsidianToday'";
+      onew = "nvim +'ObsidianNew'";
+      osearch = "nvim +'ObsidianSearch'";
       caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
     };
     initContent = with config.colorScheme.palette; ''
       # Custom prompt
-      export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
-      export RPROMPT='%F{#${base0E}}'"''${NIX_PS1_OVERRIDE}"'%f'
-      
+      # export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
+      # export RPROMPT='%F{#${base0E}}'"''${NIX_PS1_OVERRIDE}"'%f'
+
       # Tree with depth
       ltl() {
         if [[ -z "$1" ]]; then
@@ -52,7 +55,7 @@
         fi
         eza --color=always --tree --level="$1"
       }
-      
+
       # Copy file content
       copyfile() {
         if [[ -z "$1" ]]; then
@@ -70,7 +73,7 @@
           return 1
         fi
       }
-      
+
       # Copy pwd
       cpwd() {
         local current_path=$(pwd)
@@ -80,24 +83,6 @@
           echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
           return 1
         fi
-      }
-      
-      # Weather
-      weather() {
-        local city="''${1:-Lisbon}"
-        local format="''${2:-3}"
-        curl -s "wttr.in/''${city}?format=''${format}" || {
-          echo -e "\033[1;31m✗ Error:\033[0m Failed to fetch weather."
-          return 1
-        }
-      }
-      
-      weatherfull() {
-        local city="''${1:-Lisbon}"
-        curl -s "wttr.in/''${city}" || {
-          echo -e "\033[1;31m✗ Error:\033[0m Failed to fetch weather."
-          return 1
-        }
       }
     '';
     autosuggestion.enable = true;
