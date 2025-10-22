@@ -300,8 +300,8 @@
                 enable = true,
                 checkboxes = {
                   [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
-                  ["d"] = { char = "", hl_group = "ObsidianDone" },
-                  ["f"] = { char = "", hl_group = "ObsidianTilde" },
+                  ["d"] = { char = "", hl_group = "ObsidianDone" },
+                  ["f"] = { char = "", hl_group = "ObsidianTilde" },
                 },
                 external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
                 reference_text = { hl_group = "ObsidianRefText" },
