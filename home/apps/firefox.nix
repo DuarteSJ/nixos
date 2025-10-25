@@ -1,4 +1,7 @@
 { config, pkgs, ... }:
+let
+  colors = config.colorscheme.colors;
+in
 {
   programs.firefox = {
     enable = true;
@@ -57,22 +60,22 @@
       # Custom userChrome.css for system colors
       userChrome = ''
         :root {
-          --nix-base00: #${config.colorScheme.palette.base00};
-          --nix-base01: #${config.colorScheme.palette.base01};
-          --nix-base02: #${config.colorScheme.palette.base02};
-          --nix-base03: #${config.colorScheme.palette.base03};
-          --nix-base04: #${config.colorScheme.palette.base04};
-          --nix-base05: #${config.colorScheme.palette.base05};
-          --nix-base06: #${config.colorScheme.palette.base06};
-          --nix-base07: #${config.colorScheme.palette.base07};
-          --nix-base08: #${config.colorScheme.palette.base08};
-          --nix-base09: #${config.colorScheme.palette.base09};
-          --nix-base0A: #${config.colorScheme.palette.base0A};
-          --nix-base0B: #${config.colorScheme.palette.base0B};
-          --nix-base0C: #${config.colorScheme.palette.base0C};
-          --nix-base0D: #${config.colorScheme.palette.base0D};
-          --nix-base0E: #${config.colorScheme.palette.base0E};
-          --nix-base0F: #${config.colorScheme.palette.base0F};
+          --nix-base00: #${colors.base00};
+          --nix-base01: #${colors.base01};
+          --nix-base02: #${colors.base02};
+          --nix-base03: #${colors.base03};
+          --nix-base04: #${colors.base04};
+          --nix-base05: #${colors.base05};
+          --nix-base06: #${colors.base06};
+          --nix-base07: #${colors.base07};
+          --nix-base08: #${colors.base08};
+          --nix-base09: #${colors.base09};
+          --nix-base0A: #${colors.base0A};
+          --nix-base0B: #${colors.base0B};
+          --nix-base0C: #${colors.base0C};
+          --nix-base0D: #${colors.base0D};
+          --nix-base0E: #${colors.base0E};
+          --nix-base0F: #${colors.base0F};
         }
 
         /* Main window background */
@@ -176,26 +179,26 @@
       userContent = ''
         @-moz-document url("about:home"), url("about:newtab") {
           body {
-            background-color: #${config.colorScheme.palette.base00} !important;
-            color: #${config.colorScheme.palette.base05} !important;
+            background-color: #${colors.base00} !important;
+            color: #${colors.base05} !important;
           }
 
           .search-wrapper input {
-            background-color: #${config.colorScheme.palette.base01} !important;
-            color: #${config.colorScheme.palette.base05} !important;
-            border-color: #${config.colorScheme.palette.base03} !important;
+            background-color: #${colors.base01} !important;
+            color: #${colors.base05} !important;
+            border-color: #${colors.base03} !important;
           }
 
           .top-site-outer {
-            background-color: #${config.colorScheme.palette.base01} !important;
+            background-color: #${colors.base01} !important;
           }
 
           .top-site-outer:hover {
-            background-color: #${config.colorScheme.palette.base02} !important;
+            background-color: #${colors.base02} !important;
           }
 
           .top-site-outer .title {
-            color: #${config.colorScheme.palette.base05} !important;
+            color: #${colors.base05} !important;
           }
         }
 
