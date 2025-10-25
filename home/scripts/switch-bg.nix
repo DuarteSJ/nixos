@@ -2,7 +2,8 @@
 let
   # nix-colors exposes this when you configure it in home-manager
   themeName = config.colorScheme.slug or "default";
-in {
+in
+{
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''
       set -euo pipefail

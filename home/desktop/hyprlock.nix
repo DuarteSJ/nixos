@@ -15,13 +15,13 @@ in
         brightness = 0.8;
         vibrancy = 0.2;
         vibrancy_darkness = 0.2;
-      }];      
+      }];
       # GENERAL
       general = {
         hide_cursor = false;
         grace = 0;
       };
-      
+
       # INPUT FIELD
       input-field = [{
         monitor = "";
@@ -42,7 +42,7 @@ in
         halign = "center";
         valign = "center";
       }];
-      
+
       # LABELS
       label = [
         # DATE

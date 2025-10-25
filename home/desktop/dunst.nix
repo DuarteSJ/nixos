@@ -1,17 +1,17 @@
 { config, pkgs, ... }:
 let
-	colors = config.colorScheme.palette;
+  colors = config.colorScheme.palette;
 in
 {
   services.dunst = {
     enable = true;
-    
+
     settings = {
       global = {
         ### Display ###
         monitor = 0;
         follow = "mouse";
-        
+
         ### Geometry ###
         width = 400;
         height = "(0,200)";
@@ -19,7 +19,7 @@ in
         offset = "15x15";
         scale = 0;
         notification_limit = 0;
-        
+
         ### Progress bar ###
         progress_bar = true;
         progress_bar_height = 10;
@@ -30,7 +30,7 @@ in
         progress_bar_corners = "all";
         icon_corner_radius = 0;
         icon_corners = "all";
-        
+
         ### Visual ###
         indicate_hidden = "yes";
         transparency = 0;
@@ -43,7 +43,7 @@ in
         gap_size = 10;
         separator_color = "frame";
         sort = "yes";
-        
+
         ### Text ###
         font = "JetBrainsMono Nerd Font 14";
         line_height = 0;
@@ -57,17 +57,17 @@ in
         stack_duplicates = true;
         hide_duplicate_count = false;
         show_indicators = "yes";
-        
+
         ### Icons ###
         icon_position = "left";
         min_icon_size = 0;
         max_icon_size = 32;
         icon_path = "${config.home.homeDirectory}/.icons/";
-        
+
         ### History ###
         sticky_history = "yes";
         history_length = 20;
-        
+
         ### Misc/Advanced ###
         dmenu = "${pkgs.dmenu}/bin/dmenu -p dunst:";
         browser = "${pkgs.xdg-utils}/bin/xdg-open";
@@ -77,23 +77,23 @@ in
         corner_radius = 15;
         corners = "all";
         ignore_dbusclose = false;
-        
+
         ### Wayland ###
         force_xwayland = false;
-        
+
         ### Legacy ###
         force_xinerama = false;
-        
+
         ### Mouse ###
         mouse_left_click = "do_action, close_current";
         mouse_middle_click = "close_current";
         mouse_right_click = "close_all";
       };
-      
+
       experimental = {
         per_monitor_dpi = false;
       };
-      
+
       # Using nix-colors for theming
       urgency_low = {
         background = "#${colors.base00}";
@@ -102,7 +102,7 @@ in
         timeout = 10;
         default_icon = "${config.home.homeDirectory}/.icons/bell";
       };
-      
+
       urgency_normal = {
         background = "#${colors.base00}";
         foreground = "#${colors.base05}";
@@ -110,7 +110,7 @@ in
         timeout = 10;
         default_icon = "${config.home.homeDirectory}/.icons/bell";
       };
-      
+
       urgency_critical = {
         background = "#${colors.base00}";
         foreground = "#${colors.base08}";

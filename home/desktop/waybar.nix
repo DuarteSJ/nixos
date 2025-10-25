@@ -41,10 +41,10 @@
           on-click = "activate";
           sort-by-number = true;
           persistent-workspaces = {
-            "1" = [];
-            "2" = [];
-            "3" = [];
-            "4" = [];
+            "1" = [ ];
+            "2" = [ ];
+            "3" = [ ];
+            "4" = [ ];
           };
         };
 
@@ -66,7 +66,7 @@
         temperature = {
           critical-threshold = 80;
           format = "<span color='#${config.colorScheme.palette.base0C}'>{icon}</span> {temperatureC}°C";
-          format-icons = ["" "" ""];
+          format-icons = [ "" "" "" ];
           on-click = "alacritty -e btop";
         };
 
@@ -79,7 +79,7 @@
           format-full = "<span color='#${config.colorScheme.palette.base0B}'>{icon}</span> {capacity}%";
           format-charging = "<span color='#${config.colorScheme.palette.base0D}'>󰂄</span> {capacity}%";
           format-plugged = "<span color='#${config.colorScheme.palette.base0D}'></span> {capacity}%";
-          format-icons = ["" "" "" "" ""];
+          format-icons = [ "" "" "" "" "" ];
         };
 
         network = {
@@ -103,7 +103,7 @@
             phone = "";
             portable = "";
             car = "";
-            default = ["" "" ""];
+            default = [ "" "" "" ];
           };
           on-click = "pavucontrol";
         };

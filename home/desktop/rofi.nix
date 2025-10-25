@@ -3,7 +3,7 @@
   programs.rofi = {
     enable = false;
     package = pkgs.rofi-wayland;
-    
+
     extraConfig = {
       modi = "drun,run,filebrowser,window";
       show-icons = true;
@@ -15,7 +15,7 @@
       window-format = "{w} · {c} · {t}";
     };
   };
-  
+
   # Create the rofi theme file manually
   home.file.".config/rofi/config.rasi".text = with config.colorScheme.palette; ''
     /*****----- Configuration -----*****/
@@ -333,7 +333,7 @@
         text-color:                  @foreground-colour;
     }
   '';
-  
+
   # Create launcher script that uses the nix-managed rofi
   home.file.".local/bin/rofi-launcher" = {
     executable = true;
@@ -342,45 +342,45 @@
       rofi -show drun
     '';
   };
-  
+
   # Create powermenu script
   home.file.".local/bin/rofi-powermenu" = {
     executable = true;
     text = ''
-      #!/run/current-system/sw/bin/bash
+            #!/run/current-system/sw/bin/bash
       
-      # Options
-      shutdown="⏻ Shutdown"
-      reboot=" Reboot"
-      lock=" Lock"
-      logout=" Logout"
-      sleep=" Sleep"
+            # Options
+            shutdown="⏻ Shutdown"
+            reboot=" Reboot"
+            lock=" Lock"
+            logout=" Logout"
+            sleep=" Sleep"
       
-      # Variable
-      options="$lock\n$sleep\n$shutdown\n$reboot\n$logout"
+            # Variable
+            options="$lock\n$sleep\n$shutdown\n$reboot\n$logout"
       
-      # Show rofi menu
-      chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
+            # Show rofi menu
+            chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
       
-      case $chosen in
-          $shutdown)
-              systemctl poweroff
-              ;;
-          $reboot)
-              systemctl reboot
-              ;;
-          $lock)
-              hyprlock
-              ;;
-          $logout)
-              hyprctl dispatch exit
-              ;;
-          $sleep)
-	      wpctl set-mute @DEFAULT_SINK@ toggle
-              systemctl sleep
-	      wpctl set-mute @DEFAULT_SINK@ toggle
-              ;;
-      esac
+            case $chosen in
+                $shutdown)
+                    systemctl poweroff
+                    ;;
+                $reboot)
+                    systemctl reboot
+                    ;;
+                $lock)
+                    hyprlock
+                    ;;
+                $logout)
+                    hyprctl dispatch exit
+                    ;;
+                $sleep)
+      	      wpctl set-mute @DEFAULT_SINK@ toggle
+                    systemctl sleep
+      	      wpctl set-mute @DEFAULT_SINK@ toggle
+                    ;;
+            esac
     '';
   };
 }

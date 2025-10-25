@@ -6,7 +6,8 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
@@ -93,24 +94,24 @@
     description = "Duarte S. Jose";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    #  thunderbird
+      #  thunderbird
     ];
   };
-  
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   programs = {
     # Enable hyprland
     hyprland = {
       enable = true;
-      xwayland.enable=true;
+      xwayland.enable = true;
     };
 
     # Enable zsh
     zsh.enable = true;
   };
 
-  hardware.bluetooth.enable = true;  # if you use Bluetooth
+  hardware.bluetooth.enable = true; # if you use Bluetooth
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

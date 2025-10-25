@@ -3,12 +3,12 @@
 let
   spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   colors = config.colorScheme.palette;
-  
+
   # Flow theme with nix-colors integration
   flowThemeWithColors = {
     name = "flow-nix-colors";
     src = spicePkgs.themes.ziro.src;
-    
+
     # Enable theme features
     injectCss = true;
     injectThemeJs = true;
@@ -16,7 +16,7 @@ let
     sidebarConfig = true;
     homeConfig = true;
     overwriteAssets = false;
-    
+
     # Additional CSS to replace Flow theme colors with nix-colors
     additionalCss = ''
       :root {
@@ -39,16 +39,16 @@ in
 {
   programs.spicetify = {
     enable = true;
-    
+
     theme = flowThemeWithColors;
-    
+
     enabledExtensions = with spicePkgs.extensions; [
       adblock
       shuffle
       keyboardShortcut
       loopyLoop
     ];
-    
+
     enabledCustomApps = with spicePkgs.apps; [
       newReleases
       lyricsPlus

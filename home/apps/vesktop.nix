@@ -8,7 +8,7 @@ in
     settings = {
       disableMinSize = true;
       minimizeToTray = false;
-      splashTheming = true; 
+      splashTheming = true;
       transparent = true;
       plugins = {
         ChatInputButtonAPI.enabled = true;
@@ -189,7 +189,7 @@ in
       };
     };
   };
-  
+
   xdg.configFile."vesktop/settings/quickCss.css".text = ''
     @import url('https://refact0r.github.io/midnight-discord/build/midnight.css');
 
