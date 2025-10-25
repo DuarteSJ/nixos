@@ -45,24 +45,24 @@
           foreground = "#${base05}";
         };
         normal = {
-          black   = "#${base01}";
-          red     = "#${base08}";
-          green   = "#${base0B}";
-          yellow  = "#${base0A}";
-          blue    = "#${base0D}";
+          black = "#${base01}";
+          red = "#${base08}";
+          green = "#${base0B}";
+          yellow = "#${base0A}";
+          blue = "#${base0D}";
           magenta = "#${base0E}";
-          cyan    = "#${base0C}";
-          white   = "#${base05}";
+          cyan = "#${base0C}";
+          white = "#${base05}";
         };
         bright = {
-          black   = "#${base03}";
-          red     = "#${base08}";
-          green   = "#${base0B}";
-          yellow  = "#${base0A}";
-          blue    = "#${base0D}";
+          black = "#${base03}";
+          red = "#${base08}";
+          green = "#${base0B}";
+          yellow = "#${base0A}";
+          blue = "#${base0D}";
           magenta = "#${base0E}";
-          cyan    = "#${base0C}";
-          white   = "#${base07}";
+          cyan = "#${base0C}";
+          white = "#${base07}";
         };
       };
     };

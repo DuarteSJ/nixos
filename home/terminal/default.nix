@@ -2,15 +2,15 @@
 { pkgs, ... }:
 
 {
-	imports = [
-		./zsh.nix
-		./alacritty.nix
-		./cava.nix
-		./fastfetch.nix
-		./bat.nix
-		./btop.nix
-		./nvf.nix
+  imports = [
+    ./zsh.nix
+    ./alacritty.nix
+    ./cava.nix
+    ./fastfetch.nix
+    ./bat.nix
+    ./btop.nix
+    ./nvf.nix
     ./starship.nix
-	];
+  ];
 
 }

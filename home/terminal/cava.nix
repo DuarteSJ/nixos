@@ -23,7 +23,7 @@ in
         bars = 0;
         bar_width = 3;
         bar_spacing = 2;
-        
+
         # Lower and higher cutoff frequencies for lowest and highest bars
         # the bandwidth of the visualizer.
         # Note: there is a minimum total bandwidth of 43Mhz x number of bars.
