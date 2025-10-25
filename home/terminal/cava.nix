@@ -7,15 +7,11 @@ in
     enable = true;
     settings = {
       general = {
-        # Smoothing mode. Can be 'normal', 'scientific' or 'waves'. DEPRECATED as of 0.6.0
-        # mode = "normal";
-        
         # Accepts only non-negative values.
         framerate = 60;
 
         # 'autosens' will attempt to decrease sensitivity if the bars peak. 1 = on, 0 = off
         # new as of 0.6.0 autosens of low values (dynamic range)
-        # 'overshoot' allows bars to overshoot (in % of terminal height) without initiating autosens. DEPRECATED as of 0.6.0
         autosens = 1;
 
         # Manual sensitivity in %. If autosens is enabled, this will only be the initial value.
@@ -44,17 +40,6 @@ in
         # Audio capturing method. Possible methods are: 'pulse', 'alsa', 'fifo', 'sndio' or 'oss'.
         # Defaults to 'pulse', 'alsa' or 'fifo', in that order, dependent on what support cava was built with.
         method = "pulse";
-
-        # Source
-        # source = "auto";
-
-        # Method settings
-        # For pulse 'source' will be the source. Default: 'auto', which uses the monitor source of the default sink
-        # (all pulseaudio sinks(outputs) have 'monitor' sources(inputs) associated with them).
-        # For alsa 'source' will be the capture device.
-        # For fifo 'source' will be the path to fifo-file.
-        # For sndio 'source' will be the capture device. Defaults to the default source.
-        # For oss 'source' will be the capture device. Usually /dev/dsp, sometimes /dev/dsp0 or /dev/dsp1.
       };
 
       output = {
@@ -117,35 +102,9 @@ in
       };
 
       smoothing = {
-        # Percentage value for integral smoothing. Takes values from 0 - 100.
-        # Higher values means smoother, but less precise. 0 to disable.
-        # DEPRECATED as of 0.6.0
-        integral = 77;
-
         # Disables or enables the so-called "Monstercat smoothing" with or without "waves". Set to 0 to disable.
         monstercat = 0;
         waves = 0;
-
-        # Set gravity percentage for "drop off". Higher values means bars will drop faster.
-        # Accepts only non-negative values. 50 means half gravity, 200 means double. Set to 0 to disable "drop off".
-        # DEPRECATED as of 0.6.0
-        gravity = 100;
-
-        # In bar height, bars that would have been lower that this will not be drawn.
-        # DEPRECATED as of 0.6.0
-        ignore = 0;
-      };
-
-      eq = {
-        # This one is tricky. You can have as much keys as you want.
-        # Remember to uncomment more then one key! More keys = more precision.
-        # Look at readme.md on github for further explanations and examples.
-        # DEPRECATED as of 0.6.0
-        "1" = 1; # bass
-        "2" = 1;
-        "3" = 1; # midtone
-        "4" = 1;
-        "5" = 1; # treble
       };
     };
   };
