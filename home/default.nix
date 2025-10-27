@@ -16,6 +16,7 @@
     ./desktop
     ./scripts
     ./terminal
+    ./nvim
   ];
 
   colorScheme = inputs.nix-colors.colorSchemes.nord;
