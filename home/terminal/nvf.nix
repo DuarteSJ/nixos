@@ -7,8 +7,8 @@
 
       # Tab settings
       options = {
-        tabstop = 2;
-        shiftwidth = 2;
+        tabstop = 4;
+        shiftwidth = 4;
         expandtab = true;
         autoindent = true;
         conceallevel = 2;
@@ -202,7 +202,7 @@
             local subdirs = {
               "templates",
               "daily",
-              "zettelkasten"
+              "zettelkasten",
             }
 
             for _, dir in ipairs(subdirs) do
@@ -410,6 +410,11 @@
           mode = "n";
           key = "<leader>ol";
           action = ":ObsidianLinks<CR>";
+        }
+        {
+          mode = "n";
+          key = "<leader>ot";
+          action = ":ObsidianNewFromTemplate<CR>";
         }
       ];
     };
