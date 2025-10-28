@@ -2,8 +2,8 @@
     programs.nvf.settings.vim = {
         # Tab settings
         options = {
-            tabstop = 2;
-            shiftwidth = 2;
+            tabstop = 4;
+            shiftwidth = 4;
             expandtab = true;
             autoindent = true;
             conceallevel = 2;
@@ -15,6 +15,9 @@
             providers.wl-copy.enable = true;
             registers = "unnamedplus";
         };
+
+        # Telescope for file finding
+        telescope.enable = true;
 
         # Copilot configuration
         assistant.copilot = {
@@ -33,6 +36,15 @@
         };
 
         extraPlugins = {
+            # Better notifications
+            nvim-notify = {
+                package = pkgs.vimPlugins.nvim-notify;
+                setup = ''
+                    require('notify').setup()
+                    vim.notify = require('notify')
+                '';
+            };
+
             # Mini Move for moving lines and selections
             mini-move = {
                 package = pkgs.vimPlugins.mini-nvim;
@@ -44,7 +56,6 @@
                         right = '<A-l>',
                         down = '<A-j>',
                         up = '<A-k>',
-
                         -- Move current line in Normal mode
                         line_left = '<A-h>',
                         line_right = '<A-l>',
@@ -55,12 +66,31 @@
                 '';
             };
 
-            # nvim-notify for better notifications
-            nvim-notify = {
-                package = pkgs.vimPlugins.nvim-notify;
+            # Automatically close brackets, quotes, parentheses
+            mini-pairs = {
+                package = pkgs.vimPlugins.mini-nvim;
                 setup = ''
-                    require('notify').setup()
-                    vim.notify = require('notify')
+                    require('mini.pairs').setup()
+                '';
+            };
+
+            # Add/change/delete surrounding pairs
+            mini-surround = {
+                package = pkgs.vimPlugins.mini-nvim;
+                setup = ''
+                    require('mini.surround').setup()
+                '';
+            };
+            # Enhanced file explorer
+            mini-files = {
+                package = pkgs.vimPlugins.mini-nvim;
+                setup = ''
+                    require('mini.files').setup({
+                        windows = {
+                            preview = true,
+                            width_preview = 50,
+                        },
+                    })
                 '';
             };
         };

@@ -3,8 +3,8 @@
         # Toggle file tree with Ctrl+N
         {
             mode = "n";
-            key = "<C-n>";
-            action = ":Neotree toggle<CR>";
+            key = "<leader>e";
+            action = "<cmd>lua require('mini.files').open()<CR>";
         }
         # Close current buffer with Leader+X
         {
