@@ -20,11 +20,13 @@
             };
 
             # Show available keybindings in popup
-            which-key = {
-                package = pkgs.vimPlugins.which-key-nvim;
+            mini-clue = {
+                package = pkgs.vimPlugins.mini-nvim;
                 setup = ''
-                    require('which-key').setup({
-                        delay = 500,
+                    require('mini.clue').setup({
+                        triggers = {
+                          { mode = 'n', keys = '<leader>' },
+                        },
                     })
                 '';
             };
