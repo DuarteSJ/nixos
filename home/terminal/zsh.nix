@@ -92,6 +92,26 @@
           return 1
         fi
       }
+        # Run nixpkgs-lint in a given path
+        lintnix() {
+          if [[ -z "$1" ]]; then
+            echo -e "\033[1;33mUsage:\033[0m lintnix <path>"
+            return 1
+          fi
+          if [[ ! -d "$1" ]]; then
+            echo -e "\033[1;31m✗ Error:\033[0m '$1' is not a valid directory."
+            return 1
+          fi
+          if nix run github:nix-community/nixpkgs-lint -- "$1"; then
+            echo -e "\033[1;32m✓ Success:\033[0m Lint completed for '$1'."
+          else
+            echo -e "\033[1;31m✗ Error:\033[0m Linting failed for '$1'."
+            return 1
+          fi
+        }
+
+      # Extra stuff to start zsh with
+      [[ -n $ZSH_CMDS ]] && eval "$ZSH_CMDS"
         '';
         autosuggestion.enable = true;
         enableCompletion = true;
