@@ -54,48 +54,48 @@
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
     };
     initContent = with config.colorScheme.palette; ''
-                  # Custom prompt
-                  # export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
-                  # export RPROMPT='%F{#${base0E}}'"''${NIX_PS1_OVERRIDE}"'%f'
+      # Custom prompt
+      # export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
+      # export RPROMPT='%F{#${base0E}}'"''${NIX_PS1_OVERRIDE}"'%f'
 
-                  # Tree with depth
-                  ltl() {
-                    if [[ -z "$1" ]]; then
-                      echo -e "\033[1;33mUsage:\033[0m ltl <depth_level>"
-                      return 1
-                    fi
-                    eza --color=always --tree --level="$1"
-                  }
+      # Tree with depth
+      ltl() {
+        if [[ -z "$1" ]]; then
+          echo -e "\033[1;33mUsage:\033[0m ltl <depth_level>"
+          return 1
+        fi
+        eza --color=always --tree --level="$1"
+      }
 
-                  # Copy file content
-                  copyfile() {
-                    if [[ -z "$1" ]]; then
-                      echo -e "\033[1;33mUsage:\033[0m copyfile <filename>"
-                      return 1
-                    fi
-                    if [[ ! -f "$1" ]]; then
-                      echo -e "\033[1;31m✗ Error:\033[0m File '$1' not found."
-                      return 1
-                    fi
-                    if wl-copy < "$1"; then
-                      echo -e "\033[1;32m✓ Success:\033[0m $1's content copied."
-                    else
-                      echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
-                      return 1
-                    fi
-                  }
+      # Copy file content
+      copyfile() {
+        if [[ -z "$1" ]]; then
+          echo -e "\033[1;33mUsage:\033[0m copyfile <filename>"
+          return 1
+        fi
+        if [[ ! -f "$1" ]]; then
+          echo -e "\033[1;31m✗ Error:\033[0m File '$1' not found."
+          return 1
+        fi
+        if wl-copy < "$1"; then
+          echo -e "\033[1;32m✓ Success:\033[0m $1's content copied."
+        else
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
+          return 1
+        fi
+      }
 
-                  # Copy pwd
-                  cpwd() {
-                    local current_path=$(pwd)
-                    if echo "$current_path" | wl-copy; then
-                      echo -e "\033[1;32m✓ Success:\033[0m '$current_path' copied."
-                    else
-                      echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
-                      return 1
-                    fi
-                  }
-                    # Run nixpkgs-lint in a given path
+      # Copy pwd
+      cpwd() {
+        local current_path=$(pwd)
+        if echo "$current_path" | wl-copy; then
+          echo -e "\033[1;32m✓ Success:\033[0m '$current_path' copied."
+        else
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
+          return 1
+        fi
+      }
+        # Run nixpkgs-lint in a given path
       nixfmt() {
         if [[ -z "$1" ]]; then
           echo -e "\033[1;33mUsage:\033[0m nixfmt <path>"
@@ -116,8 +116,8 @@
         fi
       }
 
-                  # Extra stuff to start zsh with
-                  [[ -n $ZSH_CMDS ]] && eval "$ZSH_CMDS"
+      # Extra stuff to start zsh with
+      [[ -n $ZSH_CMDS ]] && eval "$ZSH_CMDS"
     '';
     autosuggestion.enable = true;
     enableCompletion = true;
