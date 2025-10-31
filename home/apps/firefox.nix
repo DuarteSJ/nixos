@@ -1,8 +1,10 @@
-{ config, pkgs, ... }:
-let
-  colors = config.colorscheme.colors;
-in
 {
+  config,
+  pkgs,
+  ...
+}: let
+  colors = config.colorscheme.colors;
+in {
   programs.firefox = {
     enable = true;
 
@@ -215,35 +217,50 @@ in
         default = "ddg";
         engines = {
           "Nix Packages" = {
-            urls = [{
-              template = "https://search.nixos.org/packages";
-              params = [
-                { name = "type"; value = "packages"; }
-                { name = "query"; value = "{searchTerms}"; }
-              ];
-            }];
+            urls = [
+              {
+                template = "https://search.nixos.org/packages";
+                params = [
+                  {
+                    name = "type";
+                    value = "packages";
+                  }
+                  {
+                    name = "query";
+                    value = "{searchTerms}";
+                  }
+                ];
+              }
+            ];
             icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-            definedAliases = [ "@np" ];
+            definedAliases = ["@np"];
           };
 
           "Home Manager" = {
-            urls = [{
-              template = "https://mynixos.com/home-manager/options/programs.{searchTerms}";
-            }];
+            urls = [
+              {
+                template = "https://mynixos.com/home-manager/options/programs.{searchTerms}";
+              }
+            ];
             icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-            definedAliases = [ "@hm" ];
+            definedAliases = ["@hm"];
           };
 
           "reddit" = {
-            urls = [{
-              template = "https://www.reddit.com/search";
-              params = [
-                { name = "q"; value = "{searchTerms}"; }
-              ];
-            }];
+            urls = [
+              {
+                template = "https://www.reddit.com/search";
+                params = [
+                  {
+                    name = "q";
+                    value = "{searchTerms}";
+                  }
+                ];
+              }
+            ];
             icon = "https://www.reddit.com/favicon.ico";
             updateInterval = 24 * 60 * 60 * 1000;
-            definedAliases = [ "@r" ];
+            definedAliases = ["@r"];
           };
         };
       };

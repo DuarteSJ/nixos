@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   home.packages = [
     (pkgs.writeShellScriptBin "alt-tab" ''
       # Get current workspace

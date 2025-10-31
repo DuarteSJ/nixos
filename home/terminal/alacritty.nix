@@ -1,5 +1,4 @@
-{ config, ... }:
-{
+{config, ...}: {
   programs.alacritty = {
     enable = true;
     settings = {
@@ -25,8 +24,14 @@
       };
       window = {
         opacity = 1;
-        padding = { x = 15; y = 15; };
-        dimensions = { columns = 50; lines = 12; };
+        padding = {
+          x = 15;
+          y = 15;
+        };
+        dimensions = {
+          columns = 50;
+          lines = 12;
+        };
       };
       cursor.style = {
         shape = "Underline";

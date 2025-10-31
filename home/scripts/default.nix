@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   imports = [
     ./alt-tab.nix
     ./switch-bg.nix
@@ -10,4 +8,3 @@
     ./invis-cava.nix
   ];
 }
-

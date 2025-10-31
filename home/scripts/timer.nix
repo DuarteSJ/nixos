@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   home.packages = [
     (pkgs.writeShellScriptBin "timer" ''
       # Ensure at least one argument is provided

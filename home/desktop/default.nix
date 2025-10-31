@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   imports = [
     ./hyprland.nix
     ./hyprlock.nix
@@ -9,4 +7,3 @@
     ./dunst.nix
   ];
 }
-

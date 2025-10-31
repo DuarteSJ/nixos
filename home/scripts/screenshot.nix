@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   home.packages = [
     (pkgs.writeShellScriptBin "screenshot" ''
       # Ensure screenshots directory exists
@@ -10,15 +13,15 @@
         -s "${config.colorScheme.palette.base0D}40" \
         -w 3 \
         -B "${config.colorScheme.palette.base01}99")
-      
+
       if [ $? -eq 0 ]; then
         # Small delay to let slurp's UI fully disappear
         sleep 0.1
-        
+
         tempfile=$(mktemp --suffix=.png)
         ${pkgs.grim}/bin/grim -g "$selection" "$tempfile"
         ${pkgs.wl-clipboard}/bin/wl-copy < "$tempfile"
-        
+
         # First notification: click to save
         action=$(${pkgs.dunst}/bin/dunstify -u normal -i "$tempfile" \
           -A "save,Save" \

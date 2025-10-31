@@ -1,7 +1,5 @@
 # Aggregates user scripts
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   imports = [
     ./zsh.nix
     ./alacritty.nix
@@ -11,5 +9,4 @@
     ./btop.nix
     ./starship.nix
   ];
-
 }

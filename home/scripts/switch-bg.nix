@@ -1,9 +1,11 @@
-{ config, pkgs, ... }:
-let
+{
+  config,
+  pkgs,
+  ...
+}: let
   # nix-colors exposes this when you configure it in home-manager
   themeName = config.colorScheme.slug or "default";
-in
-{
+in {
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''
       set -euo pipefail
@@ -22,7 +24,7 @@ in
       fi
       # Get current wallpaper from swww (handle case where swww isn't running or no wallpaper set)
       current_wallpaper=$(${pkgs.swww}/bin/swww query 2>/dev/null | ${pkgs.gnugrep}/bin/grep -oP '(?<=image: ).*' | ${pkgs.coreutils}/bin/head -n1 || echo "")
-      
+
       # Find current background index
       current_index=-1
       if [[ -n "$current_wallpaper" ]]; then
@@ -45,7 +47,7 @@ in
       ${pkgs.swww}/bin/swww img "$next_background" --transition-type random --transition-duration 0.5
       # Extract just the filename for display
       background_name=$(${pkgs.coreutils}/bin/basename "$next_background" | ${pkgs.gnused}/bin/sed 's/\.[^.]*$//')
-      
+
       # Send notification about wallpaper change
       ${pkgs.dunst}/bin/dunstify -t 3000 -i "$next_background" "Wallpaper Changed" "$background_name\n$(( next_index + 1 ))/''${#backgrounds[@]} • $cur_theme_name theme"
     '')

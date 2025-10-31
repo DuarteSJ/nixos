@@ -1,4 +1,8 @@
-{ config, pkgs, ... }: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   programs.nvf.settings.vim = {
     extraPlugins.obsidian = {
       package = pkgs.vimPlugins.obsidian-nvim;

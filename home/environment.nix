@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   home.sessionPath = [
     "$HOME/.local/bin"
   ];
@@ -8,4 +11,3 @@
     EDITOR = "nvim";
   };
 }
-

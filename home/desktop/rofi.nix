@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   programs.rofi = {
     enable = false;
     package = pkgs.rofi-wayland;
@@ -33,7 +36,7 @@
     /*****----- Global Properties -----*****/
     * {
         font:                        "JetBrainsMono Nerd Font 13";
-        
+
         /* nix-colors integration */
         background:                  #${base00};
         background-alt:              #${base01};
@@ -41,7 +44,7 @@
         selected:                    #${base0D};
         active:                      #${base0B};
         urgent:                      #${base08};
-        
+
         border-colour:               var(selected);
         handle-colour:               var(selected);
         background-colour:           var(background);
@@ -119,7 +122,7 @@
         background-color:            inherit;
         text-color:                  inherit;
     }
-    
+
     textbox-prompt-colon {
         enabled:                     true;
         padding:                     5px 0px;
@@ -128,7 +131,7 @@
         background-color:            inherit;
         text-color:                  inherit;
     }
-    
+
     entry {
         enabled:                     true;
         padding:                     5px 0px;
@@ -138,14 +141,14 @@
         placeholder:                 "Search...";
         placeholder-color:           inherit;
     }
-    
+
     num-filtered-rows {
         enabled:                     true;
         expand:                      false;
         background-color:            inherit;
         text-color:                  inherit;
     }
-    
+
     textbox-num-sep {
         enabled:                     true;
         expand:                      false;
@@ -153,14 +156,14 @@
         background-color:            inherit;
         text-color:                  inherit;
     }
-    
+
     num-rows {
         enabled:                     true;
         expand:                      false;
         background-color:            inherit;
         text-color:                  inherit;
     }
-    
+
     case-indicator {
         enabled:                     true;
         background-color:            inherit;
@@ -190,7 +193,7 @@
         text-color:                  @foreground-colour;
         cursor:                      "default";
     }
-    
+
     scrollbar {
         handle-width:                5px;
         handle-color:                @handle-colour;
@@ -211,7 +214,7 @@
         text-color:                  @foreground-colour;
         cursor:                      pointer;
     }
-    
+
     element normal.normal {
         background-color:            var(normal-background);
         text-color:                  var(normal-foreground);
@@ -248,14 +251,14 @@
         background-color:            var(alternate-active-background);
         text-color:                  var(alternate-active-foreground);
     }
-    
+
     element-icon {
         background-color:            transparent;
         text-color:                  inherit;
         size:                        24px;
         cursor:                      inherit;
     }
-    
+
     element-text {
         background-color:            transparent;
         text-color:                  inherit;
@@ -278,7 +281,7 @@
         background-color:            transparent;
         text-color:                  @foreground-colour;
     }
-    
+
     button {
         padding:                     10px;
         border:                      0px 0px 2px 0px;
@@ -288,7 +291,7 @@
         text-color:                  inherit;
         cursor:                      pointer;
     }
-    
+
     button selected {
         border:                      2px 2px 0px 2px;
         border-radius:               10px 10px 0px 0px;
@@ -308,7 +311,7 @@
         background-color:            transparent;
         text-color:                  @foreground-colour;
     }
-    
+
     textbox {
         padding:                     10px;
         border:                      0px solid;
@@ -323,7 +326,7 @@
         blink:                       true;
         markup:                      true;
     }
-    
+
     error-message {
         padding:                     10px;
         border:                      2px solid;
@@ -347,40 +350,40 @@
   home.file.".local/bin/rofi-powermenu" = {
     executable = true;
     text = ''
-            #!/run/current-system/sw/bin/bash
-      
-            # Options
-            shutdown="⏻ Shutdown"
-            reboot=" Reboot"
-            lock=" Lock"
-            logout=" Logout"
-            sleep=" Sleep"
-      
-            # Variable
-            options="$lock\n$sleep\n$shutdown\n$reboot\n$logout"
-      
-            # Show rofi menu
-            chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
-      
-            case $chosen in
-                $shutdown)
-                    systemctl poweroff
-                    ;;
-                $reboot)
-                    systemctl reboot
-                    ;;
-                $lock)
-                    hyprlock
-                    ;;
-                $logout)
-                    hyprctl dispatch exit
-                    ;;
-                $sleep)
-      	      wpctl set-mute @DEFAULT_SINK@ toggle
-                    systemctl sleep
-      	      wpctl set-mute @DEFAULT_SINK@ toggle
-                    ;;
-            esac
+      #!/run/current-system/sw/bin/bash
+
+      # Options
+      shutdown="⏻ Shutdown"
+      reboot=" Reboot"
+      lock=" Lock"
+      logout=" Logout"
+      sleep=" Sleep"
+
+      # Variable
+      options="$lock\n$sleep\n$shutdown\n$reboot\n$logout"
+
+      # Show rofi menu
+      chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
+
+      case $chosen in
+          $shutdown)
+              systemctl poweroff
+              ;;
+          $reboot)
+              systemctl reboot
+              ;;
+          $lock)
+              hyprlock
+              ;;
+          $logout)
+              hyprctl dispatch exit
+              ;;
+          $sleep)
+       wpctl set-mute @DEFAULT_SINK@ toggle
+              systemctl sleep
+       wpctl set-mute @DEFAULT_SINK@ toggle
+              ;;
+      esac
     '';
   };
 }
