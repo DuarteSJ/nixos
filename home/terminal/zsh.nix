@@ -25,14 +25,7 @@
       "auto_cd"
     ];
     shellAliases = {
-      # Temporary
-      cljrepl = ''
-        clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version "1.0.0"} cider/cider-nrepl {:mvn/version "0.42.1"}}}' \
-            -M -m nrepl.cmdline \
-            --middleware '["cider.nrepl/cider-middleware"]' \
-            --interactive
-      '';
-      # Permanent
+      cljrepl = "clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.0.0\"} cider/cider-nrepl {:mvn/version \"0.42.1\"}}}' -M -m nrepl.cmdline --middleware '[\"cider.nrepl/cider-middleware\"]' --interactive";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
       la = "l -a";

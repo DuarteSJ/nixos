@@ -4,7 +4,7 @@
     ./switch-bg.nix
     ./timer.nix
     ./screenshot.nix
-    ./pydev.nix
+    ./devenv.nix
     ./invis-cava.nix
   ];
 }
