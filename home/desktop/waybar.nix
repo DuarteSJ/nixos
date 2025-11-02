@@ -97,7 +97,7 @@
 
         network = {
           format-wifi = "<span color='#${config.colorScheme.palette.base09}'> </span> {signalStrength}%";
-          format-ethernet = "<span color='#${config.colorScheme.palette.base09}'></span> {cidr}";
+          format-ethernet = "<span color='#${config.colorScheme.palette.base09}'>󰈁</span> {cidr}";
           tooltip-format = "{ifname} via {gwaddr}";
           format-linked = "<span color='#${config.colorScheme.palette.base09}'></span> {ifname} (No IP)";
           format-disconnected = "<span color='#${config.colorScheme.palette.base09}'></span> ⚠ ";
