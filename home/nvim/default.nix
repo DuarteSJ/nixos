@@ -5,7 +5,7 @@
   ...
 }: let
   # Optional modules
-  enableJupyter = false;
+  enableJupyter = true;
   enableLatex = true;
   enableNotes = true;
   enableClojure = true;
