@@ -2,6 +2,7 @@
 {pkgs, ...}: {
   imports = [
     ./zsh.nix
+    ./bash.nix
     ./alacritty.nix
     ./cava.nix
     ./fastfetch.nix

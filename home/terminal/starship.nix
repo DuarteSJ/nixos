@@ -10,11 +10,11 @@
     settings = with config.colorScheme.palette; {
       # Format
       format = ''
-        $username$hostname$directory$git_branch$git_status$fill$cmd_duration$nix_shell
+        $username$hostname$directory$git_branch$git_status$fill$cmd_duration$nix_shell$shell
         $character
       '';
       # format = ''
-      #   [╭─](bold #${base03})$username$hostname$directory$git_branch$git_status$fill$cmd_duration$nix_shell
+      #   [╭─](bold #${base03})$username$hostname$directory$git_branch$git_status$fill$cmd_duration$nix_shell$shell
       #   [╰─](bold #${base03})$character
       # '';
 
@@ -75,6 +75,15 @@
         unknown_msg = "unknown";
         format = "[$symbol $state( \\($name\\))]($style) ";
         symbol = "";
+      };
+
+      # Shell indicator
+      shell = {
+        bash_indicator = "[bash](bold #${base09})";
+        zsh_indicator = "";
+        fish_indicator = "";
+        disabled = false;
+        format = "[$indicator ]($style)";
       };
 
       # Username and Hostname
