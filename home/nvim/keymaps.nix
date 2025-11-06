@@ -4,10 +4,10 @@
   ...
 }: {
   programs.nvf.settings.vim.keymaps = [
-    # Toggle file tree with Ctrl+N
+    # Open file explorer with Ctrl+n
     {
       mode = "n";
-      key = "<leader>e";
+      key = "<C-n>";
       action = "<cmd>lua require('mini.files').open()<CR>";
     }
     # Close current buffer with Leader+X
@@ -26,27 +26,6 @@
       mode = "n";
       key = "<S-Tab>";
       action = ":bprevious<CR>";
-    }
-    # Window navigation with Ctrl+h/j/k/l
-    {
-      mode = "n";
-      key = "<C-h>";
-      action = "<C-w>h";
-    }
-    {
-      mode = "n";
-      key = "<C-j>";
-      action = "<C-w>j";
-    }
-    {
-      mode = "n";
-      key = "<C-k>";
-      action = "<C-w>k";
-    }
-    {
-      mode = "n";
-      key = "<C-l>";
-      action = "<C-w>l";
     }
   ];
 }
