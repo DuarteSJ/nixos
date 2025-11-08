@@ -7,11 +7,15 @@
 in {
   programs.vesktop = {
     enable = true;
+
     settings = {
       disableMinSize = true;
       minimizeToTray = false;
       splashTheming = true;
       transparent = true;
+    };
+
+    vencord.settings = {
       plugins = {
         ChatInputButtonAPI.enabled = true;
         CommandsAPI.enabled = true;
