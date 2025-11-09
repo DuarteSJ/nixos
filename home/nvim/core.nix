@@ -10,7 +10,8 @@
       shiftwidth = 4;
       expandtab = true;
       autoindent = true;
-      conceallevel = 2;
+      conceallevel = 0;
+      scrolloff = 9;
     };
 
     # Use system clipboard
@@ -85,6 +86,7 @@
           require('mini.surround').setup()
         '';
       };
+
       # Enhanced file explorer
       mini-files = {
         package = pkgs.vimPlugins.mini-nvim;

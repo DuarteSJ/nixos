@@ -24,6 +24,5 @@
       java.enable = true;
       markdown.enable = true;
     };
-    # TODO: fix this shi
   };
 }

@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }: {
   programs.nvf.settings.vim = {
@@ -10,12 +11,18 @@
 
     theme = {
       enable = true;
-      name = "nord";
+      name = lib.toLower config.colorScheme.name;
       transparent = true;
     };
 
     extraPlugins = {
-      # Highlight TODO, FIXME, NOTE, etc.
+        # Highlight and manage some common comments
+            #TODO:
+            #FIXME:
+            #NOTE:
+            #HACK:
+            #BUG:
+            #OPTIMIZE:
       todo-comments = {
         package = pkgs.vimPlugins.todo-comments-nvim;
         setup = ''
