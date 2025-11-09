@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   programs.nvf.settings.vim.extraPlugins.vimtex = {
     package = pkgs.vimPlugins.vimtex;
     setup = ''

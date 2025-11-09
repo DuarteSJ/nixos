@@ -4,22 +4,26 @@
   ...
 }: {
   programs.nvf.settings.vim = {
-    # Enable Clojure language support
+    # ==========================================
+    # Clojure Language Support
+    # ==========================================
     languages.clojure = {
       enable = true;
       treesitter.enable = true;
       lsp.enable = true;
     };
+
+    # ==========================================
+    # Clojure Development Plugins
+    # ==========================================
     extraPlugins = {
-      # Conjure for REPL integration
+      # REPL integration
       conjure = {
         package = pkgs.vimPlugins.conjure;
         setup = ''
           -- Conjure configuration
           vim.g["conjure#mapping#doc_word"] = "K"
-          vim.g["conjure#log#hud#width"] = 0.42
-          vim.g["conjure#log#hud#enabled"] = true
-          vim.g["conjure#log#hud#anchor"] = "SE"
+          vim.g["conjure#log#hud#enabled"] = false
 
           -- Auto-repl setup for Clojure CLI
           vim.g["conjure#client#clojure#nrepl#connection#auto_repl#enabled"] = true
@@ -28,14 +32,7 @@
           vim.g["conjure#client#clojure#nrepl#eval#auto_require"] = false
         '';
       };
-      # Structural editing for S-expressions
-      vim-sexp = {
-        package = pkgs.vimPlugins.vim-sexp;
-      };
-      # More intuitive keybindings for vim-sexp
-      vim-sexp-mappings = {
-        package = pkgs.vimPlugins.vim-sexp-mappings-for-regular-people;
-      };
+
       # Rainbow delimiters for matching parens
       rainbow-delimiters = {
         package = pkgs.vimPlugins.rainbow-delimiters-nvim;
@@ -44,9 +41,12 @@
         '';
       };
     };
-    # Clojure-specific keymaps
+
+    # ==========================================
+    # Clojure-specific Keymaps
+    # ==========================================
     keymaps = [
-      # Conjure evaluation mappings
+      # Evaluation mappings
       {
         mode = "n";
         key = "<localleader>eb";
@@ -67,7 +67,8 @@
         key = "<localleader>E";
         action = "<cmd>ConjureEvalVisual<CR>";
       }
-      # Conjure log management
+
+      # Log management
       {
         mode = "n";
         key = "<localleader>lv";
@@ -78,12 +79,15 @@
         key = "<localleader>lr";
         action = "<cmd>ConjureLogResetSoft<CR>";
       }
+
       # Documentation lookup
       {
         mode = "n";
         key = "<localleader>K";
         action = "<cmd>ConjureDocWord<CR>";
       }
+
+      # Run tests
       {
         mode = "n";
         key = "<localleader>rt";
@@ -91,7 +95,10 @@
       }
     ];
   };
-  # Ensure Clojure tools are available in the environment
+
+  # ==========================================
+  # Clojure Development Tools
+  # ==========================================
   home.packages = with pkgs; [
     clojure # Clojure CLI
     clojure-lsp # LSP server

@@ -1,21 +1,14 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}: let
-  # Optional modules
-  enableJupyter = true;
-  enableLatex = true;
+{lib, ...}: let
   enableNotes = true;
+  enableLatex = true;
+  enableJupyter = false;
   enableClojure = true;
 in {
   imports =
     [
       ./core.nix
-      ./languages.nix
-      ./ui.nix
       ./keymaps.nix
+      ./plugins.nix
     ]
     ++ lib.optionals enableNotes [./extra/notes.nix]
     ++ lib.optionals enableJupyter [./extra/jupyter.nix]

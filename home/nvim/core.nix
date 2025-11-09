@@ -1,30 +1,26 @@
 {
   config,
-  pkgs,
+  lib,
   ...
 }: {
   programs.nvf.settings.vim = {
-    # Tab settings
     options = {
       tabstop = 4;
       shiftwidth = 4;
       expandtab = true;
       autoindent = true;
-      conceallevel = 0;
+      conceallevel = 1;
       scrolloff = 9;
     };
 
-    # Use system clipboard
     clipboard = {
       enable = true;
       providers.wl-copy.enable = true;
       registers = "unnamedplus";
     };
 
-    # Telescope for file finding
     telescope.enable = true;
 
-    # Copilot configuration
     assistant.copilot = {
       enable = true;
       cmp.enable = false;
@@ -40,65 +36,30 @@
       mappings.suggestion.accept = "<C-l>";
     };
 
-    extraPlugins = {
-      # Better notifications
-      nvim-notify = {
-        package = pkgs.vimPlugins.nvim-notify;
-        setup = ''
-          require('notify').setup()
-          vim.notify = require('notify')
-        '';
-      };
+    lsp.enable = true;
 
-      # Mini Move for moving lines and selections
-      mini-move = {
-        package = pkgs.vimPlugins.mini-nvim;
-        setup = ''
-          require('mini.move').setup({
-            mappings = {
-              -- Move visual selection in Visual mode
-              left = '<A-h>',
-              right = '<A-l>',
-              down = '<A-j>',
-              up = '<A-k>',
-              -- Move current line in Normal mode
-              line_left = '<A-h>',
-              line_right = '<A-l>',
-              line_down = '<A-j>',
-              line_up = '<A-k>',
-            },
-          })
-        '';
-      };
+    autocomplete.nvim-cmp.enable = true;
 
-      # Automatically close brackets, quotes, parentheses
-      mini-pairs = {
-        package = pkgs.vimPlugins.mini-nvim;
-        setup = ''
-          require('mini.pairs').setup()
-        '';
-      };
+    languages = {
+      enableTreesitter = true;
+      nix.enable = true;
+      python.enable = true;
+      rust.enable = true;
+      clang.enable = true;
+      html.enable = true;
+      css.enable = true;
+      ts.enable = true;
+      java.enable = true;
+      markdown.enable = true;
+    };
 
-      # Add/change/delete surrounding pairs
-      mini-surround = {
-        package = pkgs.vimPlugins.mini-nvim;
-        setup = ''
-          require('mini.surround').setup()
-        '';
-      };
+    statusline.lualine.enable = true;
+    tabline.nvimBufferline.enable = true;
 
-      # Enhanced file explorer
-      mini-files = {
-        package = pkgs.vimPlugins.mini-nvim;
-        setup = ''
-          require('mini.files').setup({
-              windows = {
-                  preview = true,
-                  width_preview = 80,
-              },
-          })
-        '';
-      };
+    theme = {
+      enable = true;
+      name = lib.toLower config.colorScheme.name;
+      transparent = true;
     };
   };
 }
