@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   ...
 }: let
   colors = config.colorScheme.palette;
@@ -12,7 +11,7 @@ in {
       disableMinSize = true;
       minimizeToTray = false;
       splashTheming = true;
-      transparent = true;
+      transparencyOption = "mica";
     };
 
     vencord.settings = {

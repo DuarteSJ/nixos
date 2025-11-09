@@ -29,5 +29,6 @@
     obsidian
     vial
     alejandra
+    scrcpy
   ];
 }
