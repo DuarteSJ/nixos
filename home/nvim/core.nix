@@ -19,8 +19,41 @@
       registers = "unnamedplus";
     };
 
-    telescope.enable = true;
+    theme = {
+      enable = true;
+      name = lib.toLower config.colorScheme.name;
+      transparent = true;
+    };
 
+    statusline.lualine.enable = true;
+    tabline.nvimBufferline.enable = true;
+    notify.nvim-notify.enable = true;
+    binds.whichKey.enable = true;
+
+    telescope.enable = true;
+    mini = {
+      pairs.enable = true;
+      surround.enable = true;
+      files = {
+        enable = true;
+        setupOpts.windows = {
+          preview = true;
+          width_preview = 80;
+        };
+      };
+      move = {
+        enable = true;
+        setupOpts.mappings = {
+          left = "<A-h>";
+          right = "<A-l>";
+          down = "<A-j>";
+          up = "<A-k>";
+        };
+      };
+    };
+
+    lsp.enable = true;
+    autocomplete.nvim-cmp.enable = true;
     assistant.copilot = {
       enable = true;
       cmp.enable = false;
@@ -36,16 +69,14 @@
       mappings.suggestion.accept = "<C-l>";
     };
 
-    lsp.enable = true;
-
-    autocomplete.nvim-cmp.enable = true;
+    notes.todo-comments.enable = true;
 
     languages = {
       enableTreesitter = true;
       nix.enable = true;
-      python.enable = true;
       rust.enable = true;
       clang.enable = true;
+      python.enable = true;
       html.enable = true;
       css.enable = true;
       ts.enable = true;
@@ -53,13 +84,47 @@
       markdown.enable = true;
     };
 
-    statusline.lualine.enable = true;
-    tabline.nvimBufferline.enable = true;
+    keymaps = [
+      {
+        mode = "n";
+        key = "<C-n>";
+        action = "<cmd>lua require('mini.files').open()<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>x";
+        action = ":bdelete<CR>";
+      }
+      {
+        mode = "n";
+        key = "<Tab>";
+        action = ":bnext<CR>";
+      }
+      {
+        mode = "n";
+        key = "<S-Tab>";
+        action = ":bprevious<CR>";
+      }
+      {
+        mode = "i";
+        key = "kj";
+        action = "<Esc>";
+      }
+    ];
 
-    theme = {
-      enable = true;
-      name = lib.toLower config.colorScheme.name;
-      transparent = true;
-    };
+    autocmds = [
+      {
+        event = ["TextYankPost"];
+        pattern = ["*"];
+        command = ''
+          lua vim.highlight.on_yank({higroup="IncSearch", timeout=50})
+        '';
+      }
+      {
+        event = ["FileType"];
+        pattern = ["nix"];
+        command = "setlocal tabstop=2 shiftwidth=2";
+      }
+    ];
   };
 }

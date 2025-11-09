@@ -5,11 +5,7 @@
   enableClojure = true;
 in {
   imports =
-    [
-      ./core.nix
-      ./keymaps.nix
-      ./plugins.nix
-    ]
+    [./core.nix]
     ++ lib.optionals enableNotes [./extra/notes.nix]
     ++ lib.optionals enableJupyter [./extra/jupyter.nix]
     ++ lib.optionals enableLatex [./extra/latex.nix]
