@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   programs.nvf.settings.vim.extraPlugins.jupynium = {
     package = pkgs.vimUtils.buildVimPlugin {
       name = "jupynium.nvim";

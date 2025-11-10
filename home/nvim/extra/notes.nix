@@ -1,78 +1,61 @@
-{pkgs, ...}: {
+{lib, ...}: let
+  inherit (lib.generators) mkLuaInline;
+in {
   programs.nvf.settings.vim = {
-    extraPlugins.obsidian = {
-      package = pkgs.vimPlugins.obsidian-nvim;
-      setup = ''
-        -- Create vault directory structure if it doesn't exist
-        local vault_path = vim.fn.expand("~/notes")
-        if vim.fn.isdirectory(vault_path) == 0 then
-          vim.fn.mkdir(vault_path, "p")
-        end
+    notes.obsidian = {
+      enable = true;
 
-        -- Create subdirectories for organized structure
-        local subdirs = {
-          "templates",
-          "daily",
-          "zettelkasten",
-        }
+      setupOpts = {
+        workspaces = [
+          {
+            name = "notes";
+            path = "~/notes";
+          }
+        ];
 
-        for _, dir in ipairs(subdirs) do
-          local dir_path = vault_path .. "/" .. dir
-          if vim.fn.isdirectory(dir_path) == 0 then
-            vim.fn.mkdir(dir_path, "p")
-          end
-        end
+        completion = {
+          nvim_cmp = true;
+          min_chars = 2;
+        };
 
-        require('obsidian').setup({
-          workspaces = {
-            {
-              name = "notes",
-              path = "~/notes",
-            },
-          },
+        daily_notes = {
+          folder = "daily";
+          date_format = "%d-%m-%Y";
+          alias_format = "%B %-d, %Y";
+          template = "daily.md";
+        };
 
-          -- Completion of wiki links and tags
-          completion = {
-            nvim_cmp = true,
-            min_chars = 2,
-          },
-
-          -- Configure daily notes
-          daily_notes = {
-            folder = "daily",
-            date_format = "%d-%m-%Y",
-            alias_format = "%B %-d, %Y",
-            template = "daily.md",
-          },
-
-          -- Templates configuration
-          templates = {
-            subdir = "templates",
-            date_format = "%d-%m-%Y",
-            time_format = "%H:%M",
-            -- Template substitutions
-            substitutions = {
-              yesterday = function()
+        templates = {
+          subdir = "templates";
+          date_format = "%d-%m-%Y";
+          time_format = "%H:%M";
+          substitutions = {
+            yesterday = mkLuaInline ''
+              function()
                 return os.date("%d-%m-%Y", os.time() - 86400)
-              end,
-              tomorrow = function()
+              end
+            '';
+            tomorrow = mkLuaInline ''
+              function()
                 return os.date("%d-%m-%Y", os.time() + 86400)
-              end,
-            },
-          },
+              end
+            '';
+          };
+        };
 
-          -- Note ID function - use title as ID
-          note_id_func = function(title)
+        note_id_func = mkLuaInline ''
+          function(title)
             if title ~= nil then
               return title
             end
             -- If no title provided, use timestamp
             vim.notify("No title provided, using timestamp", vim.log.levels.WARN)
             return tostring(os.date("%d%m%Y%H%M%S"))
-          end,
+          end
+        '';
 
-          -- Note frontmatter - Zettelkasten style
-          note_frontmatter_func = function(note)
+        note_frontmatter_func = mkLuaInline ''
+          function(note)
             local out = {
               aliases = note.aliases,
               tags = note.tags,
@@ -87,43 +70,47 @@
             end
 
             return out
-          end,
+          end
+        '';
 
-          -- Follow URL behavior
-          follow_url_func = function(url)
+        follow_url_func = mkLuaInline ''
+          function(url)
             vim.fn.jobstart({"xdg-open", url})
-          end,
+          end
+        '';
 
-          -- Use wiki-style links
-          use_advanced_uri = false,
+        finder = "telescope.nvim";
 
-          -- Finder (telescope integration)
-          finder = "telescope.nvim",
+        notes_subdir = "zettelkasten";
 
-          -- Notes path - defaults to zettelkasten folder
-          notes_subdir = "zettelkasten",
-
-          -- Disable some default mappings if desired
-          disable_frontmatter = false,
-
-          -- UI configuration
-          ui = {
-            enable = true,
-            checkboxes = {
-              [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
-              ["d"] = { char = "", hl_group = "ObsidianDone" },
-              ["f"] = { char = "", hl_group = "ObsidianTilde" },
-            },
-            external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
-            reference_text = { hl_group = "ObsidianRefText" },
-            highlight_text = { hl_group = "ObsidianHighlightText" },
-            tags = { hl_group = "ObsidianTag" },
-          },
-        })
-      '';
+        ui = {
+          enable = true;
+          checkboxes = {
+            " " = {
+              char = "󰄱";
+              hl_group = "ObsidianTodo";
+            };
+            "d" = {
+              char = "";
+              hl_group = "ObsidianDone";
+            };
+            "f" = {
+              char = "";
+              hl_group = "ObsidianTilde";
+            };
+          };
+          external_link_icon = {
+            char = "";
+            hl_group = "ObsidianExtLinkIcon";
+          };
+          reference_text = {hl_group = "ObsidianRefText";};
+          highlight_text = {hl_group = "ObsidianHighlightText";};
+          tags = {hl_group = "ObsidianTag";};
+        };
+      };
     };
 
-    # Obsidian keybindings
+    # keybindings
     keymaps = [
       {
         mode = "n";
@@ -162,4 +149,8 @@
       }
     ];
   };
+
+  home.activation.createObsidianDirs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    $DRY_RUN_CMD mkdir -p $VERBOSE_ARG ~/notes/{templates,daily,zettelkasten}
+  '';
 }

@@ -9,8 +9,11 @@
       shiftwidth = 4;
       expandtab = true;
       autoindent = true;
-      conceallevel = 1;
+      conceallevel = 2;
       scrolloff = 9;
+      foldlevel = 99;
+      foldmethod = "expr";
+      foldexpr = "nvim_treesitter#foldexpr()";
     };
 
     clipboard = {
@@ -31,6 +34,7 @@
     binds.whichKey.enable = true;
 
     telescope.enable = true;
+
     mini = {
       pairs.enable = true;
       surround.enable = true;
