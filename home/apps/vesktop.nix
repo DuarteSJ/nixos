@@ -1,7 +1,4 @@
-{
-  config,
-  ...
-}: let
+{config, ...}: let
   colors = config.colorScheme.palette;
 in {
   programs.vesktop = {

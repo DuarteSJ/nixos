@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{config, ...}: {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
@@ -33,7 +29,7 @@
       general = {
         gaps_in = 2;
         gaps_out = 4;
-        border_size = 2;
+        border_size = 1;
         # Using nix-colors for borders
         "col.active_border" = "rgba(${base0D}ff) rgba(${base0C}ff) 45deg";
         "col.inactive_border" = "rgba(${base02}aa)";
@@ -72,8 +68,8 @@
           "winOut, 0.3, -0.3, 0, 1"
         ];
         animation = [
-          "windowsIn, 1, 4, winIn, popin"
-          "windowsOut, 1, 3, winOut, popin"
+          "windowsIn, 1, 3, wind, slide"
+          "windowsOut, 1, 3, wind, slide"
           "windowsMove, 1, 3, wind, slide"
           "border, 1, 6, wind"
           "fade, 1, 3, wind"
