@@ -33,9 +33,6 @@
         "hyprland/window" = {
           format = "  {}";
           max-length = 35;
-          rewrite = {
-            "" = "";
-          };
           separate-outputs = true;
         };
 
