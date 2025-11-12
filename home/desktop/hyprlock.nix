@@ -1,33 +1,38 @@
-{config, ...}: let
+{
+  config,
+  pkgs,
+  ...
+}: let
   colors = config.colorScheme.palette;
+
+  spotifyScript = pkgs.writeShellScript "spotify-status" ''
+    # Get metadata
+    artist=$(playerctl metadata artist 2>/dev/null || echo "No artist")
+    title=$(playerctl metadata title 2>/dev/null || echo "No track")
+    status=$(playerctl status 2>/dev/null || echo "Stopped")
+
+    # Display only if music is playing
+    if [ "$status" != "Stopped" ]; then
+      echo "♫ ''${artist}    ''${title} ♫"
+    fi
+  '';
 in {
   programs.hyprlock = {
     enable = true;
     settings = {
+      # GENERAL
+      general = {
+        hide_cursor = false;
+        grace = 0;
+      };
+
       # BACKGROUND
       background = [
         {
           monitor = "";
-          path = "/home/duartesj/Pictures/lock-screen/snow-mountain.jpg";
-        }
-        {
-          monitor = "";
-          zindex = 1;
-          keep_aspect_ratio = true;
-          rounding = 0;
-          border_size = 0;
-          path = "/home/duartesj/Pictures/lock-screen/snow-mountain-overlay.png";
+          path = "~/Pictures/lock-screen/minimal-mountain.png";
         }
       ];
-
-      # GENERAL
-      general = {
-        no_fade_in = true;
-        no_fade_out = true;
-        hide_cursor = true;
-        grace = 0;
-        disable_loading_bar = true;
-      };
 
       # INPUT FIELD
       input-field = [
@@ -46,10 +51,9 @@ in {
           check_color = "rgb(${colors.base09})";
           placeholder_text = "Input Password...";
           hide_input = false;
-          position = "0, -200";
+          position = "0, -400";
           halign = "center";
           valign = "center";
-          zindex = 1;
         }
       ];
 
@@ -58,33 +62,33 @@ in {
         # DATE
         {
           monitor = "";
-          text = "cmd[update:1000] echo \"$(date +\"%A, %d %b\")\"";
-          color = "rgba(255, 255, 255, 0.9)";
-          font_size = 60;
-          font_family = "Adwaita Sans, thin";
-          position = "0, 375";
+          text = "cmd[update:1000] date +\"%A, %d %B\" | sed 's/\\b\\(.\\)/\\U\\1/g'";
+          color = "rgb(${colors.base05})";
+          font_size = 22;
+          font_family = "JetBrains Mono";
+          position = "0, -100";
           halign = "center";
           valign = "center";
         }
-        # TIME - HOURS
+        # TIME
         {
           monitor = "";
-          text = "cmd[update:1000] echo -e \"$(date +\"%H\")\"";
-          color = "rgba(172, 166, 180, 1)";
-          font_size = 120;
-          font_family = "Adwaita Sans, Heavy";
-          position = "-145, 90";
+          text = "cmd[update:1000] echo \"$(date +\"%H:%M\")\"";
+          color = "rgb(${colors.base05})";
+          font_size = 125;
+          font_family = "JetBrains Mono Extrabold";
+          position = "0, 50";
           halign = "center";
           valign = "center";
         }
-        # TIME - MINUTES
+        # SPOTIFY NOW PLAYING
         {
           monitor = "";
-          text = "cmd[update:1000] echo -e \"$(date +\"%M\")\"";
-          color = "rgba(255, 255, 255, 1)";
-          font_size = 120;
-          font_family = "Adwaita Sans, Heavy";
-          position = "145, 90";
+          text = "cmd[update:2000] ${spotifyScript}";
+          color = "rgb(${colors.base05})";
+          font_size = 14;
+          font_family = "JetBrains Mono";
+          position = "0, -515";
           halign = "center";
           valign = "center";
         }
