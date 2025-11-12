@@ -30,14 +30,15 @@
 
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
-    notify.nvim-notify.enable = true;
     binds.whichKey.enable = true;
 
     telescope.enable = true;
 
     mini = {
       pairs.enable = true;
+      ai.enable = true;
       surround.enable = true;
+      notify.enable = true;
       files = {
         enable = true;
         setupOpts.windows = {
