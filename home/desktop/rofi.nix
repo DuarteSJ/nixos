@@ -379,9 +379,9 @@
               hyprctl dispatch exit
               ;;
           $sleep)
-       wpctl set-mute @DEFAULT_SINK@ toggle
+              wpctl set-mute @DEFAULT_SINK@ toggle
               systemctl sleep
-       wpctl set-mute @DEFAULT_SINK@ toggle
+              wpctl set-mute @DEFAULT_SINK@ toggle
               ;;
       esac
     '';
