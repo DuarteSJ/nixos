@@ -39,20 +39,12 @@
       ai.enable = true;
       surround.enable = true;
       notify.enable = true;
+      move.enable = true;
       files = {
         enable = true;
         setupOpts.windows = {
           preview = true;
           width_preview = 80;
-        };
-      };
-      move = {
-        enable = true;
-        setupOpts.mappings = {
-          left = "<A-h>";
-          right = "<A-l>";
-          down = "<A-j>";
-          up = "<A-k>";
         };
       };
     };
@@ -127,7 +119,7 @@
       }
       {
         event = ["FileType"];
-        pattern = ["nix"];
+        pattern = ["nix" "markdown"];
         command = "setlocal tabstop=2 shiftwidth=2";
       }
     ];
