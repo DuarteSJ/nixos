@@ -10,7 +10,7 @@
       ignoreSpace = true;
       share = true;
     };
-    defaultKeymap = "viins";
+    defaultKeymap = "emacs";
     setOptions = [
       "hist_ignore_dups"
       "hist_ignore_all_dups"
@@ -33,6 +33,7 @@
       fetchip = "fastfetch --config ~/.config/fastfetch/configs/ip_info.jsonc";
       memfetch = "fastfetch --config ~/.config/fastfetch/configs/mem.jsonc";
       nv = "nvim";
+      keys = "bindkey -L | head";
       remind = "~/notes/remind.sh";
       # obsidian shortcuts
       odl = "nvim +'ObsidianToday'";
