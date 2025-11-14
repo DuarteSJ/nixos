@@ -379,6 +379,7 @@
               hyprctl dispatch exit
               ;;
           $suspend)
+              hyprlock &
               systemctl suspend
               ;;
       esac
