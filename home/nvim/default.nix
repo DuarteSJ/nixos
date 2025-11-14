@@ -1,8 +1,8 @@
 {lib, ...}: let
   enableNotes = true;
   enableLatex = true;
-  enableJupyter = false;
-  enableClojure = true;
+  enableJupyter = true;
+  enableClojure = false;
 in {
   imports =
     [./core.nix]

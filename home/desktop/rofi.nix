@@ -353,14 +353,14 @@
       #!/run/current-system/sw/bin/bash
 
       # Options
-      shutdown="⏻ Shutdown"
-      reboot=" Reboot"
-      lock=" Lock"
-      logout=" Logout"
-      sleep=" Sleep"
+      shutdown="⏻ shutdown"
+      reboot=" reboot"
+      lock=" lock"
+      logout=" logout"
+      suspend=" suspend"
 
       # Variable
-      options="$lock\n$sleep\n$shutdown\n$reboot\n$logout"
+      options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
 
       # Show rofi menu
       chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
@@ -378,10 +378,8 @@
           $logout)
               hyprctl dispatch exit
               ;;
-          $sleep)
-              wpctl set-mute @DEFAULT_SINK@ toggle
-              systemctl sleep
-              wpctl set-mute @DEFAULT_SINK@ toggle
+          $suspend)
+              systemctl suspend
               ;;
       esac
     '';
