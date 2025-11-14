@@ -28,11 +28,19 @@
       transparent = true;
     };
 
+    telescope.enable = true;
+    utility.motion.flash-nvim.enable = true;
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
     binds.whichKey.enable = true;
+    notes.todo-comments.enable = true;
 
-    telescope.enable = true;
+    ui.colorizer = {
+      filetypes = {
+        "*" = {};
+      };
+      enable = true;
+    };
 
     mini = {
       pairs.enable = true;
@@ -51,6 +59,19 @@
 
     lsp.enable = true;
     autocomplete.nvim-cmp.enable = true;
+    languages = {
+      enableTreesitter = true;
+      nix.enable = true;
+      rust.enable = true;
+      clang.enable = true;
+      python.enable = true;
+      html.enable = true;
+      css.enable = true;
+      ts.enable = true;
+      java.enable = true;
+      markdown.enable = true;
+    };
+
     assistant.copilot = {
       enable = true;
       cmp.enable = false;
@@ -64,21 +85,6 @@
         };
       };
       mappings.suggestion.accept = "<C-l>";
-    };
-
-    notes.todo-comments.enable = true;
-
-    languages = {
-      enableTreesitter = true;
-      nix.enable = true;
-      rust.enable = true;
-      clang.enable = true;
-      python.enable = true;
-      html.enable = true;
-      css.enable = true;
-      ts.enable = true;
-      java.enable = true;
-      markdown.enable = true;
     };
 
     keymaps = [
@@ -106,6 +112,11 @@
         mode = "i";
         key = "kj";
         action = "<Esc>";
+      }
+      {
+        mode = "n";
+        key = "gd";
+        action = "<cmd>lua vim.lsp.buf.definition()<CR>";
       }
     ];
 
