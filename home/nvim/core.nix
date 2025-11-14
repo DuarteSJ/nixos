@@ -36,7 +36,7 @@
     notes.todo-comments.enable = true;
 
     ui.colorizer = {
-      filetypes = {
+      setupOpts.filetypes = {
         "*" = {};
       };
       enable = true;
