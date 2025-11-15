@@ -29,7 +29,6 @@
     };
 
     telescope.enable = true;
-    utility.motion.flash-nvim.enable = true;
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
     binds.whichKey.enable = true;
