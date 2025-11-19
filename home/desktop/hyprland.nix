@@ -2,17 +2,17 @@
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
-      # Monitors
-      monitor = [
-        "eDP-1, preferred, auto, 1"
-        # "eDP-1, disabled"
-        "HDMI-A-1, 1920x1080@60, 1920x-850x, 1"
-      ];
-
       # Variables
       "$terminal" = "alacritty";
       "$menu" = "~/.local/bin/rofi-launcher";
       "$externalMonitor" = "DP-3";
+
+      # Monitors
+      monitor = [
+        "eDP-1, preferred, auto, 1"
+        # "eDP-1, disabled"
+        "$externalMonitor, 1920x1080@60, 1920x-850x, 1"
+      ];
 
       # Autostart
       exec-once = [
@@ -253,6 +253,17 @@
       # Workspace rules
       workspace = [
         "special:magic, on-created-empty:invis-cava & spotify"
+
+        "1, monitor:$externalMonitor, default:true"
+        "2, monitor:$externalMonitor"
+        "3, monitor:$externalMonitor"
+        "4, monitor:$externalMonitor"
+        "5, monitor:eDP-1"
+        "6, monitor:$externalMonitor"
+        "7, monitor:$externalMonitor"
+        "8, monitor:$externalMonitor"
+        "9, monitor:$externalMonitor"
+        "10, monitor:$externalMonitor"
       ];
     };
   };
