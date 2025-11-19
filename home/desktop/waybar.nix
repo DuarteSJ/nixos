@@ -2,7 +2,11 @@
   config,
   pkgs,
   ...
-}: {
+}: let
+  colors = config.colorscheme.palette;
+  mainMonitor = config.monitors.external.name;
+  auxMonitor = config.monitors.laptop.name;
+in {
   programs.waybar = {
     enable = true;
     settings = {
@@ -41,15 +45,13 @@
           on-click = "activate";
           sort-by-number = true;
           persistent-workspaces = {
-            "1" = [];
-            "2" = [];
-            "3" = [];
-            "4" = [];
+            "${mainMonitor}" = [1 2 3 4];
+            "${auxMonitor}" = [5];
           };
         };
 
         clock = {
-          format = "<span color='#${config.colorScheme.palette.base0D}'></span> {:%H:%M  <span color='#${config.colorScheme.palette.base07}'></span> %b %d}";
+          format = "<span color='#${colors.base0D}'></span> {:%H:%M  <span color='#${colors.base07}'></span> %b %d}";
           tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
           on-click = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y %H:%M\" | ${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy) | ${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'";
         };
@@ -59,13 +61,13 @@
             warning = 70;
             critical = 90;
           };
-          format = "<span color='#${config.colorScheme.palette.base0A}'></span> {}%";
+          format = "<span color='#${colors.base0A}'></span> {}%";
           on-click = "alacritty -e btop";
         };
 
         temperature = {
           critical-threshold = 80;
-          format = "<span color='#${config.colorScheme.palette.base0C}'>{icon}</span> {temperatureC}°C";
+          format = "<span color='#${colors.base0C}'>{icon}</span> {temperatureC}°C";
           format-icons = [
             ""
             ""
@@ -79,10 +81,10 @@
             warning = 30;
             critical = 15;
           };
-          format = "<span color='#${config.colorScheme.palette.base0B}'>{icon}</span> {capacity}%";
-          format-full = "<span color='#${config.colorScheme.palette.base0B}'>{icon}</span> {capacity}%";
-          format-charging = "<span color='#${config.colorScheme.palette.base0D}'>󰂄</span> {capacity}%";
-          format-plugged = "<span color='#${config.colorScheme.palette.base0D}'></span> {capacity}%";
+          format = "<span color='#${colors.base0B}'>{icon}</span> {capacity}%";
+          format-full = "<span color='#${colors.base0B}'>{icon}</span> {capacity}%";
+          format-charging = "<span color='#${colors.base0D}'>󰂄</span> {capacity}%";
+          format-plugged = "<span color='#${colors.base0D}'></span> {capacity}%";
           format-icons = [
             ""
             ""
@@ -93,19 +95,19 @@
         };
 
         network = {
-          format-wifi = "<span color='#${config.colorScheme.palette.base09}'> </span> {signalStrength}%";
-          format-ethernet = "<span color='#${config.colorScheme.palette.base09}'>󰈁</span> {cidr}";
+          format-wifi = "<span color='#${colors.base09}'> </span> {signalStrength}%";
+          format-ethernet = "<span color='#${colors.base09}'>󰈁</span> {cidr}";
           tooltip-format = "{ifname} via {gwaddr}";
-          format-linked = "<span color='#${config.colorScheme.palette.base09}'></span> {ifname} (No IP)";
-          format-disconnected = "<span color='#${config.colorScheme.palette.base09}'></span> ⚠ ";
+          format-linked = "<span color='#${colors.base09}'></span> {ifname} (No IP)";
+          format-disconnected = "<span color='#${colors.base09}'></span> ⚠ ";
           on-click = "${pkgs.alacritty}/bin/alacritty -e ${pkgs.networkmanager}/bin/nmtui";
         };
 
         pulseaudio = {
-          format = "<span color='#${config.colorScheme.palette.base08}'>{icon}</span> {volume}%";
-          format-bluetooth = "{volume}%<span color='#${config.colorScheme.palette.base08}'> {icon} </span>{format_source}";
-          format-bluetooth-muted = "<span color='#${config.colorScheme.palette.base03}'></span> {icon} {format_source}";
-          format-muted = "<span color='#${config.colorScheme.palette.base03}'></span>";
+          format = "<span color='#${colors.base08}'>{icon}</span> {volume}%";
+          format-bluetooth = "{volume}%<span color='#${colors.base08}'> {icon} </span>{format_source}";
+          format-bluetooth-muted = "<span color='#${colors.base03}'></span> {icon} {format_source}";
+          format-muted = "<span color='#${colors.base03}'></span>";
           format-icons = {
             headphone = "";
             hands-free = "";
@@ -124,7 +126,7 @@
       };
     };
 
-    style = with config.colorScheme.palette; ''
+    style = with colors; ''
       * {
         font-family: "JetBrainsMono Nerd Font", Roboto, Helvetica, Arial, sans-serif;
         font-size: 16px;

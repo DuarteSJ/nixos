@@ -1,5 +1,5 @@
 # Aggregates user scripts
-{pkgs, ...}: {
+{
   imports = [
     ./zsh.nix
     ./bash.nix
