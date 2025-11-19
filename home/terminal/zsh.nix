@@ -28,10 +28,8 @@
       lt = "eza --color=always --tree --group-directories-first --icons";
       ls = "ls --color=auto";
       grep = "grep --color=auto";
-      fetchall = "fastfetch --config examples/7.jsonc";
-      cleanfetch = "fastfetch --config examples/8.jsonc";
-      fetchip = "fastfetch --config ~/.config/fastfetch/configs/ip_info.jsonc";
-      memfetch = "fastfetch --config ~/.config/fastfetch/configs/mem.jsonc";
+      fetchall = "fastfetch --config examples/25.jsonc";
+      memfetch = "fastfetch --config examples/9.jsonc";
       nv = "nvim";
       keys = "bindkey -L | head";
       remind = "~/notes/remind.sh";
