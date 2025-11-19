@@ -4,14 +4,15 @@
     settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
-        # "eDP-1, preferred, auto, 1"
-        "eDP-1, disabled"
+        "eDP-1, preferred, auto, 1"
+        # "eDP-1, disabled"
         "HDMI-A-1, 1920x1080@60, 1920x-850x, 1"
       ];
 
-      # Programs
+      # Variables
       "$terminal" = "alacritty";
       "$menu" = "~/.local/bin/rofi-launcher";
+      "$externalMonitor" = "DP-3";
 
       # Autostart
       exec-once = [
@@ -40,7 +41,7 @@
 
       # Decoration
       decoration = {
-        rounding = 9;
+        rounding = 7;
         inactive_opacity = 1;
         active_opacity = 1;
 
@@ -145,11 +146,12 @@
         "$mainMod, 9, workspace, 9"
         "$mainMod, 0, workspace, 10"
 
-        # Alternative bindings for first four workspaces
+        # Alternative bindings for first five workspaces
         "$mainMod, A, workspace, 1"
         "$mainMod, S, workspace, 2"
         "$mainMod, D, workspace, 3"
         "$mainMod, F, workspace, 4"
+        "$mainMod, G, workspace, 5"
 
         # Move active window to a workspace with mainMod + SHIFT + [0-9]
         "$mainMod SHIFT, 1, movetoworkspace, 1"
@@ -163,11 +165,12 @@
         "$mainMod SHIFT, 9, movetoworkspace, 9"
         "$mainMod SHIFT, 0, movetoworkspace, 10"
 
-        # Alternative bindings for first four workspaces
+        # Alternative bindings for first five workspaces
         "$mainMod SHIFT, A, movetoworkspace, 1"
         "$mainMod SHIFT, S, movetoworkspace, 2"
         "$mainMod SHIFT, D, movetoworkspace, 3"
         "$mainMod SHIFT, F, movetoworkspace, 4"
+        "$mainMod SHIFT, G, movetoworkspace, 5"
 
         # Special workspace (scratchpad)
         "$mainMod, M, togglespecialworkspace, magic"
@@ -216,6 +219,8 @@
         ", XF86AudioPause, exec, playerctl play-pause"
         ", XF86AudioPlay, exec, playerctl play-pause"
         ", XF86AudioPrev, exec, playerctl previous"
+        ", switch:on:Lid Switch, exec, hyprctl keyword monitor eDP-1, disable"
+        ", switch:off:Lid Switch, exec, hyprctl keyword monitor 'eDP-1,highres,0x0,1'"
       ];
 
       # Mouse bindings
