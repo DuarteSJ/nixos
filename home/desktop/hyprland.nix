@@ -8,14 +8,12 @@ in {
       # Variables
       "$terminal" = "alacritty";
       "$menu" = "~/.local/bin/rofi-launcher";
-      "$externalMonitor" = externalMonitor;
-      "$laptopMonitor" = laptopMonitor;
 
       # Monitors
       monitor = [
-        "$laptopMonitor, preferred, auto, 1"
+        "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}"
         # "$laptopMonitor, disabled"
-        "$externalMonitor, 1920x1080@60, 1920x-850x, 1"
+        "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}"
       ];
 
       # Autostart
@@ -223,8 +221,8 @@ in {
         ", XF86AudioPause, exec, playerctl play-pause"
         ", XF86AudioPlay, exec, playerctl play-pause"
         ", XF86AudioPrev, exec, playerctl previous"
-        ", switch:on:Lid Switch, exec, hyprctl keyword monitor $laptopMonitor, disable"
-        ", switch:off:Lid Switch, exec, hyprctl keyword monitor '$laptopMonitor,highres,0x0,1'"
+        ", switch:on:Lid Switch, exec, hyprctl keyword monitor ${laptopMonitor.name}, disable"
+        ", switch:off:Lid Switch, exec, hyprctl keyword monitor '${laptopMonitor.name},${laptopMonitor.mode},${laptopMonitor.position},${laptopMonitor.scale}'"
       ];
 
       # Mouse bindings
@@ -258,16 +256,16 @@ in {
       workspace = [
         "special:magic, on-created-empty:invis-cava & spotify"
 
-        "1, monitor:$externalMonitor, default:true"
-        "2, monitor:$externalMonitor"
-        "3, monitor:$externalMonitor"
-        "4, monitor:$externalMonitor"
-        "5, monitor:$laptopMonitor"
-        "6, monitor:$externalMonitor"
-        "7, monitor:$externalMonitor"
-        "8, monitor:$externalMonitor"
-        "9, monitor:$externalMonitor"
-        "10, monitor:$externalMonitor"
+        "1, monitor:${externalMonitor.name}, default:true"
+        "2, monitor:${externalMonitor.name}"
+        "3, monitor:${externalMonitor.name}"
+        "4, monitor:${externalMonitor.name}"
+        "5, monitor:${laptopMonitor.name}"
+        "6, monitor:${externalMonitor.name}"
+        "7, monitor:${externalMonitor.name}"
+        "8, monitor:${externalMonitor.name}"
+        "9, monitor:${externalMonitor.name}"
+        "10, monitor:${externalMonitor.name}"
       ];
     };
   };

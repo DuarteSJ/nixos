@@ -4,8 +4,8 @@
   ...
 }: let
   colors = config.colorscheme.palette;
-  mainMonitor = config.monitors.external;
-  auxMonitor = config.monitors.laptop;
+  mainMonitor = config.monitors.external.name;
+  auxMonitor = config.monitors.laptop.name;
 in {
   programs.waybar = {
     enable = true;
