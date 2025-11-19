@@ -1,13 +1,103 @@
-{config, ...}: let
+{
+  config,
+  pkgs,
+  ...
+}: let
   externalMonitor = config.monitors.external;
   laptopMonitor = config.monitors.laptop;
+
+  # Extracted scripts
+  rofi-launcher = pkgs.writeShellScript "rofi-launcher" ''
+    #!/run/current-system/sw/bin/bash
+    rofi -show drun
+  '';
+
+  rofi-powermenu = pkgs.writeShellScript "rofi-powermenu" ''
+    #!/run/current-system/sw/bin/bash
+
+    # Options
+    shutdown="⏻ shutdown"
+    reboot=" reboot"
+    lock=" lock"
+    logout=" logout"
+    suspend=" suspend"
+
+    # Variable
+    options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
+
+    # Show rofi menu
+    chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
+
+    case $chosen in
+        $shutdown)
+            systemctl poweroff
+            ;;
+        $reboot)
+            systemctl reboot
+            ;;
+        $lock)
+            hyprlock
+            ;;
+        $logout)
+            hyprctl dispatch exit
+            ;;
+        $suspend)
+            hyprlock &
+            systemctl suspend
+            ;;
+    esac
+  '';
+
+  toggleWaybar = pkgs.writeShellScript "toggle-waybar" ''
+    if pgrep waybar > /dev/null; then
+      pkill waybar
+    else
+      waybar &
+    fi
+  '';
+
+  toggleMic = pkgs.writeShellScript "toggle-mic" ''
+    wpctl set-mute @DEFAULT_SOURCE@ toggle
+
+    if wpctl get-volume @DEFAULT_SOURCE@ | grep -q "MUTED"; then
+      dunstify "Mic Status" "Microphone is now muted"
+    else
+      dunstify "Mic Status" "Microphone is now unmuted"
+    fi
+  '';
+
+  toggleFullscreen = pkgs.writeShellScript "toggle-fullscreen" ''
+    topgap=$(hyprctl getoption general:gaps_in | awk '{print $3}')
+
+    if [ "$topgap" -ne 0 ]; then
+      # Enter fullscreen mode: remove gaps, borders, rounding, shadows, and animations
+      hyprctl --batch "\
+        keyword general:gaps_in 0 0 0 0; \
+        keyword general:gaps_out 0 0 0 0; \
+        keyword general:border_size 1; \
+        keyword decoration:rounding 0; \
+        keyword decoration:drop_shadow false; \
+        keyword animations:enabled 0"
+    else
+      # Exit fullscreen mode: reload config to restore settings
+      hyprctl reload
+
+      # Restart waybar if it's not running
+      if ! pgrep waybar > /dev/null; then
+        waybar &
+      fi
+    fi
+  '';
+
+  disableLaptopMonitor = "hyprctl keyword monitor ${laptopMonitor.name}, disable";
+
+  enableLaptopMonitor = "hyprctl keyword monitor '${laptopMonitor.name},${laptopMonitor.mode},${laptopMonitor.position},${laptopMonitor.scale}'";
 in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
       # Variables
       "$terminal" = "alacritty";
-      "$menu" = "~/.local/bin/rofi-launcher";
 
       # Monitors
       monitor = [
@@ -126,7 +216,7 @@ in {
         "$mainMod, C, killactive,"
         "$mainMod, P, exec, hyprctl dispatch pin"
         "$mainMod, V, togglefloating,"
-        "$mainMod, E, exec, $menu"
+        "$mainMod, E, exec, ${rofi-launcher}"
         "$mainMod, R, pseudo,"
         "$mainMod, T, togglesplit,"
 
@@ -183,14 +273,14 @@ in {
         "$mainMod, mouse_up, workspace, e-1"
 
         # Script keybindings
-        "$mainMod, B, exec, bash -c \"pgrep waybar && pkill waybar || waybar &\""
-        "$mainMod, N, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
-        "$mainMod SHIFT, P, exec, ~/.local/bin/rofi-powermenu"
+        "$mainMod, B, exec, ${toggleWaybar}"
+        "$mainMod, N, exec, ${toggleMic}"
+        "$mainMod SHIFT, P, exec, ${rofi-powermenu}"
         "$mainMod SHIFT, N, exec, switch-bg"
         "$mainMod SHIFT, X, exec, screenshot"
 
         # Fullscreen toggle
-        "$mainMod, slash, exec, bash -c 'topgap=$(hyprctl getoption general:gaps_in | awk \"{print \\$3}\"); if [ \"$topgap\" -ne 0 ]; then hyprctl --batch \"keyword general:gaps_in 0 0 0 0 ; keyword general:gaps_out 0 0 0 0 ; keyword general:border_size 1 ; keyword decoration:rounding 0 ; keyword decoration:drop_shadow false; keyword animations:enabled 0\"; else hyprctl reload; if ! pgrep waybar >/dev/null; then waybar & fi; fi'"
+        "$mainMod, slash, exec, ${toggleFullscreen}"
 
         # Moving windows
         "$mainMod SHIFT, h, swapwindow, l"
@@ -209,7 +299,7 @@ in {
       bindel = [
         ",XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_SINK@ 0.05+"
         ",XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_SINK@ 0.05-"
-        ",XF86AudioMicMute, exec, sh -c 'wpctl set-mute @DEFAULT_SOURCE@ toggle; dunstify \"Mic Status\" \"$(wpctl get-volume @DEFAULT_SOURCE@ | grep -q \"MUTED\" && echo Microphone is now muted || echo Microphone is now unmuted)\"'"
+        ",XF86AudioMicMute, exec, ${toggleMic}"
         ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_SINK@ toggle"
         ",XF86MonBrightnessUp, exec, brightnessctl s 4%+"
         ",XF86MonBrightnessDown, exec, brightnessctl s 4%-"
@@ -221,8 +311,8 @@ in {
         ", XF86AudioPause, exec, playerctl play-pause"
         ", XF86AudioPlay, exec, playerctl play-pause"
         ", XF86AudioPrev, exec, playerctl previous"
-        ", switch:on:Lid Switch, exec, hyprctl keyword monitor ${laptopMonitor.name}, disable"
-        ", switch:off:Lid Switch, exec, hyprctl keyword monitor '${laptopMonitor.name},${laptopMonitor.mode},${laptopMonitor.position},${laptopMonitor.scale}'"
+        ", switch:on:Lid Switch, exec, ${disableLaptopMonitor}"
+        ", switch:off:Lid Switch, exec, ${enableLaptopMonitor}"
       ];
 
       # Mouse bindings

@@ -3,23 +3,22 @@
   pkgs,
   ...
 }: let
-  # nix-colors exposes this when you configure it in home-manager
-  themeName = config.colorScheme.slug or "default";
+  themeName = config.colorScheme.slug or "nord";
 in {
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''
       set -euo pipefail
       cur_theme_name="${themeName}"
-      backgrounds_dir="$HOME/Pictures/backgrounds/$cur_theme_name"
-      # Check if backgrounds directory exists
-      if [[ ! -d "$backgrounds_dir" ]]; then
-          ${pkgs.dunst}/bin/dunstify -u critical "Background Error" "Directory '$backgrounds_dir' not found"
+      wallpapers_dir="$HOME/Pictures/wallpapers/$cur_theme_name"
+      # Check if wallpapers directory exists
+      if [[ ! -d "$wallpapers_dir" ]]; then
+          ${pkgs.dunst}/bin/dunstify -u critical "Background Error" "Directory '$wallpapers_dir' not found"
           exit 1
       fi
       # Get all image files in the theme directory, sorted naturally
-      mapfile -t backgrounds < <(${pkgs.findutils}/bin/find "$backgrounds_dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | ${pkgs.coreutils}/bin/sort -V)
-      if [[ ''${#backgrounds[@]} -eq 0 ]]; then
-          ${pkgs.dunst}/bin/dunstify -u critical "Background Error" "No image files found in '$backgrounds_dir'"
+      mapfile -t wallpapers < <(${pkgs.findutils}/bin/find "$wallpapers_dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | ${pkgs.coreutils}/bin/sort -V)
+      if [[ ''${#wallpapers[@]} -eq 0 ]]; then
+          ${pkgs.dunst}/bin/dunstify -u critical "Background Error" "No image files found in '$wallpapers_dir'"
           exit 1
       fi
       # Get current wallpaper from swww (handle case where swww isn't running or no wallpaper set)
@@ -28,8 +27,8 @@ in {
       # Find current background index
       current_index=-1
       if [[ -n "$current_wallpaper" ]]; then
-          for i in "''${!backgrounds[@]}"; do
-              if [[ "''${backgrounds[$i]}" == "$current_wallpaper" ]]; then
+          for i in "''${!wallpapers[@]}"; do
+              if [[ "''${wallpapers[$i]}" == "$current_wallpaper" ]]; then
                   current_index=$i
                   break
               fi
@@ -40,16 +39,16 @@ in {
           # No current wallpaper or not in our theme directory, start from beginning
           next_index=0
       else
-          next_index=$(( (current_index + 1) % ''${#backgrounds[@]} ))
+          next_index=$(( (current_index + 1) % ''${#wallpapers[@]} ))
       fi
-      next_background="''${backgrounds[$next_index]}"
+      next_background="''${wallpapers[$next_index]}"
       # Set the wallpaper with random transition
       ${pkgs.swww}/bin/swww img "$next_background" --transition-type random --transition-duration 0.5
       # Extract just the filename for display
       background_name=$(${pkgs.coreutils}/bin/basename "$next_background" | ${pkgs.gnused}/bin/sed 's/\.[^.]*$//')
 
       # Send notification about wallpaper change
-      ${pkgs.dunst}/bin/dunstify -t 3000 -i "$next_background" "Wallpaper Changed" "$background_name\n$(( next_index + 1 ))/''${#backgrounds[@]} • $cur_theme_name theme"
+      ${pkgs.dunst}/bin/dunstify -t 3000 -i "$next_background" "Wallpaper Changed" "$background_name\n$(( next_index + 1 ))/''${#wallpapers[@]} • $cur_theme_name theme"
     '')
   ];
 }
