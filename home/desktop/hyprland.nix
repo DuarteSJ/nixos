@@ -1,16 +1,20 @@
-{config, ...}: {
+{config, ...}: let
+  externalMonitor = config.monitors.external;
+  laptopMonitor = config.monitors.laptop;
+in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
       # Variables
       "$terminal" = "alacritty";
       "$menu" = "~/.local/bin/rofi-launcher";
-      "$externalMonitor" = "DP-3";
+      "$externalMonitor" = externalMonitor;
+      "$laptopMonitor" = laptopMonitor;
 
       # Monitors
       monitor = [
-        "eDP-1, preferred, auto, 1"
-        # "eDP-1, disabled"
+        "$laptopMonitor, preferred, auto, 1"
+        # "$laptopMonitor, disabled"
         "$externalMonitor, 1920x1080@60, 1920x-850x, 1"
       ];
 
@@ -219,8 +223,8 @@
         ", XF86AudioPause, exec, playerctl play-pause"
         ", XF86AudioPlay, exec, playerctl play-pause"
         ", XF86AudioPrev, exec, playerctl previous"
-        ", switch:on:Lid Switch, exec, hyprctl keyword monitor eDP-1, disable"
-        ", switch:off:Lid Switch, exec, hyprctl keyword monitor 'eDP-1,highres,0x0,1'"
+        ", switch:on:Lid Switch, exec, hyprctl keyword monitor $laptopMonitor, disable"
+        ", switch:off:Lid Switch, exec, hyprctl keyword monitor '$laptopMonitor,highres,0x0,1'"
       ];
 
       # Mouse bindings
@@ -258,7 +262,7 @@
         "2, monitor:$externalMonitor"
         "3, monitor:$externalMonitor"
         "4, monitor:$externalMonitor"
-        "5, monitor:eDP-1"
+        "5, monitor:$laptopMonitor"
         "6, monitor:$externalMonitor"
         "7, monitor:$externalMonitor"
         "8, monitor:$externalMonitor"
