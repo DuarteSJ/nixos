@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{config, ...}: {
   programs.git = {
     enable = true;
     userName = "DuarteSJ";
@@ -14,7 +10,7 @@
         light = false;
         side-by-side = true;
         line-numbers = true;
-        syntax-theme = "Nord";
+        syntax-theme = config.colorScheme.name;
       };
     };
     extraConfig = {
