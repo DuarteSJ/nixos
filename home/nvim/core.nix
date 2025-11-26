@@ -132,6 +132,14 @@
         pattern = ["nix" "markdown"];
         command = "setlocal tabstop=2 shiftwidth=2";
       }
+      {
+        event = ["FileType"];
+        pattern = ["tex"];
+        command = ''
+          nnoremap <buffer> j j:VimtexView<CR>
+          nnoremap <buffer> k k:VimtexView<CR>
+        '';
+      }
     ];
   };
 }
