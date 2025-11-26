@@ -10,15 +10,8 @@
           out_dir = ".build",
           continuous = 1,
         }
-        vim.g.vimtex_quickfix_mode = 0
+        vim.g.vimtex_quickfix_mode = 1
       '';
     };
-    keymaps = [
-      {
-        mode = "n";
-        key = "<leader>lv";
-        action = "<cmd>VimtexView<CR>";
-      }
-    ];
   };
 }
