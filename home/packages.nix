@@ -30,5 +30,7 @@
     vial
     alejandra
     scrcpy
+    stremio
+    wireguard-tools
   ];
 }
