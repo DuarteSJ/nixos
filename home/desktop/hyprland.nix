@@ -6,7 +6,7 @@
   externalMonitor = config.monitors.external;
   laptopMonitor = config.monitors.laptop;
 
-  # Extracted scripts
+  # Scripts
   rofi-launcher = pkgs.writeShellScript "rofi-launcher" ''
     #!/run/current-system/sw/bin/bash
     rofi -show drun
@@ -67,26 +67,40 @@
   '';
 
   toggleFullscreen = pkgs.writeShellScript "toggle-fullscreen" ''
-    topgap=$(hyprctl getoption general:gaps_in | awk '{print $3}')
+  # Original settings from config
+  GAPS_IN="${toString config.wayland.windowManager.hyprland.settings.general.gaps_in}"
+  GAPS_OUT="${toString config.wayland.windowManager.hyprland.settings.general.gaps_out}"
+  BORDER_SIZE="${toString config.wayland.windowManager.hyprland.settings.general.border_size}"
+  ROUNDING="${toString config.wayland.windowManager.hyprland.settings.decoration.rounding}"
+  DROP_SHADOW="${toString config.wayland.windowManager.hyprland.settings.decoration.shadow.enabled}"
+  ANIMATIONS="${toString config.wayland.windowManager.hyprland.settings.animations.enabled}"
 
-    if [ "$topgap" -ne 0 ]; then
-      # Enter fullscreen mode: remove gaps, borders, rounding, shadows, and animations
-      hyprctl --batch "\
-        keyword general:gaps_in 0 0 0 0; \
-        keyword general:gaps_out 0 0 0 0; \
-        keyword general:border_size 1; \
-        keyword decoration:rounding 0; \
-        keyword decoration:drop_shadow false; \
-        keyword animations:enabled 0"
-    else
-      # Exit fullscreen mode: reload config to restore settings
-      hyprctl reload
+  topgap=$(hyprctl getoption general:gaps_in | awk '{print $3}')
 
-      # Restart waybar if it's not running
-      if ! pgrep waybar > /dev/null; then
-        waybar &
-      fi
+  if [ "$topgap" -ne 0 ]; then
+    # Enter fullscreen mode
+    hyprctl --batch "\
+      keyword general:gaps_in 0 0 0 0; \
+      keyword general:gaps_out 0 0 0 0; \
+      keyword general:border_size 1; \
+      keyword decoration:rounding 0; \
+      keyword decoration:drop_shadow false; \
+      keyword animations:enabled 0"
+  else
+    # Exit fullscreen mode: restore original settings
+    hyprctl --batch "\
+      keyword general:gaps_in $GAPS_IN; \
+      keyword general:gaps_out $GAPS_OUT; \
+      keyword general:border_size $BORDER_SIZE; \
+      keyword decoration:rounding $ROUNDING; \
+      keyword decoration:drop_shadow $DROP_SHADOW; \
+      keyword animations:enabled $ANIMATIONS"
+
+    # Restart waybar if it's not running
+    if ! pgrep waybar > /dev/null; then
+      waybar &
     fi
+  fi
   '';
 
   disableLaptopMonitor = "hyprctl keyword monitor ${laptopMonitor.name}, disable";
