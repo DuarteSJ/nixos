@@ -32,5 +32,8 @@
     scrcpy
     stremio
     wireguard-tools
+    ffmpeg
+    feh
+    mpv
   ];
 }
