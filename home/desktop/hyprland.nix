@@ -5,6 +5,7 @@
 }: let
   externalMonitor = config.monitors.external;
   laptopMonitor = config.monitors.laptop;
+  rounding = 0;
 
   # Scripts
   rofi-launcher = pkgs.writeShellScript "rofi-launcher" ''
@@ -66,57 +67,50 @@
     fi
   '';
 
-  toggleFullscreen = pkgs.writeShellScript "toggle-fullscreen" ''
-  # Original settings from config
-  GAPS_IN="${toString config.wayland.windowManager.hyprland.settings.general.gaps_in}"
-  GAPS_OUT="${toString config.wayland.windowManager.hyprland.settings.general.gaps_out}"
-  BORDER_SIZE="${toString config.wayland.windowManager.hyprland.settings.general.border_size}"
-  ROUNDING="${toString config.wayland.windowManager.hyprland.settings.decoration.rounding}"
-  DROP_SHADOW="${toString config.wayland.windowManager.hyprland.settings.decoration.shadow.enabled}"
-  ANIMATIONS="${toString config.wayland.windowManager.hyprland.settings.animations.enabled}"
-
-  topgap=$(hyprctl getoption general:gaps_in | awk '{print $3}')
-
-  if [ "$topgap" -ne 0 ]; then
-    # Enter fullscreen mode
-    hyprctl --batch "\
-      keyword general:gaps_in 0 0 0 0; \
-      keyword general:gaps_out 0 0 0 0; \
-      keyword general:border_size 1; \
-      keyword decoration:rounding 0; \
-      keyword decoration:drop_shadow false; \
-      keyword animations:enabled 0"
-  else
-    # Exit fullscreen mode: restore original settings
-    hyprctl --batch "\
-      keyword general:gaps_in $GAPS_IN; \
-      keyword general:gaps_out $GAPS_OUT; \
-      keyword general:border_size $BORDER_SIZE; \
-      keyword decoration:rounding $ROUNDING; \
-      keyword decoration:drop_shadow $DROP_SHADOW; \
-      keyword animations:enabled $ANIMATIONS"
-
-    # Restart waybar if it's not running
-    if ! pgrep waybar > /dev/null; then
-      waybar &
+  toggleAnimations = pkgs.writeShellScript "toggle-animations" ''
+    current_value=$(hyprctl getoption animations:enabled | awk '/int:/ {print $2}')
+    if [ "$current_value" = "1" ]; then
+      hyprctl keyword animations:enabled 0
+      dunstify "Animations Disabled" "Window animations have been disabled."
+    else
+      hyprctl keyword animations:enabled 1
+      dunstify "Animations Enabled" "Window animations have been enabled."
     fi
-  fi
   '';
 
   disableLaptopMonitor = "hyprctl keyword monitor ${laptopMonitor.name}, disable";
 
   enableLaptopMonitor = "hyprctl keyword monitor '${laptopMonitor.name},${laptopMonitor.mode},${laptopMonitor.position},${laptopMonitor.scale}'";
+
+  # if the gaps get higher then 0, set rounding to default value defined above
+  increase_gaps = pkgs.writeShellScript "increase-gaps" ''
+    current_gaps=$(hyprctl getoption general:gaps_in | awk '{print $3}')
+    if [ $current_gaps -eq 0 ]; then
+      hyprctl keyword decoration:rounding ${toString rounding}
+    fi
+    new_gaps=$((current_gaps + 2))
+    hyprctl keyword general:gaps_in $new_gaps $new_gaps $new_gaps $new_gaps
+    hyprctl keyword general:gaps_out $new_gaps $new_gaps $new_gaps $new_gaps
+  '';
+
+  decrease_gaps = pkgs.writeShellScript "decrease-gaps" ''
+    current_gaps=$(hyprctl getoption general:gaps_in | awk '{print $3}')
+    new_gaps=$((current_gaps - 2))
+    if [ $new_gaps -lt 0 ]; then
+      new_gaps=0
+      hyprctl keyword decoration:rounding 0
+    fi
+    hyprctl keyword general:gaps_in $new_gaps $new_gaps $new_gaps $new_gaps
+    hyprctl keyword general:gaps_out $new_gaps $new_gaps $new_gaps $new_gaps
+  '';
+
 in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
-      # Variables
-      "$terminal" = "alacritty";
-
       # Monitors
       monitor = [
-        "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}"
-        # "$laptopMonitor, disabled"
+        "${laptopMonitor.name}, disable"
         "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}"
       ];
 
@@ -138,7 +132,7 @@ in {
         gaps_out = 4;
         border_size = 1;
         # Using nix-colors for borders
-        "col.active_border" = "rgba(${base0D}ff) rgba(${base0C}ff) 45deg";
+        "col.active_border" = "rgba(${base0D}cc) rgba(${base0C}77) 45deg";
         "col.inactive_border" = "rgba(${base02}aa)";
         resize_on_border = true;
         allow_tearing = false;
@@ -147,7 +141,7 @@ in {
 
       # Decoration
       decoration = {
-        rounding = 7;
+        rounding = rounding;
         inactive_opacity = 1;
         active_opacity = 1;
 
@@ -226,7 +220,7 @@ in {
       # Keybindings
       bind = [
         # Basic bindings
-        "$mainMod, Q, exec, $terminal"
+        "$mainMod, Q, exec, alacritty"
         "$mainMod, C, killactive,"
         "$mainMod, P, exec, hyprctl dispatch pin"
         "$mainMod, V, togglefloating,"
@@ -294,7 +288,7 @@ in {
         "$mainMod SHIFT, X, exec, screenshot"
 
         # Fullscreen toggle
-        "$mainMod, slash, exec, ${toggleFullscreen}"
+        "$mainMod, slash, exec, ${toggleAnimations}"
 
         # Moving windows
         "$mainMod SHIFT, h, swapwindow, l"
@@ -317,6 +311,10 @@ in {
         ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_SINK@ toggle"
         ",XF86MonBrightnessUp, exec, brightnessctl s 4%+"
         ",XF86MonBrightnessDown, exec, brightnessctl s 4%-"
+
+        # Adjust gaps
+        "$mainMod, minus, exec, ${increase_gaps}"
+        "$mainMod, equal, exec, ${decrease_gaps}"
       ];
 
       # Locked bindings (work even when locked)
