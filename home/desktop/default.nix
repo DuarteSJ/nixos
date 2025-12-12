@@ -37,15 +37,21 @@ in {
     description = "Monitor configurations";
   };
 
-  config.monitors = {
+  config.monitors = rec {
     laptop = {
       name = "eDP-1";
       mode = "1920x1200@59.95";
     };
-    external = {
+    other = {
       name = "DP-3";
       mode = "1920x1080@60";
       position = "1920x0";
     };
+    home = {
+      name = "DP-3";
+      mode = "1920x1080@119.98";
+      position = "1920x0";
+    };
+    external = home;
   };
 }
