@@ -53,7 +53,7 @@ in {
         clock = {
           format = "<span color='#${colors.base0D}'></span> {:%H:%M  <span color='#${colors.base07}'></span> %b %d}";
           tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-          on-click = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y %H:%M\" | ${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy) | ${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'";
+          on-click = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y · %H:%M\" | ${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy) | ${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'";
         };
 
         memory = {
@@ -193,7 +193,7 @@ in {
       .modules-left,
       .modules-center {
         background-color: #${base00};
-        border-radius: 7px;
+        border-radius: 4px;
         padding: 1 10px;
       }
 

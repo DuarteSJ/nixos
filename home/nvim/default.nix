@@ -2,7 +2,7 @@
   enableNotes = true;
   enableLatex = true;
   enableJupyter = true;
-  enableClojure = true;
+  enableClojure = false;
 in {
   imports =
     [./core.nix]
