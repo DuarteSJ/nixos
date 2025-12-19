@@ -339,6 +339,7 @@ in {
         "float, class:^(spotify)$"
         "size 1255 686, class:^(spotify)$"
         "center, class:^(spotify)$"
+        "rounding 10, class:^(spotify)$"
 
         # Vesktop
         "bordersize 0, class:vesktop"
