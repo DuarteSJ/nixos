@@ -1,7 +1,7 @@
 {lib, ...}: let
   enableNotes = true;
   enableLatex = true;
-  enableJupyter = true;
+  enableJupyter = false;
   enableClojure = false;
 in {
   imports =

@@ -110,7 +110,6 @@ in {
     settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
-        "${laptopMonitor.name}, disable"
         "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}"
       ];
 
