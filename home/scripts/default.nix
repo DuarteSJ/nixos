@@ -5,5 +5,6 @@
     ./screenshot.nix
     ./invis-cava.nix
     ./devenv
+    ./screenrec.nix
   ];
 }

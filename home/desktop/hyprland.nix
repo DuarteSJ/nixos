@@ -110,6 +110,7 @@ in {
     settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
+        "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}"
         "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}"
       ];
 
@@ -284,7 +285,8 @@ in {
         "$mainMod, N, exec, ${toggleMic}"
         "$mainMod SHIFT, P, exec, ${rofi-powermenu}"
         "$mainMod SHIFT, N, exec, switch-bg"
-        "$mainMod SHIFT, X, exec, screenshot"
+        "$mainMod, X, exec, screenshot"
+        "$mainMod SHIFT, X, exec, screenrec"
 
         # Fullscreen toggle
         "$mainMod, slash, exec, ${toggleAnimations}"
