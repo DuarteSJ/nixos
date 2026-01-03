@@ -24,7 +24,6 @@ in {
         ServerListAPI.enabled = true;
         UserSettingsAPI.enabled = true;
         CrashHandler.enabled = true;
-        Decor.enabled = true;
         DisableCallIdle.enabled = true;
         ExpressionCloner.enabled = true;
         FakeNitro = {
