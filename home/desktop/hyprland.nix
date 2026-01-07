@@ -80,7 +80,7 @@
 
   disableLaptopMonitor = "hyprctl keyword monitor ${laptopMonitor.name}, disable";
 
-  enableLaptopMonitor = "hyprctl keyword monitor '${laptopMonitor.name},${laptopMonitor.mode},${laptopMonitor.position},${laptopMonitor.scale}'";
+  enableLaptopMonitor = "hyprctl keyword monitor '${laptopMonitor.name},${laptopMonitor.mode},${laptopMonitor.position},${laptopMonitor.scale}${if laptopMonitor.orientation == "vertical" then ",transform,1" else ""}'";
 
   # if the gaps get higher then 0, set rounding to default value defined above
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
@@ -103,21 +103,19 @@
     hyprctl keyword general:gaps_in $new_gaps $new_gaps $new_gaps $new_gaps
     hyprctl keyword general:gaps_out $new_gaps $new_gaps $new_gaps $new_gaps
   '';
-
 in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
-        "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}"
-        "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}"
+        "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}${if laptopMonitor.orientation == "vertical" then ", transform, 1" else ""}"
+        "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}${if externalMonitor.orientation == "vertical" then ", transform, 1" else ""}"
       ];
 
       # Autostart
       exec-once = [
         "waybar &"
-        "swww-daemon &"
       ];
 
       # Environment variables
@@ -335,10 +333,36 @@ in {
       ];
 
       # Window rules
-      windowrulev2 = [
+      windowrulev2 = let
+        # Get monitor dimensions from mode string (e.g., "1920x1080@60")
+        parseMode = mode: let
+          resolution = builtins.head (builtins.split "@" mode);
+          parts = builtins.split "x" resolution;
+        in {
+          width = builtins.fromJSON (builtins.elemAt parts 0);
+          height = builtins.fromJSON (builtins.elemAt parts 2);
+        };
+
+        rawDims = parseMode externalMonitor.mode;
+
+        # Swap dimensions if monitor is vertical
+        externalDims = if externalMonitor.orientation == "vertical" then {
+          width = rawDims.height;
+          height = rawDims.width;
+        } else rawDims;
+
+        # Calculate spotify size (65% of width, 63% of height for example)
+        spotifyWidth = toString (externalDims.width * 65 / 100);
+        spotifyHeight = toString (externalDims.height * 63 / 100);
+
+        # Calculate invis-cava position (full width minus margins, at bottom)
+        cavaWidth = toString (externalDims.width - 30);
+        cavaHeight = "181";
+        cavaY = toString (externalDims.height - 181 - 2);
+      in [
         # Spotify
         "float, class:^(spotify)$"
-        "size 1255 686, class:^(spotify)$"
+        "size ${spotifyWidth} ${spotifyHeight}, class:^(spotify)$"
         "center, class:^(spotify)$"
         "rounding 10, class:^(spotify)$"
 
@@ -347,8 +371,8 @@ in {
 
         # invis-cava
         "float, class:^(invis-cava)$"
-        "size 1954 181, class:^(invis-cava)$"
-        "move -15 902, class:^(invis-cava)$"
+        "size ${cavaWidth} ${cavaHeight}, class:^(invis-cava)$"
+        "move 0 ${cavaY}, class:^(invis-cava)$"
         "noborder, class:^(invis-cava)$"
         "noanim, class:^(invis-cava)$"
 

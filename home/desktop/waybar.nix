@@ -116,7 +116,7 @@ in {
         # Window title
         "hyprland/window" = {
           format = "${icons.window}  {}";
-          max-length = 35;
+          max-length = if config.monitors.external.orientation == "vertical" then 25 else 35;
           separate-outputs = true;
         };
 

@@ -8,7 +8,7 @@
     fastfetch
     waybar
     rofi-wayland
-    swww
+    hyprpaper
     dunst
     hyprlock
     wl-clipboard

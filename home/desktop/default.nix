@@ -20,6 +20,11 @@
         default = "1";
         description = "Scaling factor for the monitor.";
       };
+      orientation = lib.mkOption {
+        type = lib.types.enum ["horizontal" "vertical"];
+        default = "horizontal";
+        description = "Monitor orientation.";
+      };
     };
   };
 in {
@@ -29,14 +34,13 @@ in {
     ./waybar.nix
     ./rofi.nix
     ./dunst.nix
+    ./hyprpaper.nix
   ];
-
   options.monitors = lib.mkOption {
     type = lib.types.attrsOf monitorType;
     default = {};
     description = "Monitor configurations";
   };
-
   config.monitors = rec {
     laptop = {
       name = "eDP-1";
