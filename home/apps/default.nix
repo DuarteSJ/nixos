@@ -4,5 +4,6 @@
     ./firefox.nix
     ./vesktop.nix
     ./zathura.nix
+    ./beeper.nix
   ];
 }
