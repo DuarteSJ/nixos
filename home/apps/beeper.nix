@@ -23,7 +23,7 @@ in {
 
       @media (prefers-color-scheme: dark) {
         :root {
-          --theme-accent: #${colors.base0D};
+          --theme-accent: #${colors.base03};
           --theme-frame: #${colors.base00};
           --theme-bg: #${colors.base01};
           --theme-text: #${colors.base05};
