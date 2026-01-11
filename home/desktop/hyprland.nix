@@ -109,7 +109,7 @@ in {
     settings = with config.colorScheme.palette; {
       # Monitors
       monitor = [
-        "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}${if laptopMonitor.orientation == "vertical" then ", transform, 1" else ""}"
+        "${laptopMonitor.name}, disable"
         "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}${if externalMonitor.orientation == "vertical" then ", transform, 1" else ""}"
       ];
 
@@ -270,13 +270,13 @@ in {
         "$mainMod SHIFT, F, movetoworkspace, 4"
         "$mainMod SHIFT, G, movetoworkspace, 5"
 
-        # Special workspace (scratchpad)
-        "$mainMod, M, togglespecialworkspace, magic"
-        "$mainMod SHIFT, M, movetoworkspace, special:magic"
+        # Special workspace "music"
+        "$mainMod, comma, togglespecialworkspace, music"
+        "$mainMod SHIFT, comma, movetoworkspace, special:music"
 
-        # Scroll through existing workspaces with mainMod + scroll
-        "$mainMod, mouse_down, workspace, e+1"
-        "$mainMod, mouse_up, workspace, e-1"
+        # Special workspace "messages"
+        "$mainMod, M, togglespecialworkspace, messages"
+        "$mainMod SHIFT, M, movetoworkspace, special:messages"
 
         # Script keybindings
         "$mainMod, B, exec, ${toggleWaybar}"
@@ -382,7 +382,8 @@ in {
 
       # Workspace rules
       workspace = [
-        "special:magic, on-created-empty:invis-cava & spotify"
+        "special:music, on-created-empty:invis-cava & spotify"
+        "special:messages, on-created-empty:beeper"
 
         "1, monitor:${externalMonitor.name}, default:true"
         "2, monitor:${externalMonitor.name}"
