@@ -4,17 +4,19 @@
   ...
 }: let
   themeName = config.colorScheme.slug or "nord";
-  externalMonitor = config.monitors.external;
   laptopMonitor = config.monitors.laptop;
+  externalMonitors = builtins.filter (m: m.enabled) config.monitors.external;
   
   # Determine orientation subdirectories
-  externalOrientation = if externalMonitor.orientation == "vertical" then "vertical" else "horizontal";
   laptopOrientation = if laptopMonitor.orientation == "vertical" then "vertical" else "horizontal";
   
-  # Default wallpapers (first one from each orientation directory)
+  # Default wallpapers directory
   wallpapersDir = "${config.home.homeDirectory}/Pictures/wallpapers/${themeName}";
-  defaultExternalWallpaper = "${wallpapersDir}/${externalOrientation}";
   defaultLaptopWallpaper = "${wallpapersDir}/${laptopOrientation}";
+  
+  # Helper to get orientation directory for a monitor
+  getOrientationDir = monitor: 
+    if monitor.orientation == "vertical" then "vertical" else "horizontal";
 in {
   services.hyprpaper = {
     enable = true;
@@ -47,20 +49,25 @@ in {
       ExecStart = let
         initScript = pkgs.writeShellScript "hyprpaper-init" ''
           sleep 2  # Wait for Hyprland to be fully ready
-          # Find first wallpaper in each orientation directory
-          external_wp=$(${pkgs.findutils}/bin/find "${defaultExternalWallpaper}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
+          
+          # Set laptop wallpaper
           laptop_wp=$(${pkgs.findutils}/bin/find "${defaultLaptopWallpaper}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
-          
-          # Set wallpapers if found
-          if [[ -n "$external_wp" ]]; then
-            ${pkgs.hyprland}/bin/hyprctl hyprpaper preload "$external_wp"
-            ${pkgs.hyprland}/bin/hyprctl hyprpaper wallpaper "${externalMonitor.name},$external_wp"
-          fi
-          
           if [[ -n "$laptop_wp" ]]; then
             ${pkgs.hyprland}/bin/hyprctl hyprpaper preload "$laptop_wp"
             ${pkgs.hyprland}/bin/hyprctl hyprpaper wallpaper "${laptopMonitor.name},$laptop_wp"
           fi
+          
+          # Set wallpapers for all external monitors
+          ${builtins.concatStringsSep "\n" (map (m: let
+            orientationDir = getOrientationDir m;
+            wallpaperDir = "${wallpapersDir}/${orientationDir}";
+          in ''
+            external_wp=$(${pkgs.findutils}/bin/find "${wallpaperDir}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
+            if [[ -n "$external_wp" ]]; then
+              ${pkgs.hyprland}/bin/hyprctl hyprpaper preload "$external_wp"
+              ${pkgs.hyprland}/bin/hyprctl hyprpaper wallpaper "${m.name},$external_wp"
+            fi
+          '') externalMonitors)}
         '';
       in "${initScript}";
       RemainAfterExit = true;

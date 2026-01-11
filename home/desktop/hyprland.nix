@@ -3,8 +3,19 @@
   pkgs,
   ...
 }: let
-  externalMonitor = config.monitors.external;
+
   laptopMonitor = config.monitors.laptop;
+  externalMonitors = builtins.filter (m: m.enabled) config.monitors.external;
+
+  # Generate workspace rules from monitor configurations
+  generateWorkspaces = monitor: 
+    map (ws: "${toString ws}, monitor:${monitor.name}") monitor.workspaces;
+  
+  # Combine all workspace rules
+  allWorkspaces = 
+    (generateWorkspaces laptopMonitor)
+    ++ (builtins.concatMap generateWorkspaces externalMonitors);
+
   rounding = 0;
 
   # Scripts
@@ -110,8 +121,9 @@ in {
       # Monitors
       monitor = [
         "${laptopMonitor.name}, disable"
-        "${externalMonitor.name}, ${externalMonitor.mode}, ${externalMonitor.position}, ${externalMonitor.scale}${if externalMonitor.orientation == "vertical" then ", transform, 1" else ""}"
-      ];
+      ] ++ (map (m: 
+          "${m.name}, ${m.mode}, ${m.position}, ${m.scale}${if m.orientation == "vertical" then ", transform, 1" else ""}"
+        ) externalMonitors);
 
       # Autostart
       exec-once = [
@@ -334,6 +346,11 @@ in {
 
       # Window rules
       windowrulev2 = let
+        # TODO: have a primary monitor instead of just using the first
+        targetMonitor = if externalMonitors != [] 
+          then builtins.head externalMonitors 
+        else laptopMonitor;
+
         # Get monitor dimensions from mode string (e.g., "1920x1080@60")
         parseMode = mode: let
           resolution = builtins.head (builtins.split "@" mode);
@@ -343,22 +360,22 @@ in {
           height = builtins.fromJSON (builtins.elemAt parts 2);
         };
 
-        rawDims = parseMode externalMonitor.mode;
+        rawDims = parseMode targetMonitor.mode;
 
         # Swap dimensions if monitor is vertical
-        externalDims = if externalMonitor.orientation == "vertical" then {
+        monitorDims = if targetMonitor.orientation == "vertical" then {
           width = rawDims.height;
           height = rawDims.width;
         } else rawDims;
 
         # Calculate spotify size (65% of width, 63% of height for example)
-        spotifyWidth = toString (externalDims.width * 65 / 100);
-        spotifyHeight = toString (externalDims.height * 63 / 100);
+        spotifyWidth = toString (monitorDims.width * 65 / 100);
+        spotifyHeight = toString (monitorDims.height * 63 / 100);
 
         # Calculate invis-cava position (full width minus margins, at bottom)
-        cavaWidth = toString (externalDims.width - 30);
+        cavaWidth = toString (monitorDims.width - 30);
         cavaHeight = "181";
-        cavaY = toString (externalDims.height - 181 - 2);
+        cavaY = toString (monitorDims.height - 181 - 2);
       in [
         # Spotify
         "float, class:^(spotify)$"
@@ -384,18 +401,7 @@ in {
       workspace = [
         "special:music, on-created-empty:invis-cava & spotify"
         "special:messages, on-created-empty:beeper"
-
-        "1, monitor:${externalMonitor.name}, default:true"
-        "2, monitor:${externalMonitor.name}"
-        "3, monitor:${externalMonitor.name}"
-        "4, monitor:${externalMonitor.name}"
-        "5, monitor:${laptopMonitor.name}"
-        "6, monitor:${externalMonitor.name}"
-        "7, monitor:${externalMonitor.name}"
-        "8, monitor:${externalMonitor.name}"
-        "9, monitor:${externalMonitor.name}"
-        "10, monitor:${externalMonitor.name}"
-      ];
+      ] ++ allWorkspaces;
     };
   };
 }

@@ -5,8 +5,17 @@
   ...
 }: let
   colors = config.colorscheme.palette;
-  mainMonitor = config.monitors.external.name;
-  auxMonitor = config.monitors.laptop.name;
+
+  laptopMonitor = config.monitors.laptop;
+  externalMonitors = builtins.filter (m: m.enabled) config.monitors.external;
+  
+  # Generate persistent workspaces from monitor configurations
+  persistentWorkspaces = {
+    "${laptopMonitor.name}" = laptopMonitor.workspaces;
+  } // (builtins.listToAttrs (map (m: {
+      name = m.name;
+      value = m.workspaces;
+    }) externalMonitors));
 
   # Icon collections
   icons = {
@@ -116,7 +125,7 @@ in {
         # Window title
         "hyprland/window" = {
           format = "${icons.window}  {}";
-          max-length = if config.monitors.external.orientation == "vertical" then 25 else 35;
+          max-length = 35;
           separate-outputs = true;
         };
 
@@ -125,10 +134,7 @@ in {
           format = "{icon}";
           on-click = "activate";
           sort-by-number = true;
-          persistent-workspaces = {
-            "${mainMonitor}" = [1 2 3 4];
-            "${auxMonitor}" = [5];
-          };
+          persistent-workspaces = persistentWorkspaces;
         };
 
         # Clock with date copy functionality
