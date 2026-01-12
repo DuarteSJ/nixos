@@ -50,7 +50,7 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Enable the GNOME Desktop Environment.
+  # Enable the GNOME Display Manager (gdm).
   services.xserver.displayManager.gdm.enable = true;
 
   environment.sessionVariables = {

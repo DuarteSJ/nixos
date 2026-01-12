@@ -35,9 +35,9 @@
       # Create recording flag
       touch "$RECORDING_FLAG"
       
-      # Start recording (video + PipeWire audio)
+      # Start recording (video + PipeWire system audio)
       ${pkgs.wf-recorder}/bin/wf-recorder \
-        --audio \
+        --audio="$(${pkgs.pipewire}/bin/pactl get-default-sink).monitor" \
         -g "$geometry" \
         -f "$outfile" &
       
