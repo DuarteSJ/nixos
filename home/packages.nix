@@ -1,4 +1,12 @@
-{pkgs, ...}: {
+{ pkgs, inputs, system, ... }:
+
+let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit system;
+    config.allowUnfree = true;
+  };
+in
+{
   home.packages = with pkgs; [
     git
     curl
@@ -35,5 +43,6 @@
     ffmpeg
     feh
     mpv
+    unstable.code-cursor
   ];
 }
