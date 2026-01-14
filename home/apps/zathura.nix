@@ -4,6 +4,8 @@ in {
   programs.zathura = {
     enable = true;
     options = {
+      selection-clipboard = "clipboard";
+
       # Recolor settings
       recolor = false;
       recolor-keephue = false;
