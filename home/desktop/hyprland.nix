@@ -119,9 +119,13 @@ in {
     enable = true;
     settings = with config.colorScheme.palette; {
       # Monitors
-      monitor = [
-        "${laptopMonitor.name}, disable"
-      ] ++ (map (m: 
+      monitor = (
+        if laptopMonitor.enabled then [
+          "${laptopMonitor.name}, ${laptopMonitor.mode}, ${laptopMonitor.position}, ${laptopMonitor.scale}${if laptopMonitor.orientation == "vertical" then ", transform, 1" else ""}"
+        ] else [
+            "${laptopMonitor.name}, disable"
+          ]
+      ) ++ (map (m: 
           "${m.name}, ${m.mode}, ${m.position}, ${m.scale}${if m.orientation == "vertical" then ", transform, 1" else ""}"
         ) externalMonitors);
 
