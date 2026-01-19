@@ -55,7 +55,7 @@ in {
       name = "eDP-1";
       mode = "1920x1200@59.95";
       position = "0x0";
-      enabled = true;
+      enabled = false;
       workspaces = [5];
     };
     external = [

@@ -97,6 +97,7 @@
     extraGroups = [
       "networkmanager"
       "wheel"
+      "adbusers"
     ];
     packages = with pkgs; [
       #  thunderbird
@@ -117,6 +118,9 @@
 
     # Enable zsh
     zsh.enable = true;
+
+    # Enable ADB for Android debugging (scrcpy)
+    adb.enable = true;
   };
 
   hardware.bluetooth.enable = true; # if you use Bluetooth
