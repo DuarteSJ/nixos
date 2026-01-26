@@ -92,7 +92,6 @@
     zsh.enable = true;
     adb.enable = true;
 
-    # Add Steam here
     steam = {
       enable = true;
       remotePlay.openFirewall = true;
@@ -107,11 +106,7 @@
 
   hardware.bluetooth.enable = true;
 
-  environment.systemPackages = with pkgs; [
-    # Gaming utilities
-    # mangohud
-    # protonup-qt
-  ];
+  environment.systemPackages = with pkgs; [];
 
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="vial:f64c2b3c", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
