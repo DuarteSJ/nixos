@@ -82,10 +82,8 @@
     current_value=$(hyprctl getoption animations:enabled | awk '/int:/ {print $2}')
     if [ "$current_value" = "1" ]; then
       hyprctl keyword animations:enabled 0
-      dunstify "Animations Disabled" "Window animations have been disabled."
     else
       hyprctl keyword animations:enabled 1
-      dunstify "Animations Enabled" "Window animations have been enabled."
     fi
   '';
 

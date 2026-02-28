@@ -39,6 +39,10 @@
   services.xserver.enable = true;
   services.xserver.displayManager.gdm.enable = true;
 
+  # Enable systemd-resolved for DNS resolution
+  services.resolved.enable = true;
+  networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
+
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
   };
