@@ -6,7 +6,7 @@
   imports = [./hardware-configuration.nix];
 
   # System
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
   nix.settings.experimental-features = ["nix-command" "flakes"];
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
@@ -40,12 +40,14 @@
   };
 
   # Display & desktop
-  services.xserver = {
-    enable = true;
+  services = {
     displayManager.gdm.enable = true;
-    xkb = {
-      layout = "us";
-      variant = "";
+    xserver = {
+      enable = true;
+      xkb = {
+        layout = "us";
+        variant = "";
+      };
     };
   };
   environment.sessionVariables.NIXOS_OZONE_WL = "1";

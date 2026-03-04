@@ -41,7 +41,6 @@ in
     obs-studio
     telegram-desktop
     obsidian
-    stremio
     scrcpy
     vial
 
