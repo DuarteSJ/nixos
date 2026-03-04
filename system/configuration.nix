@@ -1,29 +1,24 @@
-# configuration.nix
 {
   pkgs,
-  pkgs-unstable,
-  lib,
   inputs,
   ...
 }: {
-  imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-  ];
+  imports = [./hardware-configuration.nix];
 
-  users.users.duartesj.shell = pkgs.zsh;
+  # System
+  system.stateVersion = "25.05";
+  nix.settings.experimental-features = ["nix-command" "flakes"];
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+  networking.nameservers = ["1.1.1.1" "8.8.8.8"];
 
-  # Bootloader.
+  # Boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos";
-  networking.networkmanager.enable = true;
-
+  # Locale & time
   time.timeZone = "Europe/Lisbon";
-
   i18n.defaultLocale = "en_US.UTF-8";
-
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "pt_PT.UTF-8";
     LC_IDENTIFICATION = "pt_PT.UTF-8";
@@ -36,34 +31,38 @@
     LC_TIME = "pt_PT.UTF-8";
   };
 
-  services.xserver.enable = true;
-  services.xserver.displayManager.gdm.enable = true;
-
-  # Enable systemd-resolved for DNS resolution
-  services.resolved.enable = true;
-  networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
-
-  environment.sessionVariables = {
-    NIXOS_OZONE_WL = "1";
+  # Users
+  users.users.duartesj = {
+    isNormalUser = true;
+    description = "Duarte S. Jose";
+    shell = pkgs.zsh;
+    extraGroups = ["networkmanager" "wheel" "adbusers"];
   };
 
+  # Display & desktop
+  services.xserver = {
+    enable = true;
+    displayManager.gdm.enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+    };
+  };
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
+  # Hardware
   hardware = {
+    bluetooth.enable = true;
     graphics = {
       enable = true;
-      enable32Bit = true; # Required for Steam
+      enable32Bit = true;
     };
     nvidia.modesetting.enable = true;
   };
 
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-  };
-
-  services.printing.enable = true;
-
-  services.pulseaudio.enable = false;
+  # Audio
   security.rtkit.enable = true;
+  services.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -71,50 +70,30 @@
     pulse.enable = true;
   };
 
-  users.users.duartesj = {
-    isNormalUser = true;
-    description = "Duarte S. Jose";
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "adbusers"
-    ];
-    packages = with pkgs; [];
-  };
-
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
-
+  # Programs
   programs = {
+    zsh.enable = true;
+    adb.enable = true;
     hyprland = {
       enable = true;
       xwayland.enable = true;
     };
-
-    zsh.enable = true;
-    adb.enable = true;
-
     steam = {
       enable = true;
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
       localNetworkGameTransfers.openFirewall = true;
-      gamescopeSession.enable = true; # For gamescope integration
+      gamescopeSession.enable = true;
     };
-
-    # GameMode for better gaming performance
     gamemode.enable = true;
   };
 
-  hardware.bluetooth.enable = true;
+  # Services
+  services.resolved.enable = true;
+  services.printing.enable = true;
 
-  environment.systemPackages = with pkgs; [];
-
+  # udev rules
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="vial:f64c2b3c", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
   '';
-
-  system.stateVersion = "25.05";
 }

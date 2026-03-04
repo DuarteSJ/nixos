@@ -1,25 +1,7 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
-  programs.rofi = {
-    enable = false;
-    package = pkgs.rofi-wayland;
+{config, ...}: {
+  # programs.rofi is intentionally not used here; we manage the config file
+  # directly because the rofi wayland package is installed via home.packages.
 
-    extraConfig = {
-      modi = "drun,run,filebrowser,window";
-      show-icons = true;
-      display-drun = " Apps";
-      display-run = " Run";
-      display-filebrowser = " Files";
-      display-window = " Windows";
-      drun-display-format = "{name}";
-      window-format = "{w} · {c} · {t}";
-    };
-  };
-
-  # Create the rofi theme file manually
   home.file.".config/rofi/config.rasi".text = with config.colorScheme.palette; ''
     /*****----- Configuration -----*****/
     configuration {

@@ -8,41 +8,48 @@ let
 in
 {
   home.packages = with pkgs; [
+    # CLI tools
     git
     curl
     home-manager
-    alacritty
     eza
     fastfetch
-    waybar
-    rofi-wayland
-    hyprpaper
-    dunst
-    hyprlock
     wl-clipboard
     brightnessctl
     playerctl
-    cava
-    pavucontrol
-    nerd-fonts.jetbrains-mono
-    nordzy-cursor-theme
-    blueman
-    networkmanagerapplet
-    obs-studio
-    telegram-desktop
-    hyprpicker
-    texlive.combined.scheme-full
-    perl
     ripgrep
-    obsidian
-    vial
     alejandra
-    scrcpy
-    stremio
-    wireguard-tools
     ffmpeg
     feh
     mpv
+    jq
+
+    # Desktop utilities
+    hyprpicker
+    pavucontrol
+    blueman
+    networkmanagerapplet
+    cava
+    rofi
+
+    # Fonts & themes
+    nerd-fonts.jetbrains-mono
+    nordzy-cursor-theme
+
+    # Applications
+    alacritty
+    obs-studio
+    telegram-desktop
+    obsidian
+    stremio
+    scrcpy
+    vial
+
+    # LaTeX
+    texlive.combined.scheme-full
+    perl
+
+    # Unstable channel
     unstable.code-cursor
   ];
 }

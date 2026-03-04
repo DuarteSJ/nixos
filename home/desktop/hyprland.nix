@@ -16,7 +16,7 @@
     (generateWorkspaces laptopMonitor)
     ++ (builtins.concatMap generateWorkspaces externalMonitors);
 
-  rounding = 0;
+  rounding = 2;
 
   # Scripts
   rofi-launcher = pkgs.writeShellScript "rofi-launcher" ''
@@ -176,18 +176,16 @@ in {
       animations = {
         enabled = true;
         bezier = [
-          "wind, 0.05, 0.9, 0.1, 1.05"
-          "winIn, 0.1, 1.1, 0.1, 1.1"
-          "winOut, 0.3, -0.3, 0, 1"
+          "snap, 0.1, 0.9, 0.2, 1.0"
         ];
         animation = [
-          "windowsIn, 1, 3, wind, slide"
-          "windowsOut, 1, 3, wind, slide"
-          "windowsMove, 1, 3, wind, slide"
-          "border, 1, 6, wind"
-          "fade, 1, 3, wind"
-          "workspaces, 1, 4, wind"
-          "specialWorkspace, 1, 4, wind, slidefadevert 70%"
+          "windowsIn, 1, 1, snap, slide"
+          "windowsOut, 1, 1, snap, slide"
+          "windowsMove, 1, 1, snap, slide"
+          "border, 1, 2, snap"
+          "fade, 1, 1, snap"
+          "workspaces, 1, 1, snap"
+          "specialWorkspace, 1, 1, snap, slidefadevert 90%"
         ];
       };
 

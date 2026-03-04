@@ -13,7 +13,6 @@
     ./scripts
     ./apps
     ./desktop
-    ./scripts
     ./terminal
     ./nvim
   ];

@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  colors = config.colorscheme.colors;
+  colors = config.colorScheme.palette;
 in {
   programs.firefox = {
     enable = true;

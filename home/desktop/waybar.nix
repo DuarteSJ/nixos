@@ -4,18 +4,19 @@
   lib,
   ...
 }: let
-  colors = config.colorscheme.palette;
+  colors = config.colorScheme.palette;
 
   laptopMonitor = config.monitors.laptop;
   externalMonitors = builtins.filter (m: m.enabled) config.monitors.external;
-  
+
   # Generate persistent workspaces from monitor configurations
-  persistentWorkspaces = {
-    "${laptopMonitor.name}" = laptopMonitor.workspaces;
-  } // (builtins.listToAttrs (map (m: {
-      name = m.name;
-      value = m.workspaces;
-    }) externalMonitors));
+  persistentWorkspaces =
+    {"${laptopMonitor.name}" = laptopMonitor.workspaces;}
+    // (builtins.listToAttrs (map (m: {
+        name = m.name;
+        value = m.workspaces;
+      })
+      externalMonitors));
 
   # Icon collections
   icons = {
@@ -55,7 +56,7 @@
     };
   };
 
-  # Color references for module icons
+  # Color keys for module icons
   moduleColors = {
     clock = "base0D";
     memory = "base0A";
@@ -84,28 +85,16 @@
     };
   };
 
-  # Helper to create colored icon span
-  coloredIcon = icon: color: "<span color='#${colors.${color}}'>${icon}</span>";
+  # Helper: wrap icon in a colored span
+  coloredIcon = icon: colorKey: "<span color='#${colors.${colorKey}}'>${icon}</span>";
 
-  # Helper to build module with icon
-  mkModuleWithIcon = icon: color: formatStr: extra:
-    {
-      format = "${coloredIcon icon color} ${formatStr}";
-    }
-    // extra;
-
-  # Helper to build clickable terminal module
-  mkTerminalModule = module: icon: color: formatStr: app:
-    mkModuleWithIcon icon color formatStr {
-      on-click = "${app}";
-    };
+  # Helper: build a module with a leading colored icon
+  mkModuleWithIcon = icon: colorKey: formatStr: extra: {
+    format = "${coloredIcon icon colorKey} ${formatStr}";
+  } // extra;
 
   # Build path for terminal commands
   mkTermCmd = bin: "${pkgs.alacritty}/bin/alacritty -e ${bin}";
-
-  # Common module groups for CSS
-  allModules = ["clock" "battery" "memory" "temperature" "network" "pulseaudio" "window" "custom-screenrec"];
-  interactiveModules = ["clock" "battery" "memory" "temperature" "network" "pulseaudio" "custom-screenrec"];
 in {
   programs.waybar = {
     enable = true;
@@ -138,33 +127,30 @@ in {
         };
 
         # Clock with date copy functionality
-        clock = mkModuleWithIcon icons.clock moduleColors.clock 
-          "{:%H:%M  ${coloredIcon icons.calendar "base07"} %b %d}" {
-          tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-          on-click = lib.concatStringsSep " | " [
-            "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y · %H:%M\""
-            "${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy)"
-            "${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'"
-          ];
-        };
+        clock = mkModuleWithIcon icons.clock moduleColors.clock
+          "{:%H:%M  ${coloredIcon icons.calendar "base07"} %b %d}"
+          {
+            tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
+            on-click = lib.concatStringsSep " | " [
+              "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/date +\"%d-%m-%Y · %H:%M\""
+              "${pkgs.coreutils}/bin/tee >(${pkgs.wl-clipboard}/bin/wl-copy)"
+              "${pkgs.findutils}/bin/xargs -I{} ${pkgs.libnotify}/bin/notify-send \"📋 Date copied\" \"{}\"'"
+            ];
+          };
 
         # System monitoring modules
-        memory = mkTerminalModule
-          "memory"
-          icons.memory
-          moduleColors.memory
-          "{}%"
-          (mkTermCmd "btop") // {states = thresholds.memory;};
+        memory =
+          mkModuleWithIcon icons.memory moduleColors.memory "{}%" {
+            states = thresholds.memory;
+            on-click = mkTermCmd "btop";
+          };
 
-        temperature = mkTerminalModule
-          "temperature"
-          "{icon}"
-          moduleColors.temperature
-          "{temperatureC}°C"
-          (mkTermCmd "btop") // {
-          critical-threshold = thresholds.temperature.critical;
-          format-icons = with icons.temperature; [normal warm hot];
-        };
+        temperature =
+          mkModuleWithIcon "{icon}" moduleColors.temperature "{temperatureC}°C" {
+            critical-threshold = thresholds.temperature.critical;
+            format-icons = with icons.temperature; [normal warm hot];
+            on-click = mkTermCmd "btop";
+          };
 
         battery = {
           states = thresholds.battery;
@@ -216,114 +202,116 @@ in {
       };
     };
 
-    style = with colors;
-      let
-        # Generate CSS selectors from list
-        mkSelectors = list: builtins.concatStringsSep ",\n" (builtins.map (m: "#${m}") list);
-        mkHoverSelectors = list: builtins.concatStringsSep ",\n" (builtins.map (m: "#${m}:hover") list);
-      in ''
-        * {
-          font-family: "JetBrainsMono Nerd Font", Roboto, Helvetica, Arial, sans-serif;
-          font-size: 16px;
-        }
+    style = ''
+      * {
+        font-family: "JetBrainsMono Nerd Font", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+      }
 
-        window#waybar {
-          background-color: rgba(0, 0, 0, 0);
-          border-radius: 13px;
-          transition-property: background-color;
-          transition-duration: .5s;
-        }
+      window#waybar {
+        background-color: rgba(0, 0, 0, 0);
+        border-radius: 13px;
+        transition-property: background-color;
+        transition-duration: .5s;
+      }
 
-        window#waybar.empty #window {
-          opacity: 0;
-          padding: 0;
-          margin: 0;
-        }
+      window#waybar.empty #window {
+        opacity: 0;
+        padding: 0;
+        margin: 0;
+      }
 
-        button {
-          box-shadow: inset 0 -3px transparent;
-          border: none;
-          border-radius: 0;
-        }
+      button {
+        box-shadow: inset 0 -3px transparent;
+        border: none;
+        border-radius: 0;
+      }
 
-        button:hover {
-          background: inherit;
-          box-shadow: inset 0 -3px #${base05};
-        }
+      button:hover {
+        background: inherit;
+        box-shadow: inset 0 -3px #${colors.base05};
+      }
 
-        /* Workspace buttons */
-        #workspaces button {
-          padding: 0 5px;
-          background-color: transparent;
-          color: #${base05};
-        }
+      /* Workspace buttons */
+      #workspaces button {
+        padding: 0 5px;
+        background-color: transparent;
+        color: #${colors.base05};
+      }
 
-        #workspaces button:hover {
-          background: rgba(0, 0, 0, 0.2);
-        }
+      #workspaces button:hover {
+        background: rgba(0, 0, 0, 0.2);
+      }
 
-        #workspaces button.active {
-          box-shadow: inset 0 -2px #${base05};
-        }
+      #workspaces button.active {
+        box-shadow: inset 0 -2px #${colors.base05};
+      }
 
-        #workspaces button.urgent {
-          background-color: #${base08};
-        }
+      #workspaces button.urgent {
+        background-color: #${colors.base08};
+      }
 
-        /* Module styling */
-        ${mkSelectors allModules} {
-          padding: 0 10px;
-          color: #${base04};
-        }
+      /* Module styling */
+      #clock,
+      #battery,
+      #memory,
+      #temperature,
+      #network,
+      #pulseaudio,
+      #window,
+      #custom-screenrec {
+        padding: 0 10px;
+        color: #${colors.base04};
+      }
 
-        /* Module group backgrounds */
-        .modules-right,
-        .modules-left,
-        .modules-center {
-          background-color: #${base00};
-          border-radius: 4px;
-          padding: 1 10px;
-        }
+      /* Module group backgrounds */
+      .modules-right,
+      .modules-left,
+      .modules-center {
+        background-color: #${colors.base00};
+        border-radius: 4px;
+        padding: 1 10px;
+      }
 
-        /* Critical state animation */
-        @keyframes blink {
-          to {
-            color: #${base00};
-          }
+      /* Critical state animation */
+      @keyframes blink {
+        to {
+          color: #${colors.base00};
         }
+      }
 
-        #battery.critical:not(.charging),
-        #memory.critical {
-          background-color: #${base08};
-          color: #${base05};
-          animation-name: blink;
-          animation-duration: 0.5s;
-          animation-timing-function: steps(12);
-          animation-iteration-count: infinite;
-          animation-direction: alternate;
-        }
+      #battery.critical:not(.charging),
+      #memory.critical {
+        background-color: #${colors.base08};
+        color: #${colors.base05};
+        animation-name: blink;
+        animation-duration: 0.5s;
+        animation-timing-function: steps(12);
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+      }
 
-        /* Screen recording indicator */
-        #custom-screenrec {
-          padding: 0 10px;
-          margin-left: 10px;
-        }
+      /* Screen recording indicator */
+      #custom-screenrec {
+        padding: 0 10px;
+        margin-left: 10px;
+      }
 
-        #custom-screenrec.recording {
-          background-color: #${base08};
-          color: #${base00};
-          border-radius: 4px;
-          font-weight: bold;
-        }
+      #custom-screenrec.recording {
+        background-color: #${colors.base08};
+        color: #${colors.base00};
+        border-radius: 4px;
+        font-weight: bold;
+      }
 
-        #custom-screenrec.hidden {
-          padding: 0;
-          margin: 0;
-        }
+      #custom-screenrec.hidden {
+        padding: 0;
+        margin: 0;
+      }
 
-        label:focus {
-          background-color: #${base00};
-        }
-      '';
+      label:focus {
+        background-color: #${colors.base00};
+      }
+    '';
   };
 }

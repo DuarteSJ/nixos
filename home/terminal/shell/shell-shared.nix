@@ -1,26 +1,6 @@
 {config, ...}: {
-  programs.zsh = {
-    enable = true;
-    history = {
-      size = 1000;
-      save = 1000;
-      path = "${config.home.homeDirectory}/.histfile";
-      ignoreDups = true;
-      ignoreAllDups = true;
-      ignoreSpace = true;
-      share = true;
-    };
-    defaultKeymap = "emacs";
-    setOptions = [
-      "hist_ignore_dups"
-      "hist_ignore_all_dups"
-      "hist_save_no_dups"
-      "hist_ignore_space"
-      "hist_verify"
-      "share_history"
-      "auto_cd"
-    ];
-    shellAliases = {
+  _module.args.shellShared = rec {
+    aliases = {
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
       la = "l -a";
@@ -28,23 +8,23 @@
       lt = "eza --color=always --tree --group-directories-first --icons";
       ls = "ls --color=auto";
       grep = "grep --color=auto";
-      fetchall = "fastfetch --config examples/25.jsonc";
-      memfetch = "fastfetch --config examples/9.jsonc";
       nv = "nvim";
-      keys = "bindkey -L | head";
       remind = "~/notes/remind.sh";
       # obsidian shortcuts
       odl = "nvim +'ObsidianToday'";
       onew = "nvim +'ObsidianNew'";
       osearch = "nvim +'ObsidianSearch'";
+      # cava floating window helpers
       caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
+      # fastfetch
+      cleanfetch = "fastfetch --config examples/8.jsonc";
+      fetchall = "fastfetch --config examples/25.jsonc";
+      memfetch = "fastfetch --config examples/9.jsonc";
+      cljrepl = "clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.0.0\"} cider/cider-nrepl {:mvn/version \"0.42.1\"}}}' -M -m nrepl.cmdline --middleware '[\"cider.nrepl/cider-middleware\"]' --interactive";
     };
-    initContent = with config.colorScheme.palette; ''
-      # Custom prompt
-      # export PS1=$'\n%F{#${base0D}}%B%b %F{#${base0D}}%1~%f%F{#${base0D}} ❯ %f'
-      # export RPROMPT='%F{#${base0E}}'"''${NIX_PS1_OVERRIDE}"'%f'
 
+    functions = ''
       # Tree with depth
       ltl() {
         if [[ -z "$1" ]]; then
@@ -54,7 +34,7 @@
         eza --color=always --tree --level="$1"
       }
 
-      # Copy file content
+      # Copy file content to clipboard
       copyfile() {
         if [[ -z "$1" ]]; then
           echo -e "\033[1;33mUsage:\033[0m copyfile <filename>"
@@ -72,7 +52,7 @@
         fi
       }
 
-      # Copy pwd
+      # Copy current working directory to clipboard
       cpwd() {
         local current_path=$(pwd)
         if echo "$current_path" | wl-copy; then
@@ -82,7 +62,8 @@
           return 1
         fi
       }
-        # Run nixpkgs-lint in a given path
+
+      # Format nix files with alejandra
       nixfmt() {
         if [[ -z "$1" ]]; then
           echo -e "\033[1;33mUsage:\033[0m nixfmt <path>"
@@ -92,9 +73,7 @@
           echo -e "\033[1;31m✗ Error:\033[0m '$1' does not exist."
           return 1
         fi
-
         echo -e "\033[1;34mFormatting:\033[0m '$1'..."
-
         if alejandra "$1"; then
           echo -e "\033[1;32m✓ Success:\033[0m Formatted '$1'."
         else
@@ -102,12 +81,6 @@
           return 1
         fi
       }
-
-      # Extra stuff to start zsh with
-      [[ -n $ZSH_CMDS ]] && eval "$ZSH_CMDS"
     '';
-    autosuggestion.enable = true;
-    enableCompletion = true;
-    syntaxHighlighting.enable = true;
   };
 }

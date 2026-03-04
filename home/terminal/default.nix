@@ -1,13 +1,11 @@
 # Aggregates user scripts
 {
   imports = [
-    ./zsh.nix
-    ./bash.nix
+    ./shell
     ./alacritty.nix
     ./cava.nix
     ./fastfetch.nix
     ./bat.nix
     ./btop.nix
-    ./starship.nix
   ];
 }
