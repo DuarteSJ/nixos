@@ -23,7 +23,6 @@ in {
       # GENERAL
       general = {
         hide_cursor = false;
-        grace = 0;
       };
 
       # BACKGROUND
