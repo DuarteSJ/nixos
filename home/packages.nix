@@ -5,6 +5,10 @@ let
     inherit system;
     config.allowUnfree = true;
   };
+  stremio = import inputs.nixpkgs-stremio {
+    inherit system;
+    config.allowUnfree = true;
+  };
 in
 {
   home.packages = with pkgs; [
@@ -50,5 +54,9 @@ in
 
     # Unstable channel
     unstable.code-cursor
+
+    # TODO: remove this entirely when stremio is updated in nixpkgs
+    # Stremio from stremio overlay
+    stremio.stremio
   ];
 }
