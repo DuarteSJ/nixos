@@ -7,7 +7,7 @@
   colors = config.colorScheme.palette;
 
   laptopMonitor = config.monitors.laptop;
-  externalMonitors = builtins.filter (m: m.enabled) config.monitors.external;
+  externalMonitors = config.monitors.external;
 
   # Generate persistent workspaces from monitor configurations
   persistentWorkspaces =

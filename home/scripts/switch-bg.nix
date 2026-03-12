@@ -4,7 +4,7 @@
   ...
 }: let
   laptopMonitor = config.monitors.laptop;
-  externalMonitors = builtins.filter (m: m.enabled) config.monitors.external;
+  externalMonitors = config.monitors.external;
   themeName = config.colorScheme.slug or "nord";
 
   monitorChecks = builtins.concatStringsSep " || " (map (m:
@@ -13,7 +13,7 @@
 
   externalMonitorBlocks = builtins.concatStringsSep "\n" (builtins.genList (i: let
     m = builtins.elemAt externalMonitors i;
-    orientation = if m.orientation == "vertical" then "vertical" else "horizontal";
+    orientation = if m.transform == 1 || m.transform == 3 then "vertical" else "horizontal";
   in ''
     elif [[ "$active_monitor" == "${m.name}" ]]; then
         external_${toString i}_index=$(( (external_${toString i}_index + 1) % ''${#external_${toString i}_wallpapers[@]} ))
@@ -45,7 +45,7 @@
 
   wallpaperArrays = builtins.concatStringsSep "\n" (builtins.genList (i: let
     m = builtins.elemAt externalMonitors i;
-    orientation = if m.orientation == "vertical" then "vertical" else "horizontal";
+    orientation = if m.transform == 1 || m.transform == 3 then "vertical" else "horizontal";
   in ''
     external_${toString i}_dir="$wallpapers_dir/${orientation}"
     mapfile -t external_${toString i}_wallpapers < <(get_wallpapers "$external_${toString i}_dir")
@@ -66,7 +66,7 @@ in {
           exit 1
       fi
 
-      laptop_orientation="${if laptopMonitor.orientation == "vertical" then "vertical" else "horizontal"}"
+      laptop_orientation="${if laptopMonitor.transform == 1 || laptopMonitor.transform == 3 then "vertical" else "horizontal"}"
       laptop_dir="$wallpapers_dir/$laptop_orientation"
 
       get_wallpapers() {

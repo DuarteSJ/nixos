@@ -27,6 +27,7 @@ in
     feh
     mpv
     jq
+    usbutils
 
     # Desktop utilities
     hyprpicker
