@@ -7,6 +7,7 @@
     inputs.nix-colors.homeManagerModules.default
     inputs.spicetify-nix.homeManagerModules.default
     inputs.nvf.homeManagerModules.default
+    ./vars.nix
     ./environment.nix
     ./packages.nix
     ./git.nix

@@ -1,8 +1,9 @@
 { config, pkgs, lib, ... }: let
 
-  cfg     = config.monitors;
-  laptop  = cfg.laptop;
-  externals = cfg.external;
+  monitors = config.monitors;
+  laptop  = monitors.laptop;
+  externals = monitors.external;
+  vars = config.vars;
 
   # ------------------------------------------------------------------
   # Helpers
@@ -17,7 +18,7 @@
   monitorEnableCmd = m:
     "hyprctl keyword monitor '${monitorLine m}'";
 
-  rounding = 2;
+  rounding = vars.rounding;
 
   # ------------------------------------------------------------------
   # Scripts
@@ -84,22 +85,42 @@
   '';
 
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
-    cur=$(hyprctl getoption general:gaps_in | awk '{print $3}')
-    [ "$cur" -eq 0 ] && hyprctl keyword decoration:rounding ${toString rounding}
-    n=$((cur + 2))
-    hyprctl keyword general:gaps_in  $n $n $n $n
-    hyprctl keyword general:gaps_out $n $n $n $n
+    # Get the current outer gap
+    cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
+    
+    # Increment outer gap by 2
+    new_out=$((cur_out + 2))
+    
+    # Set inner gap to half of outer
+    new_in=$((new_out / 2))
+    
+    # Update rounding if inner gap was 0
+    if [ "$new_in" -eq 0 ]; then
+      hyprctl keyword decoration:rounding ${toString rounding}
+    fi
+    
+    # Apply the gaps
+    hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
+    hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
   '';
 
   decrease_gaps = pkgs.writeShellScript "decrease-gaps" ''
-    cur=$(hyprctl getoption general:gaps_in | awk '{print $3}')
-    n=$((cur - 2))
-    if [ "$n" -lt 0 ]; then
-      n=0
+    # Get current outer gap
+    cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
+    
+    # Decrement outer gap by 2
+    new_out=$((cur_out - 2))
+    if [ "$new_out" -lt 0 ]; then
+      new_out=0
       hyprctl keyword decoration:rounding 0
     fi
-    hyprctl keyword general:gaps_in  $n $n $n $n
-    hyprctl keyword general:gaps_out $n $n $n $n
+    
+    # Inner gap is always half of outer
+    new_in=$((new_out / 2))
+    
+    # Apply the gaps
+    hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
+    hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
   '';
 
   # ------------------------------------------------------------------
@@ -133,7 +154,7 @@
     LAPTOP="${laptop.name}"
     LAPTOP_ENABLE="${monitorEnableCmd laptop}"
     LAPTOP_DISABLE="hyprctl keyword monitor ${laptop.name},disable"
-    DISABLE_WHEN_EXTERNAL="${if cfg.disableLaptopWhenExternal then "1" else "0"}"
+    DISABLE_WHEN_EXTERNAL="${if monitors.disableLaptopWhenExternal then "1" else "0"}"
 
     # Known external monitors: "name|enable-cmd" pairs, newline-separated.
     EXTERNALS="${builtins.concatStringsSep "\n" (map (m: "${m.name}|${monitorEnableCmd m}") externals)}"
@@ -272,7 +293,7 @@
 
   spotifyW = toString (monitorDims.width  * 65 / 100);
   spotifyH = toString (monitorDims.height * 63 / 100);
-  cavaW    = toString (monitorDims.width  - 30);
+  cavaW    = toString (monitorDims.width  - 27);
   cavaY    = toString (monitorDims.height - 181 - 2);
 
 in {
@@ -305,8 +326,8 @@ in {
       ];
 
       general = {
-        gaps_in  = 2;
-        gaps_out = 4;
+        gaps_in  = vars.gaps / 2;
+        gaps_out = vars.gaps;
         border_size = 1;
         "col.active_border"   = "rgba(${base0D}cc) rgba(${base0C}77) 45deg";
         "col.inactive_border" = "rgba(${base02}aa)";

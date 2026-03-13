@@ -20,6 +20,6 @@
       line-numbers = true;
       syntax-theme = config.colorScheme.name;
     };
-    enableGitIntegration = true; # explicit now
+    enableGitIntegration = true;
   };
 }

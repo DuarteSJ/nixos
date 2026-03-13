@@ -1,13 +1,15 @@
+# NOTE: For future, consider that it is possible to set per app rules in dunst.
+# TODO: Icon does not exist.
 {
   config,
   pkgs,
   ...
 }: let
   colors = config.colorScheme.palette;
+  vars = config.vars;
 in {
   services.dunst = {
     enable = true;
-
     settings = {
       global = {
         ### Display ###
@@ -15,12 +17,12 @@ in {
         follow = "mouse";
 
         ### Geometry ###
-        width = 400;
-        height = "(0,200)";
+        width = "(200, 400)";
+        height = "(0, 200)";
         origin = "bottom-right";
-        offset = "15x15";
+        offset = "(15, 15)";
         scale = 0;
-        notification_limit = 0;
+        notification_limit = 5;
 
         ### Progress bar ###
         progress_bar = true;
@@ -28,10 +30,17 @@ in {
         progress_bar_frame_width = 1;
         progress_bar_min_width = 150;
         progress_bar_max_width = 400;
-        progress_bar_corner_radius = 0;
+        progress_bar_corner_radius = vars.rounding;
         progress_bar_corners = "all";
-        icon_corner_radius = 0;
+
+        ### Icons ###
+        icon_position = "left";
+        min_icon_size = 32;
+        max_icon_size = 64;
+        icon_corner_radius = vars.rounding;
         icon_corners = "all";
+        icon_path = "${pkgs.hicolor-icon-theme}/share/icons/hicolor/32x32/status/:${pkgs.hicolor-icon-theme}/share/icons/hicolor/32x32/devices/:${pkgs.hicolor-icon-theme}/share/icons/hicolor/32x32/apps/";
+        icon_theme = "hicolor";
 
         ### Visual ###
         indicate_hidden = "yes";
@@ -39,16 +48,17 @@ in {
         separator_height = 2;
         padding = 12;
         horizontal_padding = 14;
-        text_icon_padding = 20;
-        frame_width = 2;
-        frame_color = "#aaaaaa";
-        gap_size = 10;
+        text_icon_padding = 12;
+        frame_width = 1;
+        gap_size = 8;
         separator_color = "frame";
         sort = "yes";
+        corner_radius = vars.rounding;
+        corners = "all";
 
         ### Text ###
-        font = "JetBrainsMono Nerd Font 14";
-        line_height = 0;
+        font = vars.font.name;
+        line_height = 2;
         markup = "full";
         format = "<b>%s</b>\\n%b";
         alignment = "left";
@@ -56,68 +66,68 @@ in {
         show_age_threshold = 60;
         ellipsize = "middle";
         ignore_newline = "no";
+        word_wrap = true;
         stack_duplicates = true;
         hide_duplicate_count = false;
         show_indicators = "yes";
 
-        ### Icons ###
-        icon_position = "left";
-        min_icon_size = 0;
-        max_icon_size = 32;
-        icon_path = "${config.home.homeDirectory}/.icons/";
-
         ### History ###
         sticky_history = "yes";
-        history_length = 20;
+        history_length = 30;
 
-        ### Misc/Advanced ###
-        dmenu = "${pkgs.dmenu}/bin/dmenu -p dunst:";
-        browser = "${pkgs.xdg-utils}/bin/xdg-open";
+        ### Misc ###
+        browser = "xdg-open";
         always_run_script = true;
         title = "Dunst";
         class = "Dunst";
-        corner_radius = 15;
-        corners = "all";
         ignore_dbusclose = false;
 
-        ### Wayland ###
+        ### Wayland (native, no xwayland needed) ###
         force_xwayland = false;
-
-        ### Legacy ###
         force_xinerama = false;
+        layer = "overlay";  # renders above other wayland surfaces
 
         ### Mouse ###
-        mouse_left_click = "do_action, close_current";
+        mouse_left_click = "do_action";
         mouse_middle_click = "close_current";
         mouse_right_click = "close_all";
+
+        ### Idle ###
+        idle_threshold = 120;
+
+        ### Action menu (rofi, wayland-native) ###
+        dmenu = "rofi -dmenu -p dunst";
       };
 
       experimental = {
         per_monitor_dpi = false;
       };
 
-      # Using nix-colors for theming
       urgency_low = {
         background = "#${colors.base00}";
         foreground = "#${colors.base05}";
-        frame_color = "#${colors.base02}";
-        timeout = 10;
-        default_icon = "${config.home.homeDirectory}/.icons/bell";
+        frame_color = "#${colors.base03}";
+        highlight = "#${colors.base0D}";
+        timeout = 6;
+        default_icon = "dialog-information";
       };
 
       urgency_normal = {
         background = "#${colors.base00}";
         foreground = "#${colors.base05}";
-        frame_color = "#${colors.base02}";
+        frame_color = "#${colors.base0D}";
+        highlight = "#${colors.base0D}";
         timeout = 10;
-        default_icon = "${config.home.homeDirectory}/.icons/bell";
+        default_icon = "dialog-information";
       };
 
       urgency_critical = {
         background = "#${colors.base00}";
         foreground = "#${colors.base08}";
         frame_color = "#${colors.base08}";
+        highlight = "#${colors.base08}";
         timeout = 0;
+        default_icon = "dialog-error";
       };
     };
   };

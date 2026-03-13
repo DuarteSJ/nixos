@@ -5,6 +5,7 @@
   ...
 }: let
   colors = config.colorScheme.palette;
+  vars = config.vars;
 
   laptopMonitor = config.monitors.laptop;
   externalMonitors = config.monitors.external;
@@ -20,7 +21,7 @@
 
   # Icon collections
   icons = {
-    window = "";
+    window = "|";
     clock = "";
     calendar = "";
     memory = "";
@@ -102,9 +103,9 @@ in {
       mainBar = {
         # Bar layout
         margin-top = 2;
-        margin-left = 4;
-        margin-right = 4;
-        margin-bottom = 1;
+        margin-left = vars.gaps;
+        margin-right = vars.gaps;
+        margin-bottom = 0;
         height = 26;
 
         modules-left = ["hyprland/workspaces" "hyprland/window" "custom/screenrec"];
@@ -204,7 +205,7 @@ in {
 
     style = ''
       * {
-        font-family: "JetBrainsMono Nerd Font", Roboto, Helvetica, Arial, sans-serif;
+        font-family: "${vars.font.name}", Roboto, Helvetica, Arial, sans-serif;
         font-size: 16px;
       }
 
@@ -269,7 +270,7 @@ in {
       .modules-left,
       .modules-center {
         background-color: #${colors.base00};
-        border-radius: 4px;
+        border-radius: ${toString vars.rounding};
         padding: 1 10px;
       }
 

@@ -1,24 +1,28 @@
-{config, ...}: {
+{config, ...}: 
+let 
+  palette = config.colorScheme.palette;
+  vars = config.vars;
+in {
   programs.alacritty = {
     enable = true;
     settings = {
       terminal.shell.program = "/run/current-system/sw/bin/zsh";
       font = {
-        size = 12.5;
+        size = vars.font.size;
         normal = {
-          family = "JetBrains Mono Nerd Font";
+          family = vars.font.name;
           style = "Regular";
         };
         bold = {
-          family = "JetBrains Mono Nerd Font";
+          family = vars.font.name;
           style = "Bold";
         };
         bold_italic = {
-          family = "JetBrains Mono Nerd Font";
+          family = vars.font.name;
           style = "Bold Italic";
         };
         italic = {
-          family = "JetBrains Mono Nerd Font";
+          family = vars.font.name;
           style = "Italic";
         };
       };
@@ -44,7 +48,7 @@
           action = "SpawnNewInstance";
         }
       ];
-      colors = with config.colorScheme.palette; {
+      colors = with palette; {
         primary = {
           background = "#${base00}";
           foreground = "#${base05}";

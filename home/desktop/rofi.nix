@@ -1,8 +1,11 @@
-{config, ...}: {
+{config, ...}: let
+  colors = config.colorScheme.palette;
+  vars = config.vars;
+in {
   # programs.rofi is intentionally not used here; we manage the config file
-  # directly because the rofi wayland package is installed via home.packages.
+  # directly because the rofi package is installed via home.packages.
 
-  home.file.".config/rofi/config.rasi".text = with config.colorScheme.palette; ''
+  home.file.".config/rofi/config.rasi".text = with colors; ''
     /*****----- Configuration -----*****/
     configuration {
         modi:                       "drun,run,filebrowser,window";
@@ -17,7 +20,7 @@
 
     /*****----- Global Properties -----*****/
     * {
-        font:                        "JetBrainsMono Nerd Font 13";
+        font:  "${vars.font.name} ${toString vars.font.size}";
 
         /* nix-colors integration */
         background:                  #${base00};
@@ -66,7 +69,7 @@
         margin:                      0px;
         padding:                     0px;
         border:                      0px solid;
-        border-radius:               10px;
+        border-radius:               ${toString vars.rounding}px;
         border-color:                @border-colour;
         cursor:                      "default";
         background-color:            @background-colour;
