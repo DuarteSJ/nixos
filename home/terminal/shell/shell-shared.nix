@@ -11,9 +11,9 @@
       nv = "nvim";
       remind = "~/notes/remind.sh";
       # obsidian shortcuts
-      odl = "nvim +'ObsidianToday'";
-      onew = "nvim +'ObsidianNew'";
-      osearch = "nvim +'ObsidianSearch'";
+      odl = "nvim +'Obsidian today'";
+      onew = "nvim +'Obsidian new'";
+      osearch = "nvim +'Obsidian search'";
       # cava floating window helpers
       caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
       cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";

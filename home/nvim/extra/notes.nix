@@ -64,16 +64,16 @@ in {
               hl_group = "ObsidianTodo";
             };
             "d" = {
-              char = "";
+              char = "";
               hl_group = "ObsidianDone";
             };
             "f" = {
-              char = "";
+              char = "";
               hl_group = "ObsidianTilde";
             };
           };
           external_link_icon = {
-            char = "";
+            char = "";
             hl_group = "ObsidianExtLinkIcon";
           };
           reference_text = {hl_group = "ObsidianRefText";};

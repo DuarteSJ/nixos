@@ -22,11 +22,19 @@
       registers = "unnamedplus";
     };
 
-    theme = {
-      enable = true;
-      name = lib.toLower config.colorScheme.name;
-      transparent = true;
-    };
+    # TODO: this is shit
+    theme = if lib.hasInfix "gruvbox" (lib.toLower config.colorScheme.name)
+      then {
+        enable = true;
+        transparent = true;
+        name = "gruvbox";
+        style = "light";
+      }
+      else {
+        enable = true;
+        transparent = true;
+        name = "nord";
+      };
 
     telescope.enable = true;
     statusline.lualine.enable = true;

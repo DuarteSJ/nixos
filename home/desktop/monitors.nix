@@ -77,6 +77,7 @@ in {
         name       = "DP-3";
         mode       = "1920x1080@119.98";
         position   = "1920x0";
+        # transform  = 1;
         workspaces = [ 1 2 3 4 ];
       }
     ];

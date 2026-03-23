@@ -340,14 +340,6 @@ in {
         rounding         = rounding;
         inactive_opacity = 1;
         active_opacity   = 1;
-        shadow.enabled   = false;
-        shadow.range     = 96;
-        shadow.render_power = 3;
-        shadow.color     = "rgba(${base00}ff)";
-        blur.enabled     = false;
-        blur.size        = 3;
-        blur.passes      = 1;
-        blur.vibrancy    = 0.1696;
       };
 
       animations = {
@@ -485,7 +477,7 @@ in {
       ];
 
       workspace = [
-        "special:music,    on-created-empty:invis-cava & spotify"
+        "special:music,    on-created-empty:spotify"
         "special:messages, on-created-empty:beeper"
       ] ++ workspaceRules;
     };
