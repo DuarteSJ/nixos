@@ -1,6 +1,7 @@
 {config, ...}: {
   _module.args.shellShared = rec {
     aliases = {
+      rb = "sudo echo; nixos-rebuild switch --sudo";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
       la = "l -a";
@@ -81,6 +82,23 @@
           return 1
         fi
       }
+      
+      # Make a file that is "owned by nix" writable
+      unnix() {
+        if [[ -z "$1" ]]; then
+          echo -e "\033[1;33mUsage:\033[0m unnix <filename>"
+          return 1
+        fi
+        if [[ ! -L "$1" ]]; then
+          echo -e "\033[1;31m✗ Error:\033[0m '$1' is not a symlink."
+          return 1
+        fi
+        local content=$(cat "$1")
+        rm "$1"
+        echo "$content" > "$1"
+        echo -e "\033[1;32m✓ Success:\033[0m '$1' is now a regular writable file."
+      }
+      
     '';
   };
 }

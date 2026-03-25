@@ -49,6 +49,7 @@ in
     obsidian
     scrcpy
     vial
+    stremio-linux-shell
 
     # LaTeX
     texlive.combined.scheme-full
@@ -56,9 +57,5 @@ in
 
     # Unstable channel
     unstable.code-cursor
-
-    # TODO: remove this entirely when stremio is updated in nixpkgs
-    # Stremio from stremio overlay
-    stremio.stremio
   ];
 }

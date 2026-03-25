@@ -55,7 +55,7 @@ in {
         When true, the monitor-manager script disables the laptop panel
         while at least one external monitor is connected, and re-enables
         it the moment the last external is unplugged. Handled entirely
-        at runtime — no rebuild required.
+        at runtime (no rebuild required).
       '';
     };
 
@@ -69,7 +69,7 @@ in {
       name       = "eDP-1";
       mode       = "1920x1200@59.95";
       position   = "0x0";
-      workspaces = [ 5 ];
+      workspaces = [ 1 2 3 4 ];
     };
 
     external = [
