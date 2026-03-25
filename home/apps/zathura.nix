@@ -44,7 +44,7 @@ in {
       notification-warning-bg = "#${colors.base09}";
       notification-warning-fg = "#${colors.base00}";
 
-      # TODO: these are opaque in zathura. need to look into this
+      # TODO: these are opaque in zathura.
       # highlight-color = "#${colors.base0A}";
       # highlight-active-color = "#${colors.base0D}";
 

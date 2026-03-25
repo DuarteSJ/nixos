@@ -5,7 +5,6 @@
     # Nixpkgs
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-stremio.url = "github:NixOS/nixpkgs/nixos-25.05"; # TODO: update when stremio is updated in nixpkgs
 
     # WM / tooling
     hyprland.url = "github:hyprwm/Hyprland";

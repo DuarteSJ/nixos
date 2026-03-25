@@ -5,10 +5,6 @@ let
     inherit system;
     config.allowUnfree = true;
   };
-  stremio = import inputs.nixpkgs-stremio {
-    inherit system;
-    config.allowUnfree = true;
-  };
 in
 {
   home.packages = with pkgs; [
