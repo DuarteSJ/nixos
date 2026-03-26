@@ -1,6 +1,7 @@
 {config, ...}: {
   _module.args.shellShared = rec {
     aliases = {
+      memtis = "cd /home/duartesj/Tese/memtis/linux; nv mm/htmm_core.c mm/htmm_sampler.c mm/htmm_migrater.c include/linux/htmm.h";
       rb = "sudo -v && nixos-rebuild switch --sudo";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";

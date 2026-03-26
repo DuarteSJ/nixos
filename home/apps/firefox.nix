@@ -92,24 +92,9 @@ in {
           color: var(--nix-base05) !important;
         }
 
-        /* Tab bar */
+        /* Tab bar - hidden (using Sidebery) */
         #TabsToolbar {
-          background-color: var(--nix-base00) !important;
-        }
-
-        /* Individual tabs */
-        .tabbrowser-tab {
-          background-color: var(--nix-base01) !important;
-          color: var(--nix-base05) !important;
-        }
-
-        .tabbrowser-tab:hover {
-          background-color: var(--nix-base02) !important;
-        }
-
-        .tabbrowser-tab[selected="true"] {
-          background-color: var(--nix-base02) !important;
-          color: var(--nix-base07) !important;
+          visibility: collapse !important;
         }
 
         /* URL bar */

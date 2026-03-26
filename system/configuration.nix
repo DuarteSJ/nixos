@@ -15,6 +15,7 @@
 
   # Networking
   networking = {
+    # TODO: remove this after finishing the AI project
     firewall.allowedTCPPorts = [ 5000 ];
     hostName = "nixos";
     networkmanager.enable = true;
