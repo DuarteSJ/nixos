@@ -54,7 +54,20 @@
       enable = true;
       enable32Bit = true;
     };
-    nvidia.modesetting.enable = true;
+    nvidia = {
+        modesetting.enable = true;
+        open = true;
+        videoAcceleration = true;
+        prime = {
+          offload = {
+            enable = true;
+            enableOffloadCmd = true;  # nvidia-offload helper command
+          };
+          intelBusId = "PCI:0:2:0";
+          nvidiaBusId = "PCI:1:0:0";
+        };
+      };
+      services.xserver.videoDrivers = ["nvidia"];
   };
 
   # Programs
@@ -92,7 +105,11 @@
   };
 
   # Environment
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    LIBVA_DRIVER_NAME = "nvidia";
+    NVD_BACKEND = "direct";
+  };
 
   # Security
   security.rtkit.enable = true;

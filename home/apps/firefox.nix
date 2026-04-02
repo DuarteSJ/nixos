@@ -15,6 +15,9 @@ in {
 
       # Browser settings via user.js with nix-colors integration
       settings = {
+        # Session restore
+        "browser.startup.page" = 3;
+
         # Privacy settings
         "browser.contentblocking.category" = "strict";
         "privacy.donottrackheader.enabled" = true;

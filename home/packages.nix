@@ -8,6 +8,9 @@ let
 in
 {
   home.packages = with pkgs; [
+    # Nvidia drivers
+    nvidia-vaapi-driver
+
     # CLI tools
     git
     curl
