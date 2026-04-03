@@ -19,6 +19,8 @@
       rustc
       cargo
       rust-analyzer
+      rustfmt
+      clippy
       #cargo-edit
       #cargo-audit
       #cargo-watch
