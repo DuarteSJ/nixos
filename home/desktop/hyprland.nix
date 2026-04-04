@@ -370,7 +370,14 @@ in {
         touchpad.natural_scroll = true;
       };
 
-      gestures.workspace_swipe_forever = true;
+      gestures = {
+        gesture = [
+          "3, horizontal,  workspace"
+          "4, horizontal,  move"
+          "3, vertical,    special, music"
+          "4, vertical,    special, messages"
+        ];
+      };
 
       "$mainMod" = "SUPER";
 
