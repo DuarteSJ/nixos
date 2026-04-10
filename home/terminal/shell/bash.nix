@@ -19,8 +19,10 @@
       "checkjobs"
     ];
 
-    shellAliases = shellShared.aliases // {
-    };
+    shellAliases =
+      shellShared.aliases
+      // {
+      };
 
     initExtra = ''
       set -o vi

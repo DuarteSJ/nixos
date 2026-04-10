@@ -1,12 +1,14 @@
-{ pkgs, inputs, system, ... }:
-
-let
+{
+  pkgs,
+  inputs,
+  system,
+  ...
+}: let
   unstable = import inputs.nixpkgs-unstable {
     inherit system;
     config.allowUnfree = true;
   };
-in
-{
+in {
   home.packages = with pkgs; [
     # Nvidia drivers
     nvidia-vaapi-driver
@@ -22,6 +24,7 @@ in
     playerctl
     ripgrep
     alejandra
+    statix
     ffmpeg
     feh
     mpv

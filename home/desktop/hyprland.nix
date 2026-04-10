@@ -1,9 +1,13 @@
-{ config, pkgs, lib, ... }: let
-
-  monitors = config.monitors;
-  laptop  = monitors.laptop;
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
+  inherit (config) monitors;
+  inherit (monitors) laptop;
   externals = monitors.external;
-  vars = config.vars;
+  inherit (config) vars;
 
   # ------------------------------------------------------------------
   # Helpers
@@ -12,13 +16,16 @@
   # Render a monitor line for hyprland.settings.monitor
   monitorLine = m:
     "${m.name}, ${m.mode}, ${m.position}, ${m.scale}"
-    + (if m.transform != 0 then ", transform, ${toString m.transform}" else "");
+    + (
+      if m.transform != 0
+      then ", transform, ${toString m.transform}"
+      else ""
+    );
 
   # Render the enable command for a monitor (used in scripts)
-  monitorEnableCmd = m:
-    "hyprctl keyword monitor '${monitorLine m}'";
+  monitorEnableCmd = m: "hyprctl keyword monitor '${monitorLine m}'";
 
-  rounding = vars.rounding;
+  inherit (vars) rounding;
 
   # ------------------------------------------------------------------
   # Scripts
@@ -87,18 +94,18 @@
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
     # Get the current outer gap
     cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
-    
+
     # Increment outer gap by 2
     new_out=$((cur_out + 2))
-    
+
     # Set inner gap to half of outer
     new_in=$((new_out / 2))
-    
+
     # Update rounding if inner gap was 0
     if [ "$new_in" -eq 0 ]; then
       hyprctl keyword decoration:rounding ${toString rounding}
     fi
-    
+
     # Apply the gaps
     hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
     hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
@@ -107,17 +114,17 @@
   decrease_gaps = pkgs.writeShellScript "decrease-gaps" ''
     # Get current outer gap
     cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
-    
+
     # Decrement outer gap by 2
     new_out=$((cur_out - 2))
     if [ "$new_out" -lt 0 ]; then
       new_out=0
       hyprctl keyword decoration:rounding 0
     fi
-    
+
     # Inner gap is always half of outer
     new_in=$((new_out / 2))
-    
+
     # Apply the gaps
     hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
     hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
@@ -145,16 +152,25 @@
   # Build the wallpaper-setting fragment for one monitor.
   # Picks the first image found in ~/Pictures/wallpapers/<theme>/<orientation>/
   wallpaperBlock = m: let
-    dir = if m.transform == 1 || m.transform == 3 then "vertical" else "horizontal";
+    dir =
+      if m.transform == 1 || m.transform == 3
+      then "vertical"
+      else "horizontal";
   in ''
     set_wallpaper "${m.name}" "${dir}"
   '';
 
   monitorManager = pkgs.writeShellScript "monitor-manager" ''
+    exec 9>/tmp/monitor-manager.lock
+    flock -n 9 || exit 0
     LAPTOP="${laptop.name}"
     LAPTOP_ENABLE="${monitorEnableCmd laptop}"
     LAPTOP_DISABLE="hyprctl keyword monitor ${laptop.name},disable"
-    DISABLE_WHEN_EXTERNAL="${if monitors.disableLaptopWhenExternal then "1" else "0"}"
+    DISABLE_WHEN_EXTERNAL="${
+      if monitors.disableLaptopWhenExternal
+      then "1"
+      else "0"
+    }"
 
     # Known external monitors: "name|enable-cmd" pairs, newline-separated.
     EXTERNALS="${builtins.concatStringsSep "\n" (map (m: "${m.name}|${monitorEnableCmd m}") externals)}"
@@ -251,8 +267,13 @@
             fi
             # Wallpaper for the new monitor
             ${builtins.concatStringsSep "\n            " (map (m: ''
-              [[ "$data" == "${m.name}" ]] && set_wallpaper "${m.name}" "${if m.transform == 1 || m.transform == 3 then "vertical" else "horizontal"}"
-            '') externals)}
+        [[ "$data" == "${m.name}" ]] && set_wallpaper "${m.name}" "${
+          if m.transform == 1 || m.transform == 3
+          then "vertical"
+          else "horizontal"
+        }"
+      '')
+      externals)}
             ;;
           monitorremoved)
             if [[ "$data" != "$LAPTOP" ]] && [[ "$DISABLE_WHEN_EXTERNAL" == "1" ]]; then
@@ -270,37 +291,42 @@
   workspaceRules =
     (map (ws: "${toString ws}, monitor:${laptop.name}") laptop.workspaces)
     ++ (builtins.concatMap
-          (m: map (ws: "${toString ws}, monitor:${m.name}") m.workspaces)
-          externals);
+      (m: map (ws: "${toString ws}, monitor:${m.name}") m.workspaces)
+      externals);
 
   # ------------------------------------------------------------------
   # Window rule helpers (unchanged from original)
   # ------------------------------------------------------------------
-  primaryMonitor = if externals != [] then builtins.head externals else laptop;
+  primaryMonitor =
+    if externals != []
+    then builtins.head externals
+    else laptop;
 
   parseMode = mode: let
-    res   = builtins.head (builtins.split "@" mode);
+    res = builtins.head (builtins.split "@" mode);
     parts = builtins.split "x" res;
   in {
-    width  = builtins.fromJSON (builtins.elemAt parts 0);
+    width = builtins.fromJSON (builtins.elemAt parts 0);
     height = builtins.fromJSON (builtins.elemAt parts 2);
   };
 
-  rawDims     = parseMode primaryMonitor.mode;
-  monitorDims = if primaryMonitor.transform == 1 || primaryMonitor.transform == 3
-                then { width = rawDims.height; height = rawDims.width; }
-                else rawDims;
+  rawDims = parseMode primaryMonitor.mode;
+  monitorDims =
+    if primaryMonitor.transform == 1 || primaryMonitor.transform == 3
+    then {
+      width = rawDims.height;
+      height = rawDims.width;
+    }
+    else rawDims;
 
-  spotifyW = toString (monitorDims.width  * 65 / 100);
+  spotifyW = toString (monitorDims.width * 65 / 100);
   spotifyH = toString (monitorDims.height * 63 / 100);
-  cavaW    = toString (monitorDims.width  - 27);
-  cavaY    = toString (monitorDims.height - 181 - 2);
-
+  cavaW = toString (monitorDims.width - 27);
+  cavaY = toString (monitorDims.height - 181 - 2);
 in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
-
       # ---------------------------------------------------------------
       # Monitors
       #
@@ -311,9 +337,9 @@ in {
       # script handles disabling it at runtime when externals are present.
       # ---------------------------------------------------------------
       monitor =
-        [ (monitorLine laptop) ]
+        [(monitorLine laptop)]
         ++ (map monitorLine externals)
-        ++ [ ", preferred, auto, 1" ];   # catch-all for unknown displays
+        ++ [", preferred, auto, 1"]; # catch-all for unknown displays
 
       exec-once = [
         "waybar &"
@@ -326,25 +352,25 @@ in {
       ];
 
       general = {
-        gaps_in  = vars.gaps / 2;
+        gaps_in = vars.gaps / 2;
         gaps_out = vars.gaps;
         border_size = 1;
-        "col.active_border"   = "rgba(${base0D}cc) rgba(${base0C}77) 45deg";
+        "col.active_border" = "rgba(${base0D}cc) rgba(${base0C}77) 45deg";
         "col.inactive_border" = "rgba(${base02}aa)";
         resize_on_border = true;
-        allow_tearing    = false;
-        layout           = "dwindle";
+        allow_tearing = false;
+        layout = "dwindle";
       };
 
       decoration = {
-        rounding         = rounding;
+        inherit rounding;
         inactive_opacity = 1;
-        active_opacity   = 1;
+        active_opacity = 1;
       };
 
       animations = {
         enabled = true;
-        bezier  = [ "snap, 0.1, 0.9, 0.2, 1.0" ];
+        bezier = ["snap, 0.1, 0.9, 0.2, 1.0"];
         animation = [
           "windowsIn, 1, 1, snap, slide"
           "windowsOut, 1, 1, snap, slide"
@@ -356,17 +382,20 @@ in {
         ];
       };
 
-      dwindle = { pseudotile = true; preserve_split = true; };
-      master  = { new_status = "slave"; };
-      misc    = { disable_hyprland_logo = true; };
+      dwindle = {
+        pseudotile = true;
+        preserve_split = true;
+      };
+      master = {new_status = "slave";};
+      misc = {disable_hyprland_logo = true;};
 
       input = {
         repeat_delay = 200;
-        repeat_rate  = 50;
+        repeat_rate = 50;
         follow_mouse = 1;
-        sensitivity  = 0;
-        kb_layout    = "us,pt";
-        kb_options   = "grp:win_space_toggle";
+        sensitivity = 0;
+        kb_layout = "us,pt";
+        kb_options = "grp:win_space_toggle";
         touchpad.natural_scroll = true;
       };
 
@@ -395,24 +424,38 @@ in {
         "$mainMod, K, movefocus, u"
         "$mainMod, J, movefocus, d"
 
-        "$mainMod, 1, workspace, 1"  "$mainMod, 2, workspace, 2"
-        "$mainMod, 3, workspace, 3"  "$mainMod, 4, workspace, 4"
-        "$mainMod, 5, workspace, 5"  "$mainMod, 6, workspace, 6"
-        "$mainMod, 7, workspace, 7"  "$mainMod, 8, workspace, 8"
-        "$mainMod, 9, workspace, 9"  "$mainMod, 0, workspace, 10"
+        "$mainMod, 1, workspace, 1"
+        "$mainMod, 2, workspace, 2"
+        "$mainMod, 3, workspace, 3"
+        "$mainMod, 4, workspace, 4"
+        "$mainMod, 5, workspace, 5"
+        "$mainMod, 6, workspace, 6"
+        "$mainMod, 7, workspace, 7"
+        "$mainMod, 8, workspace, 8"
+        "$mainMod, 9, workspace, 9"
+        "$mainMod, 0, workspace, 10"
 
-        "$mainMod, A, workspace, 1"  "$mainMod, S, workspace, 2"
-        "$mainMod, D, workspace, 3"  "$mainMod, F, workspace, 4"
+        "$mainMod, A, workspace, 1"
+        "$mainMod, S, workspace, 2"
+        "$mainMod, D, workspace, 3"
+        "$mainMod, F, workspace, 4"
         "$mainMod, G, workspace, 5"
 
-        "$mainMod SHIFT, 1, movetoworkspace, 1"  "$mainMod SHIFT, 2, movetoworkspace, 2"
-        "$mainMod SHIFT, 3, movetoworkspace, 3"  "$mainMod SHIFT, 4, movetoworkspace, 4"
-        "$mainMod SHIFT, 5, movetoworkspace, 5"  "$mainMod SHIFT, 6, movetoworkspace, 6"
-        "$mainMod SHIFT, 7, movetoworkspace, 7"  "$mainMod SHIFT, 8, movetoworkspace, 8"
-        "$mainMod SHIFT, 9, movetoworkspace, 9"  "$mainMod SHIFT, 0, movetoworkspace, 10"
+        "$mainMod SHIFT, 1, movetoworkspace, 1"
+        "$mainMod SHIFT, 2, movetoworkspace, 2"
+        "$mainMod SHIFT, 3, movetoworkspace, 3"
+        "$mainMod SHIFT, 4, movetoworkspace, 4"
+        "$mainMod SHIFT, 5, movetoworkspace, 5"
+        "$mainMod SHIFT, 6, movetoworkspace, 6"
+        "$mainMod SHIFT, 7, movetoworkspace, 7"
+        "$mainMod SHIFT, 8, movetoworkspace, 8"
+        "$mainMod SHIFT, 9, movetoworkspace, 9"
+        "$mainMod SHIFT, 0, movetoworkspace, 10"
 
-        "$mainMod SHIFT, A, movetoworkspace, 1"  "$mainMod SHIFT, S, movetoworkspace, 2"
-        "$mainMod SHIFT, D, movetoworkspace, 3"  "$mainMod SHIFT, F, movetoworkspace, 4"
+        "$mainMod SHIFT, A, movetoworkspace, 1"
+        "$mainMod SHIFT, S, movetoworkspace, 2"
+        "$mainMod SHIFT, D, movetoworkspace, 3"
+        "$mainMod SHIFT, F, movetoworkspace, 4"
         "$mainMod SHIFT, G, movetoworkspace, 5"
 
         "$mainMod, comma,       togglespecialworkspace, music"
@@ -483,10 +526,12 @@ in {
         "nofocus, class:^$, title:^$, xwayland:1, floating:1, fullscreen:0, pinned:0"
       ];
 
-      workspace = [
-        "special:music,    on-created-empty:spotify"
-        "special:messages, on-created-empty:beeper"
-      ] ++ workspaceRules;
+      workspace =
+        [
+          "special:music,    on-created-empty:spotify"
+          "special:messages, on-created-empty:beeper"
+        ]
+        ++ workspaceRules;
     };
   };
 }

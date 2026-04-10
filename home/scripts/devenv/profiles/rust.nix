@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
-  outputs = { nixpkgs, ... }: let
+  outputs = {nixpkgs, ...}: let
     pkgs = nixpkgs.legacyPackages."x86_64-linux";
 
     customEnvVars = ''
@@ -26,9 +26,7 @@
       #cargo-watch
       #cargo-tarpaulin
       #clippy
-      
     ];
-
   in {
     devShells.x86_64-linux.default = pkgs.mkShell {
       name = "rust";

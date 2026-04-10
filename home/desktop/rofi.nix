@@ -1,6 +1,6 @@
 {config, ...}: let
   colors = config.colorScheme.palette;
-  vars = config.vars;
+  inherit (config) vars;
 in {
   # programs.rofi is intentionally not used here; we manage the config file
   # directly because the rofi package is installed via home.packages.

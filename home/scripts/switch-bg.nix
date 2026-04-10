@@ -37,8 +37,8 @@
     '') (builtins.length externalMonitors));
 
     branches = builtins.concatStringsSep "\n" (builtins.genList (i: ''
-              if [[ "$key" == "external_${toString i}_index" ]]; then
-                  external_${toString i}_index="$value"
+      if [[ "$key" == "external_${toString i}_index" ]]; then
+          external_${toString i}_index="$value"
     '') (builtins.length externalMonitors));
   in ''
     ${inits}
@@ -85,7 +85,7 @@
   allMonitorWallpaperVars = builtins.concatStringsSep " " (
     ["\"$laptop_current_wallpaper\""]
     ++ builtins.genList (i: "\"$external_${toString i}_current_wallpaper\"")
-       (builtins.length externalMonitors)
+    (builtins.length externalMonitors)
   );
 
   # Track what's currently displayed on each monitor
@@ -94,7 +94,6 @@
   in ''
     external_${toString i}_current_wallpaper=$(hyprctl hyprpaper listactive | ${pkgs.gnugrep}/bin/grep "^${m.name}" | ${pkgs.coreutils}/bin/cut -d'=' -f2- | ${pkgs.coreutils}/bin/tr -d ' ' || true)
   '') (builtins.length externalMonitors));
-
 in {
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''

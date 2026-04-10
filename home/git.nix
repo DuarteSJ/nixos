@@ -1,4 +1,4 @@
-{ config, ... }: {
+{config, ...}: {
   programs.git = {
     enable = true;
     settings = {
@@ -8,6 +8,7 @@
       # Move extraConfig here
       init.defaultBranch = "main";
       alias.lg = "log --graph --decorate --pretty=format:'%C(yellow)%h%Creset %C(cyan)%ad%Creset %C(green)%an%Creset %s' --date=short --all";
+      alias.alias = "config --show-origin --get-regexp alias";
     };
   };
 

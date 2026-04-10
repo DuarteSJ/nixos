@@ -12,18 +12,15 @@
       conceallevel = 2;
       scrolloff = 9;
       foldlevel = 99;
-      foldmethod = "expr";
-      foldexpr = "nvim_treesitter#foldexpr()";
     };
-
     clipboard = {
       enable = true;
       providers.wl-copy.enable = true;
       registers = "unnamedplus";
     };
-
     # TODO: this is shit
-    theme = if lib.hasInfix "gruvbox" (lib.toLower config.colorScheme.name)
+    theme =
+      if lib.hasInfix "gruvbox" (lib.toLower config.colorScheme.name)
       then {
         enable = true;
         transparent = true;
@@ -35,20 +32,17 @@
         transparent = true;
         name = "nord";
       };
-
     telescope.enable = true;
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
     binds.whichKey.enable = true;
     notes.todo-comments.enable = true;
-
     ui.colorizer = {
       setupOpts.filetypes = {
         "*" = {};
       };
       enable = true;
     };
-
     mini = {
       pairs.enable = true;
       ai.enable = true;
@@ -63,9 +57,13 @@
         };
       };
     };
-
     lsp.enable = true;
     autocomplete.nvim-cmp.enable = true;
+    luaConfigRC.treesitter-indent = lib.mkAfter ''
+      require('nvim-treesitter.configs').setup({
+        indent = { enable = true },
+      })
+    '';
     languages = {
       enableTreesitter = true;
       nix.enable = true;
@@ -78,7 +76,6 @@
       java.enable = true;
       markdown.enable = true;
     };
-
     assistant.copilot = {
       enable = true;
       cmp.enable = false;
@@ -93,7 +90,6 @@
       };
       mappings.suggestion.accept = "<C-l>";
     };
-
     keymaps = [
       {
         mode = "n";
@@ -126,7 +122,6 @@
         action = "<cmd>lua vim.lsp.buf.definition()<CR>";
       }
     ];
-
     autocmds = [
       {
         event = ["TextYankPost"];
@@ -134,11 +129,6 @@
         command = ''
           lua vim.highlight.on_yank({higroup="IncSearch", timeout=50})
         '';
-      }
-      {
-        event = ["FileType"];
-        pattern = ["nix" "markdown"];
-        command = "setlocal tabstop=2 shiftwidth=2";
       }
     ];
   };

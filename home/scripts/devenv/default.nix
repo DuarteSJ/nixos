@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{pkgs, ...}: {
   home.packages = [
     (pkgs.writeShellScriptBin "devenv" ''
       #!/usr/bin/env bash

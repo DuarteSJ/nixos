@@ -1,14 +1,13 @@
-{config, ...}: 
-let 
-  palette = config.colorScheme.palette;
-  vars = config.vars;
+{config, ...}: let
+  inherit (config.colorScheme) palette;
+  inherit (config) vars;
 in {
   programs.alacritty = {
     enable = true;
     settings = {
       terminal.shell.program = "/run/current-system/sw/bin/zsh";
       font = {
-        size = vars.font.size;
+        inherit (vars.font) size;
         normal = {
           family = vars.font.name;
           style = "Regular";

@@ -15,8 +15,6 @@
 
   # Networking
   networking = {
-    # TODO: remove this after finishing the AI project
-    firewall.allowedTCPPorts = [ 5000 ];
     hostName = "nixos";
     networkmanager.enable = true;
     nameservers = ["1.1.1.1" "8.8.8.8"];
@@ -55,18 +53,18 @@
       enable32Bit = true;
     };
     nvidia = {
-        modesetting.enable = true;
-        open = true;
-        videoAcceleration = true;
-        prime = {
-          offload = {
-            enable = true;
-            enableOffloadCmd = true;  # nvidia-offload helper command
-          };
-          intelBusId = "PCI:0:2:0";
-          nvidiaBusId = "PCI:1:0:0";
+      modesetting.enable = true;
+      open = true;
+      videoAcceleration = true;
+      prime = {
+        offload = {
+          enable = true;
+          enableOffloadCmd = true; # nvidia-offload helper command
         };
+        intelBusId = "PCI:0:2:0";
+        nvidiaBusId = "PCI:1:0:0";
       };
+    };
   };
 
   services.xserver.videoDrivers = ["nvidia"];

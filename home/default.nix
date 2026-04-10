@@ -1,7 +1,9 @@
 {inputs, ...}: {
-  home.username = "duartesj";
-  home.homeDirectory = "/home/duartesj";
-  home.stateVersion = "24.11";
+  home = {
+    username = "duartesj";
+    homeDirectory = "/home/duartesj";
+    stateVersion = "24.11";
+  };
 
   imports = [
     inputs.nix-colors.homeManagerModules.default

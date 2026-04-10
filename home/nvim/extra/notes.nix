@@ -56,7 +56,7 @@ in {
         legacy_commands = false;
         finder = "telescope.nvim";
         notes_subdir = "zettelkasten";
-        checkbox.order = [ " " "d" "f" ];
+        checkbox.order = [" " "d" "f"];
         ui = {
           checkboxes = {
             " " = {

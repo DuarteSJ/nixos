@@ -1,4 +1,4 @@
-{...}: {
+{
   home.sessionPath = ["$HOME/.local/bin"];
 
   home.sessionVariables = {

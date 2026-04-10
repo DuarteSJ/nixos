@@ -1,7 +1,4 @@
-{
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   programs.nvf.settings.vim = {
     # ==========================================
     # Clojure Language Support

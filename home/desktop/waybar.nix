@@ -5,7 +5,7 @@
   ...
 }: let
   colors = config.colorScheme.palette;
-  vars = config.vars;
+  inherit (config) vars;
 
   laptopMonitor = config.monitors.laptop;
   externalMonitors = config.monitors.external;
@@ -14,7 +14,7 @@
   persistentWorkspaces =
     {"${laptopMonitor.name}" = laptopMonitor.workspaces;}
     // (builtins.listToAttrs (map (m: {
-        name = m.name;
+        inherit (m) name;
         value = m.workspaces;
       })
       externalMonitors));
@@ -90,9 +90,11 @@
   coloredIcon = icon: colorKey: "<span color='#${colors.${colorKey}}'>${icon}</span>";
 
   # Helper: build a module with a leading colored icon
-  mkModuleWithIcon = icon: colorKey: formatStr: extra: {
-    format = "${coloredIcon icon colorKey} ${formatStr}";
-  } // extra;
+  mkModuleWithIcon = icon: colorKey: formatStr: extra:
+    {
+      format = "${coloredIcon icon colorKey} ${formatStr}";
+    }
+    // extra;
 
   # Build path for terminal commands
   mkTermCmd = bin: "${pkgs.alacritty}/bin/alacritty -e ${bin}";
@@ -128,7 +130,8 @@ in {
         };
 
         # Clock with date copy functionality
-        clock = mkModuleWithIcon icons.clock moduleColors.clock
+        clock =
+          mkModuleWithIcon icons.clock moduleColors.clock
           "{:%H:%M  ${coloredIcon icons.calendar "base07"} %b %d}"
           {
             tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
@@ -140,18 +143,17 @@ in {
           };
 
         # System monitoring modules
-        memory =
-          mkModuleWithIcon icons.memory moduleColors.memory "{}%" {
-            states = thresholds.memory;
-            on-click = mkTermCmd "btop";
-          };
+        memory = mkModuleWithIcon icons.memory moduleColors.memory "{}%" {
+          states = thresholds.memory;
+          on-click = mkTermCmd "btop";
+        };
 
-        temperature =
-          mkModuleWithIcon "{icon}" moduleColors.temperature "{temperatureC}°C" {
-            critical-threshold = thresholds.temperature.critical;
-            format-icons = with icons.temperature; [normal warm hot];
-            on-click = mkTermCmd "btop";
-          };
+        temperature = mkModuleWithIcon "{icon}" moduleColors.temperature "{temperatureC}°C" {
+          critical-threshold = thresholds.temperature.critical;
+          format-icons = with icons.temperature; [normal warm hot];
+          on-click = mkTermCmd "btop";
+          hwmon-path = "/sys/class/hwmon/hwmon6/temp1_input";
+        };
 
         battery = {
           states = thresholds.battery;

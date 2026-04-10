@@ -5,10 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
-  outputs = {
-    nixpkgs,
-    ...
-  }: let
+  outputs = {nixpkgs, ...}: let
     pkgs = nixpkgs.legacyPackages."x86_64-linux";
 
     pythonV = "python3"; # python310, python313, python38, ...
@@ -27,7 +24,6 @@
         # p.numpy
       ]))
     ];
-
   in {
     devShells.x86_64-linux.default = pkgs.mkShell {
       name = "python";

@@ -6,7 +6,7 @@
   ...
 }: let
   colors = config.colorScheme.palette;
-  vars = config.vars;
+  inherit (config) vars;
 in {
   services.dunst = {
     enable = true;
@@ -85,7 +85,7 @@ in {
         ### Wayland (native, no xwayland needed) ###
         force_xwayland = false;
         force_xinerama = false;
-        layer = "overlay";  # renders above other wayland surfaces
+        layer = "overlay"; # renders above other wayland surfaces
 
         ### Mouse ###
         mouse_left_click = "do_action";

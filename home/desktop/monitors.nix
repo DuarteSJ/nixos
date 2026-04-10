@@ -1,5 +1,4 @@
-{ lib, ... }: let
-
+{lib, ...}: let
   monitorType = lib.types.submodule {
     options = {
       name = lib.mkOption {
@@ -33,10 +32,8 @@
       };
     };
   };
-
 in {
   options.monitors = {
-
     laptop = lib.mkOption {
       type = monitorType;
       description = "The built-in laptop panel.";
@@ -58,29 +55,26 @@ in {
         at runtime (no rebuild required).
       '';
     };
-
   };
 
   config.monitors = {
-
     disableLaptopWhenExternal = true;
 
     laptop = {
-      name       = "eDP-1";
-      mode       = "1920x1200@59.95";
-      position   = "0x0";
-      workspaces = [ 1 2 3 4 ];
+      name = "eDP-1";
+      mode = "1920x1200@59.95";
+      position = "0x0";
+      workspaces = [1 2 3 4];
     };
 
     external = [
       {
-        name       = "DP-3";
-        mode       = "1920x1080@119.98";
-        position   = "1920x0";
+        name = "DP-3";
+        mode = "1920x1080@119.98";
+        position = "1920x0";
         # transform  = 1;
-        workspaces = [ 1 2 3 4 ];
+        workspaces = [1 2 3 4];
       }
     ];
-
   };
 }

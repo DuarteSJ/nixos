@@ -1,6 +1,4 @@
-{ lib, ... }:
-
-{
+{lib, ...}: {
   options.vars = {
     description = "Global variables used across the system.";
     rounding = lib.mkOption {
@@ -34,8 +32,8 @@
 
   config.vars = {
     rounding = 2;
-    gaps     = 4;
-    font     = {
+    gaps = 4;
+    font = {
       name = "JetBrainsMono Nerd Font";
       size = 12.5;
     };

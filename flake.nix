@@ -28,11 +28,9 @@
     nixpkgs,
     home-manager,
     ...
-  } @ inputs:
-  let
+  } @ inputs: let
     system = "x86_64-linux";
-  in
-  {
+  in {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       inherit system;
 
@@ -53,11 +51,12 @@
 
         # Home Manager config
         {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-
-          home-manager.extraSpecialArgs = {
-            inherit inputs system;
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = {
+              inherit inputs system;
+            };
           };
 
           home-manager.users.duartesj = import ./home;
