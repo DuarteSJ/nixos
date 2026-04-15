@@ -32,14 +32,28 @@
 
   # State initialisation + reading
   stateReading = let
+    numExternal = builtins.length externalMonitors;
+
     inits = builtins.concatStringsSep "\n" (builtins.genList (i: ''
       external_${toString i}_index=0
-    '') (builtins.length externalMonitors));
+    '') numExternal);
 
-    branches = builtins.concatStringsSep "\n" (builtins.genList (i: ''
-      if [[ "$key" == "external_${toString i}_index" ]]; then
-          external_${toString i}_index="$value"
-    '') (builtins.length externalMonitors));
+    # First external monitor uses "if", the rest use "elif"
+    branches =
+      if numExternal == 0
+      then ""
+      else
+        builtins.concatStringsSep "\n" (
+          builtins.genList (i: let
+            keyword = if i == 0 then "if" else "elif";
+          in ''
+            ${keyword} [[ "$key" == "external_${toString i}_index" ]]; then
+                external_${toString i}_index="$value"
+          '') numExternal
+        );
+
+    # If there are external monitors, laptop branch is "elif"; otherwise it's "if"
+    laptopKeyword = if numExternal == 0 then "if" else "elif";
   in ''
     ${inits}
     laptop_index=0
@@ -47,7 +61,7 @@
     if [[ -f "$state_file" ]]; then
         while IFS='=' read -r key value; do
     ${branches}
-            elif [[ "$key" == "laptop_index" ]]; then
+            ${laptopKeyword} [[ "$key" == "laptop_index" ]]; then
                 laptop_index="$value"
             fi
         done < "$state_file"
@@ -140,7 +154,9 @@ in {
 
       state_key=""
       if [[ "$active_monitor" == "${laptopMonitor.name}" ]]; then
-          # Initialise to -1 on first use so index 0 is shown first
+          # Initialise to -1 on first use so index 0 is shown first.
+          # state_file.seen is used as a sentinel to detect first run,
+          # since state_file itself is touch'd unconditionally above.
           if [[ "$laptop_index" -eq 0 && ! -f "$state_file.seen" ]]; then
               laptop_index=-1
               ${pkgs.coreutils}/bin/touch "$state_file.seen"
