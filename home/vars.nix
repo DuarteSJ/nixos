@@ -1,6 +1,5 @@
 {lib, ...}: {
   options.vars = {
-    description = "Global variables used across the system.";
     rounding = lib.mkOption {
       description = "Corner radius";
       type = lib.types.int;
