@@ -1,7 +1,6 @@
 {
   _module.args.shellShared = {
     aliases = {
-      memtis = "cd /home/duartesj/Tese/code; nix develop .";
       rb = "sudo -v && nixos-rebuild switch --sudo";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
