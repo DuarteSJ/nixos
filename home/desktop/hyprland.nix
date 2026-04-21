@@ -101,8 +101,8 @@
     # Set inner gap to half of outer
     new_in=$((new_out / 2))
 
-    # Update rounding if inner gap was 0
-    if [ "$new_in" -eq 0 ]; then
+    # Restore rounding whenever there is a gap (decrease_gaps zeros it at 0)
+    if [ "$new_in" -gt 0 ]; then
       hyprctl keyword decoration:rounding ${toString rounding}
     fi
 
