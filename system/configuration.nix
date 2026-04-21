@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   inputs,
   ...
 }: {
@@ -24,17 +25,17 @@
   time.timeZone = "Europe/Lisbon";
   i18n = {
     defaultLocale = "en_US.UTF-8";
-    extraLocaleSettings = {
-      LC_ADDRESS = "pt_PT.UTF-8";
-      LC_IDENTIFICATION = "pt_PT.UTF-8";
-      LC_MEASUREMENT = "pt_PT.UTF-8";
-      LC_MONETARY = "pt_PT.UTF-8";
-      LC_NAME = "pt_PT.UTF-8";
-      LC_NUMERIC = "pt_PT.UTF-8";
-      LC_PAPER = "pt_PT.UTF-8";
-      LC_TELEPHONE = "pt_PT.UTF-8";
-      LC_TIME = "pt_PT.UTF-8";
-    };
+    extraLocaleSettings = lib.genAttrs [
+      "LC_ADDRESS"
+      "LC_IDENTIFICATION"
+      "LC_MEASUREMENT"
+      "LC_MONETARY"
+      "LC_NAME"
+      "LC_NUMERIC"
+      "LC_PAPER"
+      "LC_TELEPHONE"
+      "LC_TIME"
+    ] (_: "pt_PT.UTF-8");
   };
 
   # Users
