@@ -10,7 +10,7 @@
       # Default values
       minutes=0
       seconds=0
-      notify_id=9234523  # Unique ID for persistent notification
+      notify_id=$$  # Unique per invocation so concurrent timers don't collide
       title="Timer"  # Default title (symbol will be added)
       symbol="⏳"  # Default symbol
       silent_mode=false  # By default, show live notifications
