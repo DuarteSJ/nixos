@@ -22,8 +22,6 @@
     '';
 
     customAliases = ''
-      alias format='nix run nixpkgs#cljfmt -- fix'
-      alias lint='nix run nixpkgs#cljfmt -- check'
       alias format='black .'
       alias lint='flake8 .'
     '';
