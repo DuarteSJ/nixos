@@ -18,20 +18,19 @@
       providers.wl-copy.enable = true;
       registers = "unnamedplus";
     };
-    # TODO: this is shit
     theme =
-      if lib.hasInfix "gruvbox" (lib.toLower config.colorScheme.name)
-      then {
+      {
         enable = true;
         transparent = true;
-        name = "gruvbox";
-        style = "light";
       }
-      else {
-        enable = true;
-        transparent = true;
-        name = "nord";
-      };
+      // (
+        if lib.hasInfix "gruvbox" (lib.toLower config.colorScheme.name)
+        then {
+          name = "gruvbox";
+          style = "light";
+        }
+        else {name = "nord";}
+      );
     telescope.enable = true;
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
