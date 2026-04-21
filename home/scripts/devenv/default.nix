@@ -8,9 +8,15 @@
       if [ -z "''${1:-}" ]; then
           echo "Available profiles:"
           PS3="Select a profile: "
-          select PROFILE in $(for f in "$FLAKE_DIR"/*.nix; do basename "$f" .nix; done); do
-              [ -n "$PROFILE" ] && break
-              echo "Invalid selection, try again."
+          options=()
+          for f in "$FLAKE_DIR"/*.nix; do options+=("$(basename "$f" .nix)"); done
+          options+=("quit")
+          select PROFILE in "''${options[@]}"; do
+              case "$PROFILE" in
+                  quit) exit 0 ;;
+                  "")   echo "Invalid selection, try again." ;;
+                  *)    break ;;
+              esac
           done
       else
           PROFILE="$1"
