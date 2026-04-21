@@ -501,7 +501,7 @@ in {
         # Lid switch: always disable/enable the laptop panel directly.
         # This is separate from the hotplug logic — closing the lid should
         # blank the screen even when no external is connected.
-        ", switch:on:Lid Switch,  exec, hyprlock &; systemctl suspend"
+        ", switch:on:Lid Switch,  exec, hyprlock & systemctl suspend"
       ];
 
       bindm = [
