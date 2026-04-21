@@ -172,9 +172,10 @@
           echo -e "\033[1;31m✗ Error:\033[0m '$1' is not a symlink."
           return 1
         fi
-        local content=$(cat "$1")
+        local target
+        target=$(readlink -f "$1")
         rm "$1"
-        echo "$content" > "$1"
+        cp --no-preserve=mode,ownership "$target" "$1"
         echo -e "\033[1;32m✓ Success:\033[0m '$1' is now a regular writable file."
       }
 
