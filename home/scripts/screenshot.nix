@@ -19,6 +19,8 @@
         sleep 0.1
 
         tempfile=$(mktemp --suffix=.png)
+        # Covers kill/crash paths; mv in the save branch makes rm a no-op.
+        trap 'rm -f "$tempfile"' EXIT
         ${pkgs.grim}/bin/grim -g "$selection" "$tempfile"
         ${pkgs.wl-clipboard}/bin/wl-copy < "$tempfile"
 
@@ -38,9 +40,6 @@
           if [ "$feh_action" = "open" ]; then
             ${pkgs.feh}/bin/feh "$filename"
           fi
-        else
-          # Clean up tempfile if not saved
-          rm -f "$tempfile"
         fi
       else
         ${pkgs.dunst}/bin/dunstify -u normal "Screenshot cancelled"
