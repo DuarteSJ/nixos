@@ -129,41 +129,6 @@
     hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
     hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
   '';
-
-  # ------------------------------------------------------------------
-  # Window rule dimensions
-  #
-  # Sized for the "likely primary" monitor at Nix-eval time: first
-  # declared external if any, else the laptop.  At runtime the manager
-  # may pin workspaces to a different monitor; fixed window-rule sizes
-  # still match whichever monitor the user most often uses.
-  # ------------------------------------------------------------------
-  likelyPrimary =
-    if externals != []
-    then builtins.head externals
-    else laptop;
-
-  parseMode = mode: let
-    res = builtins.head (builtins.split "@" mode);
-    parts = builtins.split "x" res;
-  in {
-    width = builtins.fromJSON (builtins.elemAt parts 0);
-    height = builtins.fromJSON (builtins.elemAt parts 2);
-  };
-
-  rawDims = parseMode likelyPrimary.mode;
-  monitorDims =
-    if likelyPrimary.transform == 1 || likelyPrimary.transform == 3
-    then {
-      width = rawDims.height;
-      height = rawDims.width;
-    }
-    else rawDims;
-
-  spotifyW = toString (monitorDims.width * 65 / 100);
-  spotifyH = toString (monitorDims.height * 63 / 100);
-  cavaW = toString (monitorDims.width - 27);
-  cavaY = toString (monitorDims.height - 181 - 2);
 in {
   wayland.windowManager.hyprland = {
     enable = true;
@@ -353,18 +318,11 @@ in {
       ];
 
       windowrulev2 = [
-        "float,                    class:^(spotify)$"
-        "size ${spotifyW} ${spotifyH}, class:^(spotify)$"
-        "center,                   class:^(spotify)$"
-        "rounding 10,              class:^(spotify)$"
+        "float,        class:^(spotify)$"
+        "center,       class:^(spotify)$"
+        "rounding 10,  class:^(spotify)$"
 
-        "bordersize 0,             class:vesktop"
-
-        "float,                    class:^(invis-cava)$"
-        "size ${cavaW} 181,        class:^(invis-cava)$"
-        "move 0 ${cavaY},          class:^(invis-cava)$"
-        "noborder,                 class:^(invis-cava)$"
-        "noanim,                   class:^(invis-cava)$"
+        "bordersize 0, class:vesktop"
 
         "nofocus, class:^$, title:^$, xwayland:1, floating:1, fullscreen:0, pinned:0"
       ];
