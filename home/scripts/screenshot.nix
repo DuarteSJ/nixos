@@ -2,11 +2,13 @@
   config,
   pkgs,
   ...
-}: {
+}: let
+  screenshotsDir = "~/Pictures/screenshots";
+in {
   home.packages = [
     (pkgs.writeShellScriptBin "screenshot" ''
       # Ensure screenshots directory exists
-      mkdir -p ~/Pictures/screenshots
+      mkdir -p ${screenshotsDir}
       selection=$(${pkgs.slurp}/bin/slurp -d \
         -b "${config.colorScheme.palette.base00}66" \
         -c "${config.colorScheme.palette.base0E}ff" \
@@ -30,7 +32,7 @@
           "Copied to clipboard" \
           "Click to save")
         if [ "$action" = "save" ]; then
-          filename=~/Pictures/screenshots/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png
+          filename=${screenshotsDir}/screenshot_$(date +%d_%m_%Y_%H:%M:%S).png
           mv "$tempfile" "$filename"
           # Second notification: click to open
           feh_action=$(${pkgs.dunst}/bin/dunstify -u normal -i "$filename" \

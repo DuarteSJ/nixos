@@ -4,13 +4,14 @@
   ...
 }: let
   themeName = config.colorScheme.slug or "nord";
+  inherit (config.vars.paths) wallpapers;
 in {
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''
       set -euo pipefail
 
       THEME="${themeName}"
-      WALLPAPERS_DIR="$HOME/Pictures/wallpapers/$THEME"
+      WALLPAPERS_DIR="${wallpapers}/$THEME"
       STATE_FILE="$HOME/.cache/wallpaper-state"
 
       notify_error() {

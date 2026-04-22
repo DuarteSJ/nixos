@@ -1,5 +1,10 @@
-{lib, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib.generators) mkLuaInline;
+  inherit (config.vars.paths) notes;
 in {
   programs.nvf.settings.vim = {
     notes.obsidian = {
@@ -8,7 +13,7 @@ in {
         workspaces = [
           {
             name = "notes";
-            path = "~/notes";
+            path = notes;
           }
         ];
         completion = {
@@ -121,6 +126,6 @@ in {
     ];
   };
   home.activation.createObsidianDirs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    $DRY_RUN_CMD mkdir -p $VERBOSE_ARG ~/notes/{templates,daily,zettelkasten}
+    $DRY_RUN_CMD mkdir -p $VERBOSE_ARG ${notes}/{templates,daily,zettelkasten}
   '';
 }

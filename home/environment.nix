@@ -1,7 +1,7 @@
-{
+{config, ...}: {
   home.sessionPath = ["$HOME/.local/bin"];
 
   home.sessionVariables = {
-    EDITOR = "nvim";
+    EDITOR = config.vars.editor;
   };
 }

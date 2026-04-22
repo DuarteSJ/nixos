@@ -18,6 +18,7 @@
   workspaces,
   preferExternal,
   themeName,
+  wallpapersPath,
 }: let
   laptopSpec =
     "${laptop.name},${laptop.mode},${laptop.position},${laptop.scale}"
@@ -40,7 +41,7 @@ in
     }
     WORKSPACES="${builtins.concatStringsSep " " (map toString workspaces)}"
     THEME="${themeName}"
-    WALLPAPER_BASE="$HOME/Pictures/wallpapers/$THEME"
+    WALLPAPER_BASE="${wallpapersPath}/$THEME"
 
     set_wallpaper() {
       local monitor="$1" orientation="$2"

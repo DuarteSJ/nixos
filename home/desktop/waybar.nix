@@ -92,7 +92,7 @@
     // extra;
 
   # Build path for terminal commands
-  mkTermCmd = bin: "${pkgs.alacritty}/bin/alacritty -e ${bin}";
+  mkTermCmd = bin: "${pkgs.${vars.terminal}}/bin/${vars.terminal} -e ${bin}";
 in {
   programs.waybar = {
     enable = true;

@@ -25,6 +25,7 @@
   monitorManager = import ./monitor-manager.nix {
     inherit pkgs laptop workspaces preferExternal;
     themeName = lib.toLower config.colorScheme.name;
+    wallpapersPath = vars.paths.wallpapers;
   };
 
   # ------------------------------------------------------------------
@@ -155,8 +156,8 @@ in {
       ];
 
       env = [
-        "HYPRCURSOR_THEME,Nordzy-cursors"
-        "HYPRCURSOR_SIZE,26"
+        "HYPRCURSOR_THEME,${vars.cursor.name}"
+        "HYPRCURSOR_SIZE,${toString vars.cursor.size}"
       ];
 
       general = {
@@ -219,7 +220,7 @@ in {
       "$mainMod" = "SUPER";
 
       bind = [
-        "$mainMod, Q, exec, alacritty"
+        "$mainMod, Q, exec, ${vars.terminal}"
         "$mainMod, C, killactive,"
         "$mainMod, P, exec, hyprctl dispatch pin"
         "$mainMod, V, togglefloating,"

@@ -1,4 +1,4 @@
-{
+{config, ...}: {
   _module.args.shellShared = {
     aliases = {
       rb = "sudo -v && nixos-rebuild switch --sudo";
@@ -9,12 +9,11 @@
       lt = "eza --color=always --tree --group-directories-first --icons";
       ls = "ls --color=auto";
       grep = "grep --color=auto";
-      nv = "nvim";
-      remind = "~/notes/remind.sh";
+      nv = config.vars.editor;
       # obsidian shortcuts
-      odl = "nvim +'Obsidian today'";
-      onew = "nvim +'Obsidian new'";
-      osearch = "nvim +'Obsidian search'";
+      odl = "${config.vars.editor} +'Obsidian today'";
+      onew = "${config.vars.editor} +'Obsidian new'";
+      osearch = "${config.vars.editor} +'Obsidian search'";
       # fastfetch
       cleanfetch = "fastfetch --config examples/8.jsonc";
       fetchall = "fastfetch --config examples/25.jsonc";
