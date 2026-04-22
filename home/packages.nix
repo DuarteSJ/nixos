@@ -1,14 +1,4 @@
-{
-  pkgs,
-  inputs,
-  system,
-  ...
-}: let
-  unstable = import inputs.nixpkgs-unstable {
-    inherit system;
-    config.allowUnfree = true;
-  };
-in {
+{pkgs, ...}: {
   home.packages = with pkgs; [
     # Nvidia drivers
     nvidia-vaapi-driver
@@ -55,8 +45,5 @@ in {
     # LaTeX
     texlive.combined.scheme-full
     perl
-
-    # Unstable channel
-    unstable.code-cursor
   ];
 }
