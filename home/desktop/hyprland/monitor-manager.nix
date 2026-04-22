@@ -124,7 +124,10 @@ in
     | while IFS= read -r line; do
         event="${"$"}{line%%>>*}"
         case "$event" in
-          monitoradded|monitorremoved)
+          monitoradded|monitorremoved|monitorlayoutchanged)
+            # monitorlayoutchanged (if Hyprland emits it on transform /
+            # mode / position changes) lets rotation and similar updates
+            # reach apply_state without a dedicated wrapper command.
             sleep 0.3
             apply_state
             ;;
