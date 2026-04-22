@@ -76,7 +76,7 @@ in {
 
     workspaces = lib.mkOption {
       type = lib.types.listOf lib.types.int;
-      default = [1 2 3 4 5];
+      default = [1 2 3 4];
       description = ''
         Workspaces the monitor-manager assigns to the primary monitor
         at runtime.  Primary is the first connected external (if any),
@@ -101,18 +101,16 @@ in {
       mode = "1920x1200@59.95";
     };
 
-    # Fill in regularly-used externals here.  Run `hyprctl monitors`
-    # while the monitor is connected and copy the `description` field
-    # verbatim.  Example:
-    #
-    #   externals = [
-    #     {
-    #       description = "Dell Inc. DELL U2720Q ABCD1234";
-    #       mode = "1920x1080@119.98";
-    #       position = "1920x0";
-    #     }
-    #   ];
-    externals = [];
+    # TODO: replace description with the real EDID string.  Run
+    # `hyprctl monitors` while connected and copy the `description`
+    # field verbatim.
+    externals = [
+      {
+        description = "PLACEHOLDER — fill in with `hyprctl monitors`";
+        mode = "1920x1080@119.98";
+        position = "1920x0";
+      }
+    ];
 
     workspaces = [1 2 3 4];
     preferExternal = true;
