@@ -4,18 +4,6 @@
   ...
 }: let
   themeName = config.colorScheme.slug or "nord";
-
-  orientationOf = m:
-    if m.transform == 1 || m.transform == 3
-    then "vertical"
-    else "horizontal";
-
-  allMonitors = [config.monitors.laptop] ++ config.monitors.external;
-
-  # "name|orientation" lines consumed by the bash script below.
-  monitorsLines = builtins.concatStringsSep "\n" (map
-    (m: "${m.name}|${orientationOf m}")
-    allMonitors);
 in {
   home.packages = [
     (pkgs.writeShellScriptBin "switch-bg" ''
@@ -25,9 +13,6 @@ in {
       WALLPAPERS_DIR="$HOME/Pictures/wallpapers/$THEME"
       STATE_FILE="$HOME/.cache/wallpaper-state"
 
-      # Injected from Nix: one "name|orientation" per line.
-      MONITORS="${monitorsLines}"
-
       notify_error() {
         ${pkgs.dunst}/bin/dunstify -u critical "Background Error" "$1"
         exit 1
@@ -36,30 +21,16 @@ in {
       [[ -d "$WALLPAPERS_DIR" ]] \
         || notify_error "Directory '$WALLPAPERS_DIR' not found"
 
-      declare -A orientation_of
-      while IFS='|' read -r name orient; do
-        [[ -z "$name" ]] && continue
-        orientation_of[$name]="$orient"
-      done <<< "$MONITORS"
+      # Focused monitor + its live transform.
+      read -r active_monitor active_transform < <(
+        hyprctl monitors -j \
+          | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | "\(.name) \(.transform)"'
+      )
+      [[ -n "''${active_monitor:-}" ]] || notify_error "No focused monitor"
 
-      active_monitor=$(hyprctl monitors -j \
-        | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .name')
+      orientation=horizontal
+      [[ "$active_transform" == "1" || "$active_transform" == "3" ]] && orientation=vertical
 
-      [[ -v orientation_of[$active_monitor] ]] \
-        || notify_error "Unrecognised active monitor: $active_monitor"
-
-      # Load state, keeping only entries for known monitors so stale
-      # keys from removed monitors drop on the next write.
-      declare -A indices
-      ${pkgs.coreutils}/bin/mkdir -p "$(dirname "$STATE_FILE")"
-      ${pkgs.coreutils}/bin/touch "$STATE_FILE"
-      while IFS='=' read -r key value; do
-        [[ -z "$key" ]] && continue
-        [[ -v orientation_of[$key] ]] || continue
-        indices[$key]="$value"
-      done < "$STATE_FILE"
-
-      orientation="''${orientation_of[$active_monitor]}"
       mapfile -t wallpapers < <(
         ${pkgs.findutils}/bin/find "$WALLPAPERS_DIR/$orientation" \
           -maxdepth 1 -type f \
@@ -70,7 +41,14 @@ in {
       (( ''${#wallpapers[@]} > 0 )) \
         || notify_error "No wallpapers found in $WALLPAPERS_DIR/$orientation"
 
-      # First time we've seen this monitor → show index 0.
+      declare -A indices
+      ${pkgs.coreutils}/bin/mkdir -p "$(dirname "$STATE_FILE")"
+      ${pkgs.coreutils}/bin/touch "$STATE_FILE"
+      while IFS='=' read -r key value; do
+        [[ -z "$key" ]] && continue
+        indices[$key]="$value"
+      done < "$STATE_FILE"
+
       if [[ -v indices[$active_monitor] ]]; then
         idx=$(( (indices[$active_monitor] + 1) % ''${#wallpapers[@]} ))
       else
@@ -79,7 +57,6 @@ in {
       indices[$active_monitor]=$idx
       next_wallpaper="''${wallpapers[$idx]}"
 
-      # Persist state atomically.
       tmp_state=$(${pkgs.coreutils}/bin/mktemp "$STATE_FILE.XXXXXX")
       for m in "''${!indices[@]}"; do
         printf '%s=%s\n' "$m" "''${indices[$m]}" >> "$tmp_state"
@@ -89,8 +66,7 @@ in {
       hyprctl hyprpaper preload "$next_wallpaper"
       hyprctl hyprpaper wallpaper "$active_monitor,$next_wallpaper"
 
-      # Collect wallpapers currently displayed on any monitor so we
-      # don't unload something still in use elsewhere.
+      # Unload wallpapers nothing is displaying.
       declare -A in_use
       in_use[$next_wallpaper]=1
       while IFS='=' read -r _ path; do
