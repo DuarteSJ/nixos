@@ -1,7 +1,7 @@
 {...}: {
   imports = [
     ./monitors.nix
-    ./hyprland.nix
+    ./hyprland
     ./hyprlock.nix
     ./waybar.nix
     ./rofi.nix
