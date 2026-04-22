@@ -7,17 +7,12 @@
   colors = config.colorScheme.palette;
   inherit (config) vars;
 
-  laptopMonitor = config.monitors.laptop;
-  externalMonitors = config.monitors.external;
-
-  # Generate persistent workspaces from monitor configurations
-  persistentWorkspaces =
-    {"${laptopMonitor.name}" = laptopMonitor.workspaces;}
-    // (builtins.listToAttrs (map (m: {
-        inherit (m) name;
-        value = m.workspaces;
-      })
-      externalMonitors));
+  # Show the configured workspaces as persistent buttons on every
+  # output.  The manager pins them to the primary monitor at runtime;
+  # on any other bar they show as empty and click-switch as usual.
+  persistentWorkspaces = {
+    "*" = config.monitors.workspaces;
+  };
 
   # Icon collections
   icons = {

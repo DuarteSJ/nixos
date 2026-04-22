@@ -5,30 +5,25 @@
   ...
 }: let
   inherit (config) monitors;
-  inherit (monitors) laptop;
-  externals = monitors.external;
+  inherit (monitors) laptop externals workspaces preferExternal;
   inherit (config) vars;
   inherit (vars) rounding;
 
   # ------------------------------------------------------------------
-  # Helpers
+  # Monitor lines for Hyprland's static `monitor` config
   # ------------------------------------------------------------------
 
-  # Render a monitor line for hyprland.settings.monitor
-  monitorLine = m:
-    "${m.name}, ${m.mode}, ${m.position}, ${m.scale}"
-    + (
-      if m.transform != 0
-      then ", transform, ${toString m.transform}"
-      else ""
-    );
+  transformSuffix = m:
+    lib.optionalString (m.transform != 0) ",transform,${toString m.transform}";
 
-  # Render the enable command for a monitor (used in scripts)
-  monitorEnableCmd = m: "hyprctl keyword monitor '${monitorLine m}'";
+  # Laptop is matched by connector name (it doesn't move).
+  laptopLine = "${laptop.name},${laptop.mode},${laptop.position},${laptop.scale}${transformSuffix laptop}";
+
+  # Externals are matched by EDID description (port-agnostic).
+  externalLine = e: "desc:${e.description},${e.mode},${e.position},${e.scale}${transformSuffix e}";
 
   monitorManager = import ./monitor-manager.nix {
-    inherit pkgs laptop externals monitorEnableCmd;
-    inherit (monitors) disableLaptopWhenExternal;
+    inherit pkgs laptop workspaces preferExternal;
     themeName = lib.toLower config.colorScheme.name;
   };
 
@@ -136,18 +131,14 @@
   '';
 
   # ------------------------------------------------------------------
-  # Workspace rules derived from monitor config
+  # Window rule dimensions
+  #
+  # Sized for the "likely primary" monitor at Nix-eval time: first
+  # declared external if any, else the laptop.  At runtime the manager
+  # may pin workspaces to a different monitor; fixed window-rule sizes
+  # still match whichever monitor the user most often uses.
   # ------------------------------------------------------------------
-  workspaceRules =
-    (map (ws: "${toString ws}, monitor:${laptop.name}") laptop.workspaces)
-    ++ (builtins.concatMap
-      (m: map (ws: "${toString ws}, monitor:${m.name}") m.workspaces)
-      externals);
-
-  # ------------------------------------------------------------------
-  # Window rule helpers (unchanged from original)
-  # ------------------------------------------------------------------
-  primaryMonitor =
+  likelyPrimary =
     if externals != []
     then builtins.head externals
     else laptop;
@@ -160,9 +151,9 @@
     height = builtins.fromJSON (builtins.elemAt parts 2);
   };
 
-  rawDims = parseMode primaryMonitor.mode;
+  rawDims = parseMode likelyPrimary.mode;
   monitorDims =
-    if primaryMonitor.transform == 1 || primaryMonitor.transform == 3
+    if likelyPrimary.transform == 1 || likelyPrimary.transform == 3
     then {
       width = rawDims.height;
       height = rawDims.width;
@@ -180,16 +171,18 @@ in {
       # ---------------------------------------------------------------
       # Monitors
       #
-      # Declare every known monitor with its preferred config.
-      # The catch-all rule at the end makes any unknown monitor
-      # (e.g. a borrowed projector) work automatically.
-      # The laptop is always listed as enabled here — the monitor-manager
-      # script handles disabling it at runtime when externals are present.
+      # Laptop is matched by connector name; known externals by EDID
+      # description (so the same spec follows the monitor across ports).
+      # The trailing catch-all rule makes any unknown monitor — a
+      # borrowed projector, a TV — work automatically with preferred
+      # mode and auto position.
+      # The laptop is always listed as enabled here; monitor-manager
+      # disables it at runtime when preferExternal applies.
       # ---------------------------------------------------------------
       monitor =
-        [(monitorLine laptop)]
-        ++ (map monitorLine externals)
-        ++ [", preferred, auto, 1"]; # catch-all for unknown displays
+        [laptopLine]
+        ++ map externalLine externals
+        ++ [",preferred,auto,1"];
 
       exec-once = [
         "waybar &"
@@ -376,12 +369,12 @@ in {
         "nofocus, class:^$, title:^$, xwayland:1, floating:1, fullscreen:0, pinned:0"
       ];
 
-      workspace =
-        [
-          "special:music,    on-created-empty:spotify"
-          "special:messages, on-created-empty:beeper"
-        ]
-        ++ workspaceRules;
+      # Regular workspaces are pinned to the primary monitor at runtime
+      # by monitor-manager; only the special workspaces need static rules.
+      workspace = [
+        "special:music,    on-created-empty:spotify"
+        "special:messages, on-created-empty:beeper"
+      ];
     };
   };
 }

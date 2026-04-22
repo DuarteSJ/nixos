@@ -1,112 +1,114 @@
-# Single long-running script (exec-once) that owns all runtime monitor logic:
+# Long-running script (exec-once) that reconciles runtime monitor state.
+# Hyprland handles per-monitor specs declaratively via the `monitor` array
+# (including the desc:-rules for known externals and the catch-all for
+# unknown displays); this script covers what Hyprland can't:
 #
-#   • Applies the correct state at startup (handles "already plugged in when
-#     Hyprland starts" and "laptop only" equally).
-#   • Reacts to monitoradded / monitorremoved socket events.
-#   • Optionally disables the laptop panel when externals are present
-#     (controlled by monitors.disableLaptopWhenExternal).
-#   • Sets wallpapers via hyprpaper IPC for every active monitor.
+#   • Disables the laptop panel when externals are present (preferExternal)
+#     and re-enables it when the last external is unplugged.
+#   • Pins the configured workspaces to whichever monitor is primary
+#     (first external if any, else laptop).
+#   • Sets wallpapers for every active monitor, using the monitor's
+#     live `transform` to pick horizontal/vertical.
 #
-# Shell-level constants are injected from Nix so this script has no
-# dependency on hyprctl for config lookups — it only uses hyprctl to
-# issue commands.
+# apply_state is idempotent and drives every code path — startup, hotplug,
+# unplug.
 {
   pkgs,
   laptop,
-  externals,
-  disableLaptopWhenExternal,
+  workspaces,
+  preferExternal,
   themeName,
-  monitorEnableCmd,
 }: let
-  # Build the wallpaper-setting fragment for one monitor.
-  # Picks the first image found in ~/Pictures/wallpapers/<theme>/<orientation>/
-  wallpaperBlock = m: let
-    dir =
-      if m.transform == 1 || m.transform == 3
-      then "vertical"
-      else "horizontal";
-  in ''
-    set_wallpaper "${m.name}" "${dir}"
-  '';
+  laptopSpec =
+    "${laptop.name},${laptop.mode},${laptop.position},${laptop.scale}"
+    + (
+      if laptop.transform != 0
+      then ",transform,${toString laptop.transform}"
+      else ""
+    );
 in
   pkgs.writeShellScript "monitor-manager" ''
     exec 9>/tmp/monitor-manager.lock
     flock -n 9 || exit 0
+
     LAPTOP="${laptop.name}"
-    LAPTOP_ENABLE="${monitorEnableCmd laptop}"
-    LAPTOP_DISABLE="hyprctl keyword monitor ${laptop.name},disable"
-    DISABLE_WHEN_EXTERNAL="${
-      if disableLaptopWhenExternal
+    LAPTOP_SPEC="${laptopSpec}"
+    PREFER_EXTERNAL=${
+      if preferExternal
       then "1"
       else "0"
-    }"
-
-    # Known external monitors: "name|enable-cmd" pairs, newline-separated.
-    EXTERNALS="${builtins.concatStringsSep "\n" (map (m: "${m.name}|${monitorEnableCmd m}") externals)}"
-
+    }
+    WORKSPACES="${builtins.concatStringsSep " " (map toString workspaces)}"
     THEME="${themeName}"
     WALLPAPER_BASE="$HOME/Pictures/wallpapers/$THEME"
 
-    # ----------------------------------------------------------------
-    # Wallpaper helper
-    # ----------------------------------------------------------------
     set_wallpaper() {
       local monitor="$1" orientation="$2"
       local dir="$WALLPAPER_BASE/$orientation"
       local wp
       wp=$(${pkgs.findutils}/bin/find "$dir" -maxdepth 1 -type f \
              \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) \
+             2>/dev/null \
            | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
-      if [[ -n "$wp" ]]; then
-        hyprctl hyprpaper preload "$wp"   2>/dev/null
-        hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null
-      fi
+      [[ -n "$wp" ]] || return 0
+      hyprctl hyprpaper preload "$wp"           2>/dev/null
+      hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null
     }
 
-    # ----------------------------------------------------------------
-    # Query helpers
-    # ----------------------------------------------------------------
-    connected_monitors() {
-      hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[].name'
-    }
-
-    has_external() {
-      connected_monitors | grep -qvF "$LAPTOP"
-    }
-
-    # ----------------------------------------------------------------
-    # Apply correct monitor state (idempotent, call any time)
-    # ----------------------------------------------------------------
     apply_state() {
-      local connected
-      connected=$(connected_monitors)
+      local monitors_json has_external laptop_enabled primary
+      monitors_json=$(hyprctl monitors -j)
 
-      # Re-enable any known external that is connected but currently
-      # not active (e.g. after a Hyprland restart with it plugged in).
-      while IFS='|' read -r name cmd; do
-        [[ -z "$name" ]] && continue
-        if echo "$connected" | grep -qF "$name"; then
-          eval "$cmd"
+      has_external=$(echo "$monitors_json" \
+        | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" 'any(.[]; .name != $l)')
+
+      # Laptop visibility — only send the command when state needs to change.
+      laptop_enabled=$(echo "$monitors_json" \
+        | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" 'any(.[]; .name == $l)')
+      if [[ "$PREFER_EXTERNAL" == "1" && "$has_external" == "true" ]]; then
+        if [[ "$laptop_enabled" == "true" ]]; then
+          hyprctl keyword monitor "$LAPTOP,disable" >/dev/null
+          sleep 0.2
+          monitors_json=$(hyprctl monitors -j)
         fi
-      done <<< "$EXTERNALS"
-
-      # Laptop visibility
-      if [[ "$DISABLE_WHEN_EXTERNAL" == "1" ]]; then
-        if has_external; then
-          eval "$LAPTOP_DISABLE"
-        else
-          eval "$LAPTOP_ENABLE"
+      else
+        if [[ "$laptop_enabled" != "true" ]]; then
+          hyprctl keyword monitor "$LAPTOP_SPEC" >/dev/null
+          sleep 0.2
+          monitors_json=$(hyprctl monitors -j)
         fi
       fi
 
-      # Set wallpapers for every active monitor
-      set_wallpaper "$LAPTOP" "horizontal"
-      ${builtins.concatStringsSep "\n      " (map wallpaperBlock externals)}
+      # Primary = first non-laptop monitor, else laptop.
+      primary=$(echo "$monitors_json" | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" \
+        'map(select(.name != $l)) | if length > 0 then .[0].name else $l end')
+
+      # Pin configured workspaces to primary.  Sets the rule (newly-created
+      # workspaces land on primary) and moves any that currently exist
+      # elsewhere.
+      local workspaces_json
+      workspaces_json=$(hyprctl workspaces -j)
+      for ws in $WORKSPACES; do
+        hyprctl keyword workspace "$ws, monitor:$primary" >/dev/null || true
+        local ws_monitor
+        ws_monitor=$(echo "$workspaces_json" \
+          | ${pkgs.jq}/bin/jq -r --argjson ws "$ws" '.[] | select(.id == $ws) | .monitor')
+        if [[ -n "$ws_monitor" && "$ws_monitor" != "$primary" ]]; then
+          hyprctl dispatch moveworkspacetomonitor "$ws $primary" >/dev/null
+        fi
+      done
+
+      # Wallpapers for every enabled monitor, orientation from live transform.
+      while IFS=$'\t' read -r name transform; do
+        [[ -z "$name" ]] && continue
+        local orientation=horizontal
+        [[ "$transform" == "1" || "$transform" == "3" ]] && orientation=vertical
+        set_wallpaper "$name" "$orientation"
+      done < <(echo "$monitors_json" \
+        | ${pkgs.jq}/bin/jq -r '.[] | "\(.name)\t\(.transform)"')
     }
 
-    # ----------------------------------------------------------------
-    # Wait for Hyprland socket and hyprpaper to be ready
-    # ----------------------------------------------------------------
+    # Wait for Hyprland and hyprpaper to be ready.
     until [[ -S "$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ]]; do
       sleep 0.2
     done
@@ -116,39 +118,15 @@ in
 
     apply_state
 
-    # ----------------------------------------------------------------
-    # Event loop
-    # ----------------------------------------------------------------
+    # Reconcile on every topology change.
     ${pkgs.socat}/bin/socat - \
       "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" \
     | while IFS= read -r line; do
         event="${"$"}{line%%>>*}"
-        data="${"$"}{line##*>>}"
         case "$event" in
-          monitoradded)
-            # Find and apply the config for this specific monitor
-            while IFS='|' read -r name cmd; do
-              [[ "$name" == "$data" ]] && eval "$cmd" && break
-            done <<< "$EXTERNALS"
-            # Disable laptop if needed
-            if [[ "$DISABLE_WHEN_EXTERNAL" == "1" ]] && [[ "$data" != "$LAPTOP" ]]; then
-              eval "$LAPTOP_DISABLE"
-            fi
-            # Wallpaper for the new monitor
-            ${builtins.concatStringsSep "\n            " (map (m: ''
-        [[ "$data" == "${m.name}" ]] && set_wallpaper "${m.name}" "${
-          if m.transform == 1 || m.transform == 3
-          then "vertical"
-          else "horizontal"
-        }"
-      '')
-      externals)}
-            ;;
-          monitorremoved)
-            if [[ "$data" != "$LAPTOP" ]] && [[ "$DISABLE_WHEN_EXTERNAL" == "1" ]]; then
-              sleep 0.3   # let hyprctl monitors reflect the removal
-              has_external || eval "$LAPTOP_ENABLE"
-            fi
+          monitoradded|monitorremoved)
+            sleep 0.3
+            apply_state
             ;;
         esac
       done
