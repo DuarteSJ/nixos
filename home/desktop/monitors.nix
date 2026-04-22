@@ -101,12 +101,9 @@ in {
       mode = "1920x1200@59.95";
     };
 
-    # TODO: replace description with the real EDID string.  Run
-    # `hyprctl monitors` while connected and copy the `description`
-    # field verbatim.
     externals = [
       {
-        description = "PLACEHOLDER — fill in with `hyprctl monitors`";
+        description = "HP Inc. HP 25x CNK9050RDP";
         mode = "1920x1080@119.98";
         position = "1920x0";
       }
