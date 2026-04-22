@@ -46,7 +46,6 @@ in {
 
     # Applications
     alacritty
-    obs-studio
     telegram-desktop
     obsidian
     scrcpy

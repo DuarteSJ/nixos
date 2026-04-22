@@ -15,14 +15,10 @@
       odl = "nvim +'Obsidian today'";
       onew = "nvim +'Obsidian new'";
       osearch = "nvim +'Obsidian search'";
-      # cava floating window helpers
-      caval = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow l && hyprctl dispatch movewindow d && hyprctl dispatch moveactive 15 -15 && cava";
-      cavar = "hyprctl dispatch setfloating && hyprctl dispatch resizeactive exact 162 1000 && hyprctl dispatch movewindow r && hyprctl dispatch movewindow d && hyprctl dispatch moveactive -15 -15 && cava";
       # fastfetch
       cleanfetch = "fastfetch --config examples/8.jsonc";
       fetchall = "fastfetch --config examples/25.jsonc";
       memfetch = "fastfetch --config examples/9.jsonc";
-      cljrepl = "clj -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.0.0\"} cider/cider-nrepl {:mvn/version \"0.42.1\"}}}' -M -m nrepl.cmdline --middleware '[\"cider.nrepl/cider-middleware\"]' --interactive";
     };
 
     functions = ''

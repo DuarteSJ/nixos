@@ -9,10 +9,6 @@
         $username$hostname$directory$git_branch$git_status$fill$cmd_duration$nix_shell$shell
         $character
       '';
-      # format = ''
-      #   [╭─](bold #${base03})$username$hostname$directory$git_branch$git_status$fill$cmd_duration$nix_shell$shell
-      #   [╰─](bold #${base03})$character
-      # '';
 
       # Add newline before prompt
       add_newline = true;
