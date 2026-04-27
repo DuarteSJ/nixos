@@ -8,7 +8,6 @@
       tabstop = 4;
       shiftwidth = 4;
       expandtab = true;
-      autoindent = true;
       conceallevel = 2;
       scrolloff = 9;
       foldlevel = 99;
@@ -36,33 +35,15 @@
     tabline.nvimBufferline.enable = true;
     binds.whichKey.enable = true;
     notes.todo-comments.enable = true;
-    ui.colorizer = {
-      setupOpts.filetypes = {
-        "*" = {};
-      };
-      enable = true;
-    };
     mini = {
       pairs.enable = true;
       ai.enable = true;
       surround.enable = true;
       notify.enable = true;
       move.enable = true;
-      files = {
-        enable = true;
-        setupOpts.windows = {
-          preview = true;
-          width_preview = 80;
-        };
-      };
     };
     lsp.enable = true;
     autocomplete.nvim-cmp.enable = true;
-    luaConfigRC.treesitter-indent = lib.mkAfter ''
-      require('nvim-treesitter.configs').setup({
-        indent = { enable = true },
-      })
-    '';
     languages = {
       enableTreesitter = true;
       nix.enable = true;
@@ -90,11 +71,6 @@
       mappings.suggestion.accept = "<C-l>";
     };
     keymaps = [
-      {
-        mode = "n";
-        key = "<C-n>";
-        action = "<cmd>lua require('mini.files').open()<CR>";
-      }
       {
         mode = "n";
         key = "<leader>x";
@@ -133,6 +109,13 @@
         event = ["FileType"];
         pattern = ["nix"];
         command = "setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab";
+      }
+      # Workaround for treesitter indent not working in the latest nvf commits
+      {
+        enable = true;
+        event = [ "BufEnter" ];
+        pattern = [ "*" ];
+        command = "setlocal indentexpr=nvim_treesitter#indent()";
       }
     ];
   };

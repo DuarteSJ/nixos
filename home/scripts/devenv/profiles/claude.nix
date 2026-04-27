@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    claude-code.url = "github:ryoppippi/nix-claude-code";
+    claude-code.url = "github:sadjow/claude-code-nix";
   };
 
   outputs = {
