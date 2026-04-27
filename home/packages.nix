@@ -40,8 +40,7 @@
     obsidian
     scrcpy
     vial
-    # TODO: try to fetch this. was giving 404
-    # stremio-linux-shell
+    stremio-linux-shell
 
     # LaTeX
     texlive.combined.scheme-full
