@@ -68,8 +68,6 @@
     };
   };
 
-  services.xserver.videoDrivers = ["nvidia"];
-
   # Programs
   programs = {
     zsh.enable = true;
