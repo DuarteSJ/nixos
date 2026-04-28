@@ -1,5 +1,17 @@
-{config, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   colors = config.colorScheme.palette;
+
+  # Zathura ignores the alpha bytes in 8-digit hex (#rrggbbaa). Its parser only
+  # honours alpha via the rgba() form. Convert palette hex to rgba with given opacity.
+  hexToRgba = hex: alpha: let
+    r = lib.fromHexString (builtins.substring 0 2 hex);
+    g = lib.fromHexString (builtins.substring 2 2 hex);
+    b = lib.fromHexString (builtins.substring 4 2 hex);
+  in "rgba(${toString r}, ${toString g}, ${toString b}, ${alpha})";
 in {
   programs.zathura = {
     enable = true;
@@ -44,8 +56,8 @@ in {
       notification-warning-bg = "#${colors.base09}";
       notification-warning-fg = "#${colors.base00}";
 
-      highlight-color = "#${colors.base0A}4D";
-      highlight-active-color = "#${colors.base0D}80";
+      highlight-color = hexToRgba colors.base0A "0.3"; # inactive matches
+      highlight-active-color = hexToRgba colors.base0D "0.5"; # current match
 
       # Recolor mode colors
       recolor-lightcolor = "#${colors.base00}";

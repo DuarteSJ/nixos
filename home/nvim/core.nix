@@ -113,8 +113,8 @@
       # Workaround for treesitter indent not working in the latest nvf commits
       {
         enable = true;
-        event = [ "BufEnter" ];
-        pattern = [ "*" ];
+        event = ["BufEnter"];
+        pattern = ["*"];
         command = "setlocal indentexpr=nvim_treesitter#indent()";
       }
     ];
