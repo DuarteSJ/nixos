@@ -21,6 +21,8 @@
     nameservers = ["1.1.1.1" "8.8.8.8"];
   };
 
+  environment.systemPackages = [pkgs.openvpn];
+
   # Locale & time
   time.timeZone = "Europe/Lisbon";
   i18n = {
