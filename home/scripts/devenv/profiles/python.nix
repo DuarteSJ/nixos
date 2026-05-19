@@ -6,34 +6,38 @@
   };
 
   outputs = {nixpkgs, ...}: let
-    pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+    lib = nixpkgs.lib;
 
     pythonV = "python3"; # python310, python313, python38, ...
 
-    customEnvVars = ''
-    '';
+    customEnvVars = {
+    };
 
-    customAliases = ''
-      alias format='black .'
-      alias lint='flake8 .'
-    '';
-
-    # Packages from nixpkgs
     normalPackages = with pkgs; [
       (pkgs.${pythonV}.withPackages (p: [
         # p.numpy
       ]))
     ];
+
+    customScripts = with pkgs; [
+      (writeShellScriptBin "format" "black .")
+      (writeShellScriptBin "lint" "flake8 .")
+    ];
+
+    envExports = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (k: v: "export ${k}=${v}") customEnvVars
+    );
   in {
-    devShells.x86_64-linux.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       name = "python";
-      packages = normalPackages;
+      packages = normalPackages ++ customScripts;
       shellHook = ''
         echo -e "\n\033[1;36m🐍 Python shell activated!\033[0m"
         echo -e "\033[0;90m    → Environment: (python-env)\033[0m"
 
-        ${customEnvVars}
-        ZSH_CMDS="${customAliases}" exec zsh
+        ${envExports}
       '';
     };
   };

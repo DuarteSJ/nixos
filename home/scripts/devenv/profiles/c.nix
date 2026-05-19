@@ -6,18 +6,13 @@
   };
 
   outputs = {nixpkgs, ...}: let
-    pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+    lib = nixpkgs.lib;
 
-    customEnvVars = ''
-    '';
+    customEnvVars = {
+    };
 
-    customAliases = ''
-      alias build='make'
-      alias clean='make clean'
-      #alias format='clang-format -i **/*.c **/*.h'
-    '';
-
-    # Packages from nixpkgs
     normalPackages = with pkgs; [
       gcc
       gnumake
@@ -29,18 +24,28 @@
       #pkg-config
       #bear            # generate compile_commands.json for clangd
     ];
+
+    customScripts = with pkgs; [
+      (writeShellScriptBin "build" "make")
+      (writeShellScriptBin "clean" "make clean")
+      # (writeShellScriptBin "format" "clang-format -i **/*.c **/*.h")
+    ];
+
+    envExports = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (k: v: "export ${k}=${v}") customEnvVars
+    );
   in {
-    devShells.x86_64-linux.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       name = "c";
-      packages = normalPackages;
+      packages = normalPackages ++ customScripts;
       shellHook = ''
-                echo -e "\n\033[1;36m⚙️  C shell activated!\033[0m"
-                echo -e "\033[0;90m    → Environment: (c-env)\033[0m"
+        echo -e "\n\033[1;36m⚙️  C shell activated!\033[0m"
+        echo -e "\033[0;90m    → Environment: (c-env)\033[0m"
 
-                ${customEnvVars}
+        ${envExports}
 
-                if [ ! -f Makefile ]; then
-                  cat > Makefile << 'EOF'
+        if [ ! -f Makefile ]; then
+          cat > Makefile << 'EOF'
         CC = gcc
         CFLAGS = -Wall -Wextra -g
 
@@ -50,10 +55,8 @@
         clean:
         	rm -f main
         EOF
-                  echo -e "\033[0;90m    → Makefile created\033[0m"
-                fi
-
-                ZSH_CMDS="${customAliases}" exec zsh
+          echo -e "\033[0;90m    → Makefile created\033[0m"
+        fi
       '';
     };
   };

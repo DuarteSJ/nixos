@@ -6,15 +6,13 @@
   };
 
   outputs = {nixpkgs, ...}: let
-    pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+    lib = nixpkgs.lib;
 
-    customEnvVars = ''
-    '';
+    customEnvVars = {
+    };
 
-    customAliases = ''
-    '';
-
-    # Packages from nixpkgs
     normalPackages = with pkgs; [
       rustc
       cargo
@@ -25,18 +23,23 @@
       #cargo-audit
       #cargo-watch
       #cargo-tarpaulin
-      #clippy
     ];
+
+    customScripts = with pkgs; [
+    ];
+
+    envExports = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (k: v: "export ${k}=${v}") customEnvVars
+    );
   in {
-    devShells.x86_64-linux.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       name = "rust";
-      packages = normalPackages;
+      packages = normalPackages ++ customScripts;
       shellHook = ''
         echo -e "\n\033[1;36m🦀 Rust shell activated!\033[0m"
         echo -e "\033[0;90m    → Environment: (rust-env)\033[0m"
 
-        ${customEnvVars}
-        ZSH_CMDS="${customAliases}" exec zsh
+        ${envExports}
       '';
     };
   };

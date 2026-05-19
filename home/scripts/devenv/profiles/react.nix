@@ -13,38 +13,49 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    lib = nixpkgs.lib;
     claude = claude-code.packages.${system}.default;
 
-    customAliases = ''
-      alias dev='npm run dev'
-      alias build='npm run build'
-      alias preview='npm run preview'
-      alias lint='npm run lint'
-      alias fmt='prettier --write .'
-    '';
+    customEnvVars = {
+    };
+
+    normalPackages = with pkgs; [
+      # Runtime
+      nodejs_22
+      nodePackages.npm
+
+      # Tooling
+      nodePackages.prettier
+      # nodePackages.typescript-language-server
+      # nodePackages.vscode-langservers-extracted # html/css/json LSP
+
+      # Claude Code
+      claude
+    ];
+
+    customScripts = with pkgs; [
+      (writeShellScriptBin "dev" "npm run dev \"$@\"")
+      (writeShellScriptBin "build" "npm run build \"$@\"")
+      (writeShellScriptBin "preview" "npm run preview \"$@\"")
+      (writeShellScriptBin "lint" "npm run lint \"$@\"")
+      (writeShellScriptBin "fmt" "prettier --write .")
+    ];
+
+    envExports = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (k: v: "export ${k}=${v}") customEnvVars
+    );
   in {
     devShells.${system}.default = pkgs.mkShell {
       name = "react";
-
-      packages = with pkgs; [
-        # Runtime
-        nodejs_22
-        nodePackages.npm
-
-        # Tooling
-        nodePackages.prettier
-        # nodePackages.typescript-language-server
-        # nodePackages.vscode-langservers-extracted # html/css/json LSP
-
-        # Claude Code
-        claude
-      ];
+      packages = normalPackages ++ customScripts;
 
       shellHook = ''
         echo -e "\n\033[1;34m⚛️  React shell activated!\033[0m"
         echo -e "\033[0;90m    → Environment: (react-env)\033[0m"
         echo -e "\033[0;90m    → Node: $(node --version)  npm: $(npm --version)\033[0m"
         echo -e "\033[0;90m    → Claude: $(claude --version 2>/dev/null || echo 'ready')\033[0m"
+
+        ${envExports}
 
         # Scaffold a new Vite/React project if none exists
         if [ ! -f package.json ]; then
@@ -58,8 +69,6 @@
             echo -e "  cd $proj_name && npm install && dev"
           fi
         fi
-
-        ZSH_CMDS="${customAliases}" exec zsh
       '';
     };
   };

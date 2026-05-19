@@ -1,9 +1,8 @@
 {
-  description = "Generic Development environment. Customize as needed.";
+  description = "Generic development environment. Customize as needed.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    myFork.url = "github:DuarteSJ/nixpkgs/current";
   };
 
   outputs = {
@@ -11,49 +10,39 @@
     myFork,
     ...
   }: let
-    pkgs = nixpkgs.legacyPackages."x86_64-linux";
-    spkgs = myFork.legacyPackages."x86_64-linux";
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+    spkgs = myFork.legacyPackages.${system};
+    lib = nixpkgs.lib;
 
-    pythonV = "python3"; # python310, python313, python38, ...
+    # Env vars exported into the shell when direnv loads the flake.
+    customEnvVars = {
+      # FOO = "bar";
+    };
 
-    customEnvVars = ''
-      export VAR="value"
-      export OTHER_VAR="other value"
-    '';
-
-    customAliases = ''
-      alias format='black .'
-      alias lint='flake8 .'
-    '';
-
-    # Packages from nixpkgs
+    # Packages from nixpkgs.
     normalPackages = with pkgs; [
-      # feh
-      # unzip
-      (pkgs.${pythonV}.withPackages (p: [
-        # p.numpy
-      ]))
+      # hello
     ];
 
-    # Packages from my fork
-    specialPackages = with spkgs; [
-      (spkgs.${pythonV}.withPackages (p: [
-        # Jupyter+nvim integration (requires the nvim plugin)
-        # p.jupynium
-        # p.nbclassic
-        # p.notebook
-      ]))
+    # Project specific commands
+    customScripts = with pkgs; [
+      # (writeShellScriptBin "format" "black .")
+      # (writeShellScriptBin "lint" "flake8 .")
     ];
+
+    envExports = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (k: v: "export ${k}=${v}") customEnvVars
+    );
   in {
-    devShells.x86_64-linux.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       name = "dev";
-      packages = normalPackages ++ specialPackages;
+      packages = normalPackages ++ customScripts;
       shellHook = ''
-        echo -e "\n\033[1;36m🚀 Development shell activated!\033[0m"
+        echo -e "\n\033[1;36m🚀 Dev shell activated!\033[0m"
         echo -e "\033[0;90m    → Environment: (dev-env)\033[0m"
 
-        ${customEnvVars}
-        ZSH_CMDS="${customAliases}" exec zsh
+        ${envExports}
       '';
     };
   };
