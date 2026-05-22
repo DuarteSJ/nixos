@@ -5,6 +5,7 @@
 
     # CLI tools
     git
+    gh
     curl
     home-manager
     eza
