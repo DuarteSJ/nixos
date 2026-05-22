@@ -12,7 +12,6 @@ in {
 
     theme = spicePkgs.themes.ziro;
 
-    # Override spice CSS variables with nix-colors palette
     customColorScheme = {
       text = colors.base05;
       subtext = colors.base04;

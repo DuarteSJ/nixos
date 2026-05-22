@@ -11,10 +11,6 @@ in {
 
   # Custom CSS styling for Beeper
   xdg.configFile."BeeperTexts/custom.css".text = ''
-    /*
-     * Beeper Custom Theme - NixOS Color Scheme
-     * Integrated with nix-colors
-    */
     :root, html {
       /* Use system font - line can be commented out/removed if you want to stick with Inter */
       --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif !important;

@@ -13,7 +13,6 @@ in {
       name = "default";
       isDefault = true;
 
-      # Browser settings via user.js with nix-colors integration
       settings = {
         # Session restore
         "browser.startup.page" = 3;

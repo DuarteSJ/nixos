@@ -22,7 +22,6 @@ in {
     * {
         font:  "${vars.font.name} ${toString vars.font.size}";
 
-        /* nix-colors integration */
         background:                  #${base00};
         background-alt:              #${base01};
         foreground:                  #${base05};

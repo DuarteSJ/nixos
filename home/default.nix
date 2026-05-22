@@ -6,9 +6,9 @@
   };
 
   imports = [
-    inputs.nix-colors.homeManagerModules.default
     inputs.spicetify-nix.homeManagerModules.default
     inputs.nvf.homeManagerModules.default
+    ./theme.nix
     ./vars.nix
     ./environment.nix
     ./packages.nix
@@ -19,8 +19,6 @@
     ./terminal
     ./nvim
   ];
-
-  colorScheme = inputs.nix-colors.colorSchemes.nord;
 
   programs.home-manager.enable = true;
 }

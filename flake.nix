@@ -7,7 +7,6 @@
 
     # WM / tooling
     hyprland.url = "github:hyprwm/Hyprland";
-    nix-colors.url = "github:misterio77/nix-colors";
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
 
     # Home Manager
