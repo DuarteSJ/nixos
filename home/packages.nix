@@ -1,5 +1,10 @@
-{pkgs, ...}: {
-  home.packages = with pkgs; [
+{
+  pkgs,
+  inputs,
+  system,
+  ...
+}: {
+  home.packages = (with pkgs; [
     # Nvidia drivers
     nvidia-vaapi-driver
 
@@ -46,5 +51,7 @@
     # LaTeX
     texlive.combined.scheme-full
     perl
+  ]) ++ [
+    inputs.claude-code.packages.${system}.default
   ];
 }

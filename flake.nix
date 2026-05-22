@@ -20,6 +20,9 @@
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Claude Code (fresh builds)
+    claude-code.url = "github:sadjow/claude-code-nix";
   };
 
   outputs = {
