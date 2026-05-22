@@ -7,5 +7,7 @@
     ./rofi.nix
     ./dunst.nix
     ./hyprpaper.nix
+    ./hyprshot.nix
+    ./hyprsunset.nix
   ];
 }

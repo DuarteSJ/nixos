@@ -34,7 +34,6 @@
     networkmanagerapplet
     cava
     rofi
-    hyprshade
 
     # Fonts & themes
     nerd-fonts.jetbrains-mono
