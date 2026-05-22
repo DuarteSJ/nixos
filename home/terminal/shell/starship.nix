@@ -15,7 +15,7 @@
 
       # Fill module to push content to the right
       fill = {
-        symbol = " ";
+        symbol = "─";
       };
 
       character = {
@@ -38,7 +38,7 @@
       # Git
       git_branch = {
         format = "[$symbol $branch(:$remote_branch)]($style) ";
-        symbol = "";
+        symbol = "";
         style = "bold #${base0E}";
       };
 
