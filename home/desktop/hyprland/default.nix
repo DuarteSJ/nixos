@@ -8,6 +8,7 @@
   inherit (monitors) laptop externals workspaces preferExternal;
   inherit (config) vars;
   inherit (vars) rounding;
+  inherit (config.colorScheme.palette) base0D base0C base02;
 
   # ------------------------------------------------------------------
   # Monitor lines for Hyprland's static `monitor` config
@@ -112,9 +113,65 @@
     fi
   '';
 
-  toggleAnimations = pkgs.writeShellScript "toggle-animations" ''
-    val=$(hyprctl getoption animations:enabled | awk '/int:/ {print $2}')
-    hyprctl keyword animations:enabled $((1 - val))
+  # Productivity mode: toggle distractions individually or all at once.
+  # State dir tracks which features are currently engaged.
+  prodCommon = ''
+    STATE_DIR=/tmp/hypr-prod-mode
+    mkdir -p "$STATE_DIR"
+
+    ACTIVE_BORDER='rgba(${base0D}cc) rgba(${base0C}77) 45deg'
+    INACTIVE_BORDER='rgba(${base02}aa)'
+
+    enable_animations()  { hyprctl keyword animations:enabled 0; touch "$STATE_DIR/animations"; }
+    disable_animations() { hyprctl keyword animations:enabled 1; rm -f "$STATE_DIR/animations"; }
+
+    enable_gaps() {
+      hyprctl keyword general:gaps_in 0
+      hyprctl keyword general:gaps_out 0
+      hyprctl keyword decoration:rounding 0
+      touch "$STATE_DIR/gaps"
+    }
+    disable_gaps() {
+      hyprctl keyword general:gaps_in ${toString (vars.gaps / 2)}
+      hyprctl keyword general:gaps_out ${toString vars.gaps}
+      hyprctl keyword decoration:rounding ${toString rounding}
+      rm -f "$STATE_DIR/gaps"
+    }
+
+    enable_borders() {
+      hyprctl keyword general:col.active_border "$INACTIVE_BORDER"
+      hyprctl keyword general:col.inactive_border "$INACTIVE_BORDER"
+      touch "$STATE_DIR/borders"
+    }
+    disable_borders() {
+      hyprctl keyword general:col.active_border "$ACTIVE_BORDER"
+      hyprctl keyword general:col.inactive_border "$INACTIVE_BORDER"
+      rm -f "$STATE_DIR/borders"
+    }
+
+    enable_waybar()  { ${pkgs.procps}/bin/pkill waybar 2>/dev/null || true; touch "$STATE_DIR/waybar"; }
+    disable_waybar() { ${pkgs.procps}/bin/pgrep waybar >/dev/null || (${pkgs.waybar}/bin/waybar & disown); rm -f "$STATE_DIR/waybar"; }
+
+    enable_dim() {
+      hyprctl keyword decoration:dim_inactive true
+      hyprctl keyword decoration:dim_strength 0.1
+      touch "$STATE_DIR/dim"
+    }
+    disable_dim() {
+      hyprctl keyword decoration:dim_inactive false
+      rm -f "$STATE_DIR/dim"
+    }
+
+    any_on() { [ -n "$(ls -A "$STATE_DIR" 2>/dev/null)" ]; }
+  '';
+
+  productivityToggle = pkgs.writeShellScript "productivity-toggle" ''
+    ${prodCommon}
+    if any_on; then
+      disable_animations; disable_gaps; disable_borders; disable_waybar; disable_dim
+    else
+      enable_animations; enable_gaps; enable_borders; enable_waybar; enable_dim
+    fi
   '';
 
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
@@ -303,7 +360,7 @@ in {
         "$mainMod SHIFT, N,  exec, switch-bg"
         "$mainMod, X,        exec, ${rofi-screenshot}"
         "$mainMod SHIFT, X,  exec, screenrec"
-        "$mainMod, slash,    exec, ${toggleAnimations}"
+        "$mainMod, slash,       exec, ${productivityToggle}"
 
         "$mainMod SHIFT, h, swapwindow, l"
         "$mainMod SHIFT, j, swapwindow, d"
