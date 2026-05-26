@@ -71,31 +71,6 @@
     esac
   '';
 
-  rofi-screenshot = pkgs.writeShellScript "rofi-screenshot" ''
-    # Options
-    region=" region"
-    window=" window"
-    output=" output"
-
-    # Variable
-    options="$region\n$window\n$output"
-
-    # Show rofi menu
-    chosen=$(echo -e "$options" | rofi -dmenu -p "Screenshot")
-
-    case $chosen in
-        $region)
-            ${pkgs.hyprshot}/bin/hyprshot -m region
-            ;;
-        $window)
-            ${pkgs.hyprshot}/bin/hyprshot -m window
-            ;;
-        $output)
-            ${pkgs.hyprshot}/bin/hyprshot -m output
-            ;;
-    esac
-  '';
-
   toggleWaybar = pkgs.writeShellScript "toggle-waybar" ''
     if pgrep waybar > /dev/null; then
       pkill waybar
@@ -358,7 +333,7 @@ in {
         "$mainMod, N,        exec, ${toggleMic}"
         "$mainMod SHIFT, P,  exec, ${rofi-powermenu}"
         "$mainMod SHIFT, N,  exec, switch-bg"
-        "$mainMod, X,        exec, ${rofi-screenshot}"
+        "$mainMod, X,        exec, hyprshot -z -m region"
         "$mainMod SHIFT, X,  exec, screenrec"
         "$mainMod, slash,       exec, ${productivityToggle}"
 
