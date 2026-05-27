@@ -34,10 +34,12 @@
   # ------------------------------------------------------------------
 
   rofi-launcher = pkgs.writeShellScript "rofi-launcher" ''
+    set -euo pipefail
     rofi -show drun
   '';
 
   rofi-powermenu = pkgs.writeShellScript "rofi-powermenu" ''
+    set -euo pipefail
     # Options
     shutdown="⏻ shutdown"
     reboot=" reboot"
@@ -49,29 +51,19 @@
     options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
 
     # Show rofi menu
-    chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu")
+    chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu") || exit 0
 
-    case $chosen in
-        $shutdown)
-            systemctl poweroff
-            ;;
-        $reboot)
-            systemctl reboot
-            ;;
-        $lock)
-            hyprlock
-            ;;
-        $logout)
-            hyprctl dispatch exit
-            ;;
-        $suspend)
-            hyprlock &
-            systemctl suspend
-            ;;
+    case "$chosen" in
+        "$shutdown") systemctl poweroff ;;
+        "$reboot")   systemctl reboot ;;
+        "$lock")     hyprlock ;;
+        "$logout")   hyprctl dispatch exit ;;
+        "$suspend")  hyprlock & systemctl suspend ;;
     esac
   '';
 
   toggleWaybar = pkgs.writeShellScript "toggle-waybar" ''
+    set -euo pipefail
     if pgrep waybar > /dev/null; then
       pkill waybar
     else
@@ -80,6 +72,7 @@
   '';
 
   toggleMic = pkgs.writeShellScript "toggle-mic" ''
+    set -euo pipefail
     wpctl set-mute @DEFAULT_SOURCE@ toggle
     if wpctl get-volume @DEFAULT_SOURCE@ | grep -q "MUTED"; then
       dunstify "Mic Status" "Microphone is now muted"
@@ -141,6 +134,7 @@
   '';
 
   productivityToggle = pkgs.writeShellScript "productivity-toggle" ''
+    set -euo pipefail
     ${prodCommon}
     if any_on; then
       disable_animations; disable_gaps; disable_borders; disable_waybar; disable_dim
@@ -150,8 +144,10 @@
   '';
 
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
+    set -euo pipefail
     # Get the current outer gap
     cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
+    [[ "$cur_out" =~ ^-?[0-9]+$ ]] || exit 1
 
     # Increment outer gap by 2
     new_out=$((cur_out + 2))
@@ -170,8 +166,10 @@
   '';
 
   decrease_gaps = pkgs.writeShellScript "decrease-gaps" ''
+    set -euo pipefail
     # Get current outer gap
     cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
+    [[ "$cur_out" =~ ^-?[0-9]+$ ]] || exit 1
 
     # Decrement outer gap by 2
     new_out=$((cur_out - 2))

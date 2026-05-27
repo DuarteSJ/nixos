@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    claude-code.url = "github:ryoppippi/nix-claude-code";
+    claude-code.url = "github:sadjow/claude-code-nix";
   };
 
   outputs = {
@@ -13,7 +13,7 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
     claude = claude-code.packages.${system}.default;
 
     customEnvVars = {

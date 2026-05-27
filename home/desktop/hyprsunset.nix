@@ -1,4 +1,4 @@
-{...}: {
+_: {
   # Night-time blue-light filter + screen dimming.
   # hyprsunset runs as a service and switches profile by time of day
   # Handles its own schedule, no systemd timer needed.

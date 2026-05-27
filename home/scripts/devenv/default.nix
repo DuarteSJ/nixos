@@ -2,7 +2,7 @@
   home.packages = [
     (pkgs.writeShellScriptBin "devenv" ''
       #!/usr/bin/env bash
-      set -e
+      set -euo pipefail
       FLAKE_DIR="''${FLAKE_DIR:-''${HOME}/nixos/home/scripts/devenv/profiles}"
 
       if [ -z "''${1:-}" ]; then

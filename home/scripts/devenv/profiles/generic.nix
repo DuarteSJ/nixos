@@ -5,15 +5,10 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
-  outputs = {
-    nixpkgs,
-    myFork,
-    ...
-  }: let
+  outputs = {nixpkgs, ...}: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    spkgs = myFork.legacyPackages.${system};
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
 
     # Env vars exported into the shell when direnv loads the flake.
     customEnvVars = {

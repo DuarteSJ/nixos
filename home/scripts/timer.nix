@@ -1,8 +1,9 @@
 {pkgs, ...}: {
   home.packages = [
     (pkgs.writeShellScriptBin "timer" ''
+      set -euo pipefail
       # Ensure at least one argument is provided
-      if [[ -z "$1" ]]; then
+      if [[ -z "''${1:-}" ]]; then
           ${pkgs.coreutils}/bin/echo "Usage: $0 [--title \"Custom Title\"] [--symbol \"⏳\"] [--silent] <time>"
           ${pkgs.coreutils}/bin/echo "Example: $0 --title \"Break\" --symbol \"🔥\" 5m 30s"
           exit 1
@@ -18,7 +19,7 @@
       while [[ "$#" -gt 0 ]]; do
           case "$1" in
               --title)
-                  if [[ -n "$2" ]]; then
+                  if [[ -n "''${2:-}" ]]; then
                       title="$2"
                       shift 2
                   else
@@ -27,7 +28,7 @@
                   fi
                   ;;
               --symbol)
-                  if [[ -n "$2" ]]; then
+                  if [[ -n "''${2:-}" ]]; then
                       symbol="$2"
                       shift 2
                   else

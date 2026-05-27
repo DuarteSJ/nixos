@@ -8,24 +8,32 @@
 
   # System
   system.stateVersion = "25.11";
-  nix.settings.experimental-features = ["nix-command" "flakes"];
-  nix.settings.auto-optimise-store = true;
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
+  nix = {
+    settings = {
+      experimental-features = ["nix-command" "flakes"];
+      auto-optimise-store = true;
+    };
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
   };
 
   # Boot
-  boot.loader.systemd-boot.enable = false;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/boot";
-  boot.loader.grub = {
-    enable = true;
-    efiSupport = true;
-    device = "nodev";
-    useOSProber = true;
-    configurationLimit = 10;
+  boot.loader = {
+    systemd-boot.enable = false;
+    efi = {
+      canTouchEfiVariables = true;
+      efiSysMountPoint = "/boot";
+    };
+    grub = {
+      enable = true;
+      efiSupport = true;
+      device = "nodev";
+      useOSProber = true;
+      configurationLimit = 10;
+    };
   };
 
   # Networking

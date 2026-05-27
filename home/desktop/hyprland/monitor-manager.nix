@@ -29,6 +29,7 @@
     );
 in
   pkgs.writeShellScript "monitor-manager" ''
+    set -euo pipefail
     exec 9>/tmp/monitor-manager.lock
     flock -n 9 || exit 0
 

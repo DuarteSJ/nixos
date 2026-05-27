@@ -92,7 +92,7 @@
     // extra;
 
   # Build path for terminal commands
-  mkTermCmd = bin: "${pkgs.${vars.terminal}}/bin/${vars.terminal} -e ${bin}";
+  mkTermCmd = bin: "${lib.getExe pkgs.${vars.terminal}} -e ${bin}";
 in {
   programs.waybar = {
     enable = true;

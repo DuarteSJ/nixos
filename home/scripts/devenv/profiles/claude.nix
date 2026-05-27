@@ -13,7 +13,7 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
     claude = claude-code.packages.${system}.default;
 
     customEnvVars = {
