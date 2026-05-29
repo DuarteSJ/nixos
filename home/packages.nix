@@ -30,11 +30,7 @@
 
       # Desktop utilities
       hyprpicker
-      pavucontrol
-      blueman
-      networkmanagerapplet
       cava
-      rofi
 
       # Fonts & themes
       nerd-fonts.jetbrains-mono

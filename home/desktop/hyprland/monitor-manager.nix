@@ -7,8 +7,8 @@
 #     and re-enables it when the last external is unplugged.
 #   • Pins the configured workspaces to whichever monitor is primary
 #     (first external if any, else laptop).
-#   • Sets wallpapers for every active monitor, using the monitor's
-#     live `transform` to pick horizontal/vertical.
+#
+# Wallpapers are handled by the Noctalia shell, not here.
 #
 # apply_state is idempotent and drives every code path — startup, hotplug,
 # unplug.
@@ -17,8 +17,6 @@
   laptop,
   workspaces,
   preferExternal,
-  themeName,
-  wallpapersPath,
 }: let
   laptopSpec =
     "${laptop.name},${laptop.mode},${laptop.position},${laptop.scale}"
@@ -41,21 +39,6 @@ in
       else "0"
     }
     WORKSPACES="${builtins.concatStringsSep " " (map toString workspaces)}"
-    THEME="${themeName}"
-    WALLPAPER_BASE="${wallpapersPath}/$THEME"
-
-    set_wallpaper() {
-      local monitor="$1" orientation="$2"
-      local dir="$WALLPAPER_BASE/$orientation"
-      local wp
-      wp=$(${pkgs.findutils}/bin/find "$dir" -maxdepth 1 -type f \
-             \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) \
-             2>/dev/null \
-           | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
-      [[ -n "$wp" ]] || return 0
-      hyprctl hyprpaper preload "$wp"           2>/dev/null
-      hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null
-    }
 
     apply_state() {
       local monitors_json has_external laptop_enabled primary
@@ -99,22 +82,10 @@ in
           hyprctl dispatch moveworkspacetomonitor "$ws $primary" >/dev/null
         fi
       done
-
-      # Wallpapers for every enabled monitor, orientation from live transform.
-      while IFS=$'\t' read -r name transform; do
-        [[ -z "$name" ]] && continue
-        local orientation=horizontal
-        [[ "$transform" == "1" || "$transform" == "3" ]] && orientation=vertical
-        set_wallpaper "$name" "$orientation"
-      done < <(echo "$monitors_json" \
-        | ${pkgs.jq}/bin/jq -r '.[] | "\(.name)\t\(.transform)"')
     }
 
-    # Wait for Hyprland and hyprpaper to be ready.
+    # Wait for Hyprland's event socket to be ready.
     until [[ -S "$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ]]; do
-      sleep 0.2
-    done
-    until hyprctl hyprpaper listloaded >/dev/null 2>&1; do
       sleep 0.2
     done
 

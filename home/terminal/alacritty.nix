@@ -10,6 +10,9 @@ in {
     enable = true;
     settings = {
       terminal.shell.program = "${pkgs.zsh}/bin/zsh";
+      general.import = [
+        "~/.config/alacritty/themes/noctalia.toml"
+      ];
       font = {
         inherit (vars.font) size;
         normal = {
@@ -51,32 +54,32 @@ in {
           action = "SpawnNewInstance";
         }
       ];
-      colors = with palette; {
-        primary = {
-          background = "#${base00}";
-          foreground = "#${base05}";
-        };
-        normal = {
-          black = "#${base01}";
-          red = "#${base08}";
-          green = "#${base0B}";
-          yellow = "#${base0A}";
-          blue = "#${base0D}";
-          magenta = "#${base0E}";
-          cyan = "#${base0C}";
-          white = "#${base05}";
-        };
-        bright = {
-          black = "#${base03}";
-          red = "#${base08}";
-          green = "#${base0B}";
-          yellow = "#${base0A}";
-          blue = "#${base0D}";
-          magenta = "#${base0E}";
-          cyan = "#${base0C}";
-          white = "#${base07}";
-        };
-      };
+      # colors = with palette; {
+      #   primary = {
+      #     background = "#${base00}";
+      #     foreground = "#${base05}";
+      #   };
+      #   normal = {
+      #     black = "#${base01}";
+      #     red = "#${base08}";
+      #     green = "#${base0B}";
+      #     yellow = "#${base0A}";
+      #     blue = "#${base0D}";
+      #     magenta = "#${base0E}";
+      #     cyan = "#${base0C}";
+      #     white = "#${base05}";
+      #   };
+      #   bright = {
+      #     black = "#${base03}";
+      #     red = "#${base08}";
+      #     green = "#${base0B}";
+      #     yellow = "#${base0A}";
+      #     blue = "#${base0D}";
+      #     magenta = "#${base0E}";
+      #     cyan = "#${base0C}";
+      #     white = "#${base07}";
+      #   };
+      # };
     };
   };
 }

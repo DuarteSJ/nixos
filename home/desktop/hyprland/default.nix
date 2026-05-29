@@ -25,61 +25,15 @@
 
   monitorManager = import ./monitor-manager.nix {
     inherit pkgs laptop workspaces preferExternal;
-    themeName = lib.toLower config.colorScheme.name;
-    wallpapersPath = vars.paths.wallpapers;
   };
 
   # ------------------------------------------------------------------
   # Scripts
   # ------------------------------------------------------------------
 
-  rofi-launcher = pkgs.writeShellScript "rofi-launcher" ''
-    set -euo pipefail
-    rofi -show drun
-  '';
-
-  rofi-powermenu = pkgs.writeShellScript "rofi-powermenu" ''
-    set -euo pipefail
-    # Options
-    shutdown="⏻ shutdown"
-    reboot=" reboot"
-    lock=" lock"
-    logout=" logout"
-    suspend=" suspend"
-
-    # Variable
-    options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
-
-    # Show rofi menu
-    chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu") || exit 0
-
-    case "$chosen" in
-        "$shutdown") systemctl poweroff ;;
-        "$reboot")   systemctl reboot ;;
-        "$lock")     hyprlock ;;
-        "$logout")   hyprctl dispatch exit ;;
-        "$suspend")  hyprlock & systemctl suspend ;;
-    esac
-  '';
-
-  toggleWaybar = pkgs.writeShellScript "toggle-waybar" ''
-    set -euo pipefail
-    if pgrep waybar > /dev/null; then
-      pkill waybar
-    else
-      waybar &
-    fi
-  '';
-
-  toggleMic = pkgs.writeShellScript "toggle-mic" ''
-    set -euo pipefail
-    wpctl set-mute @DEFAULT_SOURCE@ toggle
-    if wpctl get-volume @DEFAULT_SOURCE@ | grep -q "MUTED"; then
-      dunstify "Mic Status" "Microphone is now muted"
-    else
-      dunstify "Mic Status" "Microphone is now unmuted"
-    fi
-  '';
+  # Noctalia shell IPC entrypoint. The bar, launcher, notifications,
+  # lock screen, wallpaper and night light all live in Noctalia now.
+  noctalia = "noctalia msg";
 
   # Productivity mode: toggle distractions individually or all at once.
   # State dir tracks which features are currently engaged.
@@ -117,8 +71,8 @@
       rm -f "$STATE_DIR/borders"
     }
 
-    enable_waybar()  { ${pkgs.procps}/bin/pkill waybar 2>/dev/null || true; touch "$STATE_DIR/waybar"; }
-    disable_waybar() { ${pkgs.procps}/bin/pgrep waybar >/dev/null || (${pkgs.waybar}/bin/waybar & disown); rm -f "$STATE_DIR/waybar"; }
+    enable_bar()  { ${noctalia} bar-hide 2>/dev/null || true; touch "$STATE_DIR/bar"; }
+    disable_bar() { ${noctalia} bar-show 2>/dev/null || true; rm -f "$STATE_DIR/bar"; }
 
     enable_dim() {
       hyprctl keyword decoration:dim_inactive true
@@ -137,9 +91,9 @@
     set -euo pipefail
     ${prodCommon}
     if any_on; then
-      disable_animations; disable_gaps; disable_borders; disable_waybar; disable_dim
+      disable_animations; disable_gaps; disable_borders; disable_bar; disable_dim
     else
-      enable_animations; enable_gaps; enable_borders; enable_waybar; enable_dim
+      enable_animations; enable_gaps; enable_borders; enable_bar; enable_dim
     fi
   '';
 
@@ -188,6 +142,10 @@
 in {
   wayland.windowManager.hyprland = {
     enable = true;
+    # Compositor binary + portal come from the NixOS module (flake Hyprland);
+    # don't install a second, nixpkgs-version copy here.
+    package = null;
+    portalPackage = null;
     settings = with config.colorScheme.palette; {
       # ---------------------------------------------------------------
       # Monitors
@@ -206,7 +164,7 @@ in {
         ++ [",preferred,auto,1"];
 
       exec-once = [
-        "waybar &"
+        "noctalia"
         "${monitorManager}"
       ];
 
@@ -247,11 +205,18 @@ in {
       };
 
       dwindle = {
-        pseudotile = true;
         preserve_split = true;
       };
       master = {new_status = "slave";};
-      misc = {disable_hyprland_logo = true;};
+      misc = {
+        disable_hyprland_logo = true;
+        # Hyprland 0.52.1 SEGVs in the ext-workspace protocol when a config
+        # reload re-applies monitor rules while an ext-workspace client
+        # (Noctalia) is connected. Disable inotify autoreload so rewriting
+        # hyprland.conf on rebuild no longer triggers the crash; config
+        # changes apply on next Hyprland start instead.
+        disable_autoreload = true;
+      };
 
       input = {
         repeat_delay = 200;
@@ -279,9 +244,9 @@ in {
         "$mainMod, C, killactive,"
         "$mainMod, P, exec, hyprctl dispatch pin"
         "$mainMod, V, togglefloating,"
-        "$mainMod, E, exec, ${rofi-launcher}"
+        "$mainMod, E, exec, ${noctalia} panel-toggle launcher"
         "$mainMod, R, pseudo,"
-        "$mainMod, T, togglesplit,"
+        "$mainMod, T, layoutmsg, togglesplit"
 
         "$mainMod, H, movefocus, l"
         "$mainMod, L, movefocus, r"
@@ -327,10 +292,10 @@ in {
         "$mainMod, M,           togglespecialworkspace, messages"
         "$mainMod SHIFT, M,     movetoworkspace,        special:messages"
 
-        "$mainMod, B,        exec, ${toggleWaybar}"
-        "$mainMod, N,        exec, ${toggleMic}"
-        "$mainMod SHIFT, P,  exec, ${rofi-powermenu}"
-        "$mainMod SHIFT, N,  exec, switch-bg"
+        "$mainMod, B,        exec, ${noctalia} bar-toggle"
+        "$mainMod, N,        exec, ${noctalia} mic-mute"
+        "$mainMod SHIFT, P,  exec, ${noctalia} panel-toggle session"
+        "$mainMod SHIFT, N,  exec, ${noctalia} panel-toggle wallpaper"
         "$mainMod, X,        exec, hyprshot -z -m region"
         "$mainMod SHIFT, X,  exec, screenrec"
         "$mainMod, slash,       exec, ${productivityToggle}"
@@ -347,12 +312,12 @@ in {
       ];
 
       bindel = [
-        ",XF86AudioRaiseVolume,  exec, wpctl set-volume @DEFAULT_SINK@ 0.05+"
-        ",XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_SINK@ 0.05-"
-        ",XF86AudioMicMute,      exec, ${toggleMic}"
-        ",XF86AudioMute,         exec, wpctl set-mute @DEFAULT_SINK@ toggle"
-        ",XF86MonBrightnessUp,   exec, brightnessctl s 4%+"
-        ",XF86MonBrightnessDown, exec, brightnessctl s 4%-"
+        ",XF86AudioRaiseVolume,  exec, ${noctalia} volume-up"
+        ",XF86AudioLowerVolume,  exec, ${noctalia} volume-down"
+        ",XF86AudioMicMute,      exec, ${noctalia} mic-mute"
+        ",XF86AudioMute,         exec, ${noctalia} volume-mute"
+        ",XF86MonBrightnessUp,   exec, ${noctalia} brightness-up"
+        ",XF86MonBrightnessDown, exec, ${noctalia} brightness-down"
         "$mainMod, minus, exec, ${increase_gaps}"
         "$mainMod, equal, exec, ${decrease_gaps}"
       ];
@@ -362,25 +327,15 @@ in {
         ", XF86AudioPause, exec, playerctl play-pause"
         ", XF86AudioPlay,  exec, playerctl play-pause"
         ", XF86AudioPrev,  exec, playerctl previous"
-        # Lid switch: always disable/enable the laptop panel directly.
-        # This is separate from the hotplug logic — closing the lid should
-        # blank the screen even when no external is connected.
-        ", switch:on:Lid Switch,  exec, hyprlock & systemctl suspend"
+        # Lid switch: lock via Noctalia then suspend. Separate from the
+        # hotplug logic — closing the lid should blank the screen even
+        # when no external is connected.
+        ", switch:on:Lid Switch,  exec, ${noctalia} screen-lock && systemctl suspend"
       ];
 
       bindm = [
         "$mainMod, mouse:272, movewindow"
         "$mainMod, mouse:273, resizewindow"
-      ];
-
-      windowrulev2 = [
-        "float,        class:^(spotify)$"
-        "center,       class:^(spotify)$"
-        "rounding 10,  class:^(spotify)$"
-
-        "bordersize 0, class:vesktop"
-
-        "nofocus, class:^$, title:^$, xwayland:1, floating:1, fullscreen:0, pinned:0"
       ];
 
       # Regular workspaces are pinned to the primary monitor at runtime

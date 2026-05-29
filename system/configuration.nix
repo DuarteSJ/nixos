@@ -12,6 +12,9 @@
     settings = {
       experimental-features = ["nix-command" "flakes"];
       auto-optimise-store = true;
+      # Official Hyprland binary cache — avoids compiling the flake Hyprland.
+      extra-substituters = ["https://hyprland.cachix.org"];
+      extra-trusted-public-keys = ["hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="];
     };
     gc = {
       automatic = true;
@@ -99,6 +102,11 @@
     hyprland = {
       enable = true;
       xwayland.enable = true;
+      # Use the flake's Hyprland (newer than nixpkgs 0.52.1) — fixes the
+      # ext-workspace SEGV on monitor reload. Ships its own pinned nixpkgs,
+      # so hypr* libs stay ABI-consistent (don't make it follow nixpkgs).
+      package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+      portalPackage = inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland;
     };
   };
 

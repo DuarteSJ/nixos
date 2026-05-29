@@ -9,6 +9,12 @@
     hyprland.url = "github:hyprwm/Hyprland";
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
 
+    # Desktop shell (v5 alpha)
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell/v5";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Home Manager
     home-manager = {
       url = "github:nix-community/home-manager?ref=release-25.11";

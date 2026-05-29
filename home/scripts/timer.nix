@@ -69,13 +69,13 @@
           min=$(( time_left / 60 ))
           sec=$(( time_left % 60 ))
           if [[ "$silent_mode" = false ]]; then
-              ${pkgs.dunst}/bin/dunstify -r $notify_id "$title" "Time remaining: ''${min}m ''${sec}s"
+              ${pkgs.libnotify}/bin/notify-send -r $notify_id "$title" "Time remaining: ''${min}m ''${sec}s"
           fi
           ${pkgs.coreutils}/bin/sleep 1
           (( time_left-- ))
       done
       # Final notification
-      ${pkgs.dunst}/bin/dunstify -u critical -r $notify_id "$title" " Time's up!"
+      ${pkgs.libnotify}/bin/notify-send -u critical -r $notify_id "$title" " Time's up!"
     '')
   ];
 }
