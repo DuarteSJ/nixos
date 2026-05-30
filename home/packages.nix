@@ -23,7 +23,7 @@
       alejandra
       statix
       ffmpeg
-      feh
+      swayimg
       mpv
       jq
       usbutils
