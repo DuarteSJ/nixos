@@ -34,6 +34,7 @@
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
     binds.whichKey.enable = true;
+    git.gitlinker-nvim.enable = true;
     notes.todo-comments.enable = true;
     mini = {
       pairs.enable = true;
