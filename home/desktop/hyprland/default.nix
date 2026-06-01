@@ -71,33 +71,30 @@
     STATE_DIR=/tmp/hypr-prod-mode
     mkdir -p "$STATE_DIR"
 
-    ACTIVE_BORDER='rgba(${base0D}cc) rgba(${base0C}77) 45deg'
-    INACTIVE_BORDER='rgba(${base02}aa)'
+    # Hyprland 0.55 Lua parser killed `hyprctl keyword` ("keyword can't work
+    # with non-legacy parsers. Use eval."). Runtime config now goes through
+    # `hyprctl eval 'hl.config({...})'`.
+    ACTIVE_BORDER='general = { col = { active_border = { colors = {"rgba(${base0D}cc)", "rgba(${base0C}77)"}, angle = 45 }, inactive_border = "rgba(${base02}aa)" } }'
+    INACTIVE_BORDER='general = { col = { active_border = "rgba(${base02}aa)", inactive_border = "rgba(${base02}aa)" } }'
 
-    enable_animations()  { hyprctl keyword animations:enabled 0; touch "$STATE_DIR/animations"; }
-    disable_animations() { hyprctl keyword animations:enabled 1; rm -f "$STATE_DIR/animations"; }
+    enable_animations()  { hyprctl eval 'hl.config({ animations = { enabled = false } })'; touch "$STATE_DIR/animations"; }
+    disable_animations() { hyprctl eval 'hl.config({ animations = { enabled = true } })'; rm -f "$STATE_DIR/animations"; }
 
     enable_gaps() {
-      hyprctl keyword general:gaps_in 0
-      hyprctl keyword general:gaps_out 0
-      hyprctl keyword decoration:rounding 0
+      hyprctl eval 'hl.config({ general = { gaps_in = 0, gaps_out = 0 }, decoration = { rounding = 0 } })'
       touch "$STATE_DIR/gaps"
     }
     disable_gaps() {
-      hyprctl keyword general:gaps_in ${toString (vars.gaps / 2)}
-      hyprctl keyword general:gaps_out ${toString vars.gaps}
-      hyprctl keyword decoration:rounding ${toString rounding}
+      hyprctl eval 'hl.config({ general = { gaps_in = ${toString (vars.gaps / 2)}, gaps_out = ${toString vars.gaps} }, decoration = { rounding = ${toString rounding} } })'
       rm -f "$STATE_DIR/gaps"
     }
 
     enable_borders() {
-      hyprctl keyword general:col.active_border "$INACTIVE_BORDER"
-      hyprctl keyword general:col.inactive_border "$INACTIVE_BORDER"
+      hyprctl eval "hl.config({ $INACTIVE_BORDER })"
       touch "$STATE_DIR/borders"
     }
     disable_borders() {
-      hyprctl keyword general:col.active_border "$ACTIVE_BORDER"
-      hyprctl keyword general:col.inactive_border "$INACTIVE_BORDER"
+      hyprctl eval "hl.config({ $ACTIVE_BORDER })"
       rm -f "$STATE_DIR/borders"
     }
 
@@ -105,12 +102,11 @@
     disable_waybar() { ${pkgs.procps}/bin/pgrep waybar >/dev/null || (${pkgs.waybar}/bin/waybar & disown); rm -f "$STATE_DIR/waybar"; }
 
     enable_dim() {
-      hyprctl keyword decoration:dim_inactive true
-      hyprctl keyword decoration:dim_strength 0.1
+      hyprctl eval 'hl.config({ decoration = { dim_inactive = true, dim_strength = 0.1 } })'
       touch "$STATE_DIR/dim"
     }
     disable_dim() {
-      hyprctl keyword decoration:dim_inactive false
+      hyprctl eval 'hl.config({ decoration = { dim_inactive = false } })'
       rm -f "$STATE_DIR/dim"
     }
 
@@ -129,35 +125,33 @@
 
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
     set -euo pipefail
-    cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
+    cur_out=$(hyprctl getoption general:gaps_out | grep -oE '[0-9]+' | head -1)
     [[ "$cur_out" =~ ^-?[0-9]+$ ]] || exit 1
 
     new_out=$((cur_out + 2))
     new_in=$((new_out / 2))
 
     if [ "$new_in" -gt 0 ]; then
-      hyprctl keyword decoration:rounding ${toString rounding}
+      hyprctl eval 'hl.config({ decoration = { rounding = ${toString rounding} } })'
     fi
 
-    hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
-    hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
+    hyprctl eval "hl.config({ general = { gaps_out = $new_out, gaps_in = $new_in } })"
   '';
 
   decrease_gaps = pkgs.writeShellScript "decrease-gaps" ''
     set -euo pipefail
-    cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
+    cur_out=$(hyprctl getoption general:gaps_out | grep -oE '[0-9]+' | head -1)
     [[ "$cur_out" =~ ^-?[0-9]+$ ]] || exit 1
 
     new_out=$((cur_out - 2))
     if [ "$new_out" -lt 0 ]; then
       new_out=0
-      hyprctl keyword decoration:rounding 0
+      hyprctl eval 'hl.config({ decoration = { rounding = 0 } })'
     fi
 
     new_in=$((new_out / 2))
 
-    hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
-    hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
+    hyprctl eval "hl.config({ general = { gaps_out = $new_out, gaps_in = $new_in } })"
   '';
 
   # ------------------------------------------------------------------
