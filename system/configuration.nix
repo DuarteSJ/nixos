@@ -1,13 +1,12 @@
 {
   pkgs,
   lib,
-  inputs,
   ...
 }: {
   imports = [./hardware-configuration.nix];
 
   # System
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
   nix = {
     settings = {
       experimental-features = ["nix-command" "flakes"];
@@ -95,7 +94,6 @@
   # Programs
   programs = {
     zsh.enable = true;
-    adb.enable = true;
     hyprland = {
       enable = true;
       xwayland.enable = true;

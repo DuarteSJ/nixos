@@ -64,21 +64,7 @@ in {
       done
       ${pkgs.coreutils}/bin/mv "$tmp_state" "$STATE_FILE"
 
-      hyprctl hyprpaper preload "$next_wallpaper"
       hyprctl hyprpaper wallpaper "$active_monitor,$next_wallpaper"
-
-      # Unload wallpapers nothing is displaying.
-      declare -A in_use
-      in_use[$next_wallpaper]=1
-      while IFS='=' read -r _ path; do
-        path="''${path# }"
-        [[ -n "$path" ]] && in_use[$path]=1
-      done < <(hyprctl hyprpaper listactive 2>/dev/null || true)
-
-      while IFS= read -r loaded; do
-        [[ -z "$loaded" || "$loaded" == "no wallpapers loaded" ]] && continue
-        [[ -v in_use[$loaded] ]] || hyprctl hyprpaper unload "$loaded" 2>/dev/null || true
-      done < <(hyprctl hyprpaper listloaded)
 
       wallpaper_name=$(${pkgs.coreutils}/bin/basename "$next_wallpaper" \
         | ${pkgs.gnused}/bin/sed 's/\.[^.]*$//')

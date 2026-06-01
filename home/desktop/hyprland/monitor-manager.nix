@@ -20,13 +20,17 @@
   themeName,
   wallpapersPath,
 }: let
-  laptopSpec =
-    "${laptop.name},${laptop.mode},${laptop.position},${laptop.scale}"
+  # Lua `hl.monitor(...)` call that re-enables the laptop panel with its
+  # full spec.  Hyprland 0.55's non-legacy parser rejects `hyprctl keyword`
+  # ("Use eval."), so runtime monitor changes go through `hyprctl eval`.
+  laptopEnable =
+    ''hl.monitor({ output = "${laptop.name}", mode = "${laptop.mode}", position = "${laptop.position}", scale = ${laptop.scale}, disabled = false''
     + (
       if laptop.transform != 0
-      then ",transform,${toString laptop.transform}"
+      then '', transform = ${toString laptop.transform}''
       else ""
-    );
+    )
+    + " })";
 in
   pkgs.writeShellScript "monitor-manager" ''
     set -euo pipefail
@@ -34,7 +38,7 @@ in
     flock -n 9 || exit 0
 
     LAPTOP="${laptop.name}"
-    LAPTOP_SPEC="${laptopSpec}"
+    LAPTOP_ENABLE='${laptopEnable}'
     PREFER_EXTERNAL=${
       if preferExternal
       then "1"
@@ -53,8 +57,7 @@ in
              2>/dev/null \
            | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
       [[ -n "$wp" ]] || return 0
-      hyprctl hyprpaper preload "$wp"           2>/dev/null
-      hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null
+      hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null || true
     }
 
     apply_state() {
@@ -69,13 +72,13 @@ in
         | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" 'any(.[]; .name == $l)')
       if [[ "$PREFER_EXTERNAL" == "1" && "$has_external" == "true" ]]; then
         if [[ "$laptop_enabled" == "true" ]]; then
-          hyprctl keyword monitor "$LAPTOP,disable" >/dev/null
+          hyprctl eval "hl.monitor({ output = \"$LAPTOP\", disabled = true })" >/dev/null
           sleep 0.2
           monitors_json=$(hyprctl monitors -j)
         fi
       else
         if [[ "$laptop_enabled" != "true" ]]; then
-          hyprctl keyword monitor "$LAPTOP_SPEC" >/dev/null
+          hyprctl eval "$LAPTOP_ENABLE" >/dev/null
           sleep 0.2
           monitors_json=$(hyprctl monitors -j)
         fi
@@ -91,12 +94,12 @@ in
       local workspaces_json
       workspaces_json=$(hyprctl workspaces -j)
       for ws in $WORKSPACES; do
-        hyprctl keyword workspace "$ws, monitor:$primary" >/dev/null || true
+        hyprctl eval "hl.workspace_rule({ workspace = $ws, monitor = \"$primary\" })" >/dev/null || true
         local ws_monitor
         ws_monitor=$(echo "$workspaces_json" \
           | ${pkgs.jq}/bin/jq -r --argjson ws "$ws" '.[] | select(.id == $ws) | .monitor')
         if [[ -n "$ws_monitor" && "$ws_monitor" != "$primary" ]]; then
-          hyprctl dispatch moveworkspacetomonitor "$ws $primary" >/dev/null
+          hyprctl dispatch "hl.dsp.workspace.move({ workspace = $ws, monitor = \"$primary\" })" >/dev/null
         fi
       done
 
@@ -114,15 +117,19 @@ in
     until [[ -S "$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ]]; do
       sleep 0.2
     done
-    until hyprctl hyprpaper listloaded >/dev/null 2>&1; do
+    until hyprctl hyprpaper listactive >/dev/null 2>&1; do
       sleep 0.2
     done
 
     apply_state
 
-    # Reconcile on every topology change.
-    ${pkgs.socat}/bin/socat - \
+    # Reconcile on every topology change.  Unidirectional (-u): only pump the
+    # event socket to stdout, never read stdin.  Hyprland gives exec children a
+    # /dev/null stdin, and a bidirectional socat would see that EOF and exit,
+    # killing the reconcile loop right after the first apply_state.
+    ${pkgs.socat}/bin/socat -u \
       "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" \
+      - \
     | while IFS= read -r line; do
         event="${"$"}{line%%>>*}"
         case "$event" in

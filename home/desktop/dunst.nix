@@ -1,8 +1,6 @@
 # NOTE: For future, consider that it is possible to set per app rules in dunst.
-# TODO: Icon does not exist.
 {
   config,
-  pkgs,
   ...
 }: let
   colors = config.colorScheme.palette;
@@ -39,7 +37,6 @@ in {
         max_icon_size = 64;
         icon_corner_radius = vars.rounding;
         icon_corners = "all";
-        icon_path = "${pkgs.hicolor-icon-theme}/share/icons/hicolor/32x32/status/:${pkgs.hicolor-icon-theme}/share/icons/hicolor/32x32/devices/:${pkgs.hicolor-icon-theme}/share/icons/hicolor/32x32/apps/";
         icon_theme = "hicolor";
 
         ### Visual ###

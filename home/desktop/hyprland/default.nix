@@ -10,22 +10,11 @@
   inherit (vars) rounding;
   inherit (config.colorScheme.palette) base0D base0C base02;
 
-  # ------------------------------------------------------------------
-  # Monitor lines for Hyprland's static `monitor` config
-  # ------------------------------------------------------------------
-
-  transformSuffix = m:
-    lib.optionalString (m.transform != 0) ",transform,${toString m.transform}";
-
-  # Laptop is matched by connector name (it doesn't move).
-  laptopLine = "${laptop.name},${laptop.mode},${laptop.position},${laptop.scale}${transformSuffix laptop}";
-
-  # Externals are matched by EDID description (port-agnostic).
-  externalLine = e: "desc:${e.description},${e.mode},${e.position},${e.scale}${transformSuffix e}";
+  inline = lib.generators.mkLuaInline;
 
   monitorManager = import ./monitor-manager.nix {
     inherit pkgs laptop workspaces preferExternal;
-    themeName = lib.toLower config.colorScheme.name;
+    themeName = config.colorScheme.slug;
     wallpapersPath = vars.paths.wallpapers;
   };
 
@@ -40,24 +29,21 @@
 
   rofi-powermenu = pkgs.writeShellScript "rofi-powermenu" ''
     set -euo pipefail
-    # Options
     shutdown="⏻ shutdown"
     reboot=" reboot"
     lock=" lock"
     logout=" logout"
     suspend=" suspend"
 
-    # Variable
     options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
 
-    # Show rofi menu
     chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu") || exit 0
 
     case "$chosen" in
         "$shutdown") systemctl poweroff ;;
         "$reboot")   systemctl reboot ;;
         "$lock")     hyprlock ;;
-        "$logout")   hyprctl dispatch exit ;;
+        "$logout")   hyprctl dispatch 'hl.dsp.exit()' ;;
         "$suspend")  hyprlock & systemctl suspend ;;
     esac
   '';
@@ -81,8 +67,6 @@
     fi
   '';
 
-  # Productivity mode: toggle distractions individually or all at once.
-  # State dir tracks which features are currently engaged.
   prodCommon = ''
     STATE_DIR=/tmp/hypr-prod-mode
     mkdir -p "$STATE_DIR"
@@ -145,250 +129,328 @@
 
   increase_gaps = pkgs.writeShellScript "increase-gaps" ''
     set -euo pipefail
-    # Get the current outer gap
     cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
     [[ "$cur_out" =~ ^-?[0-9]+$ ]] || exit 1
 
-    # Increment outer gap by 2
     new_out=$((cur_out + 2))
-
-    # Set inner gap to half of outer
     new_in=$((new_out / 2))
 
-    # Restore rounding whenever there is a gap (decrease_gaps zeros it at 0)
     if [ "$new_in" -gt 0 ]; then
       hyprctl keyword decoration:rounding ${toString rounding}
     fi
 
-    # Apply the gaps
     hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
     hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
   '';
 
   decrease_gaps = pkgs.writeShellScript "decrease-gaps" ''
     set -euo pipefail
-    # Get current outer gap
     cur_out=$(hyprctl getoption general:gaps_out | awk '{print $3}')
     [[ "$cur_out" =~ ^-?[0-9]+$ ]] || exit 1
 
-    # Decrement outer gap by 2
     new_out=$((cur_out - 2))
     if [ "$new_out" -lt 0 ]; then
       new_out=0
       hyprctl keyword decoration:rounding 0
     fi
 
-    # Inner gap is always half of outer
     new_in=$((new_out / 2))
 
-    # Apply the gaps
     hyprctl keyword general:gaps_out $new_out $new_out $new_out $new_out
     hyprctl keyword general:gaps_in  $new_in $new_in $new_in $new_in
   '';
+
+  # ------------------------------------------------------------------
+  # Lua config helpers
+  # ------------------------------------------------------------------
+
+  mkMonitor = m: {
+    _args = [
+      (
+        {
+          output =
+            if m ? description
+            then "desc:${m.description}"
+            else m.name;
+          mode = m.mode;
+          position = m.position;
+          scale = m.scale;
+        }
+        // lib.optionalAttrs ((m.transform or 0) != 0) {transform = m.transform;}
+      )
+    ];
+  };
+
+  modKey = key: inline ''mainMod .. " + ${key}"'';
+  modShiftKey = key: inline ''mainMod .. " + SHIFT + ${key}"'';
+  bareKey = key: inline ''"${key}"'';
+
+  exec = cmd: inline ''hl.dsp.exec_cmd("${cmd}")'';
+  focusDir = d: inline ''hl.dsp.focus({ direction = "${d}" })'';
+  swapDir = d: inline ''hl.dsp.window.swap({ direction = "${d}" })'';
+  focusWs = n: inline ''hl.dsp.focus({ workspace = ${toString n} })'';
+  moveToWs = n: inline ''hl.dsp.window.move({ workspace = ${toString n} })'';
+  moveToSpecial = s: inline ''hl.dsp.window.move({ workspace = "special:${s}" })'';
+  toggleSpecial = s: inline ''hl.dsp.workspace.toggle_special("${s}")'';
+  resizeBy = x: y: inline ''hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, relative = true })'';
+
+  kb = key: dsp: {_args = [key dsp];};
+  kbo = key: dsp: opts: {_args = [key dsp opts];};
+
+  # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
+  numWsBinds = lib.flatten (lib.genList (i: let
+    n = i + 1;
+    k =
+      if n == 10
+      then "0"
+      else toString n;
+  in [
+    (kb (modKey k) (focusWs n))
+    (kb (modShiftKey k) (moveToWs n))
+  ]) 10);
+
+  # a/s/d/f/g → workspaces 1..5
+  letterWsBinds = lib.flatten (lib.imap1 (i: l: [
+    (kb (modKey l) (focusWs i))
+    (kb (modShiftKey l) (moveToWs i))
+  ]) ["a" "s" "d" "f" "g"]);
 in {
   wayland.windowManager.hyprland = {
     enable = true;
     settings = with config.colorScheme.palette; {
+      # Locals
+      mainMod = {_var = "SUPER";};
+
       # ---------------------------------------------------------------
       # Monitors
-      #
-      # Laptop is matched by connector name; known externals by EDID
-      # description (so the same spec follows the monitor across ports).
-      # The trailing catch-all rule makes any unknown monitor — a
-      # borrowed projector, a TV — work automatically with preferred
-      # mode and auto position.
-      # The laptop is always listed as enabled here; monitor-manager
-      # disables it at runtime when preferExternal applies.
       # ---------------------------------------------------------------
       monitor =
-        [laptopLine]
-        ++ map externalLine externals
-        ++ [",preferred,auto,1"];
+        [(mkMonitor laptop)]
+        ++ map mkMonitor externals
+        ++ [
+          {
+            _args = [
+              {
+                output = "";
+                mode = "preferred";
+                position = "auto";
+                scale = 1;
+              }
+            ];
+          }
+        ];
 
-      exec-once = [
-        "waybar &"
-        "${monitorManager}"
+      # ---------------------------------------------------------------
+      # Bulk config: general / decoration / dwindle / master / misc / input / animations.enabled
+      # ---------------------------------------------------------------
+      config = {
+        _args = [
+          {
+            general = {
+              gaps_in = vars.gaps / 2;
+              gaps_out = vars.gaps;
+              border_size = 1;
+              col = {
+                active_border = {
+                  colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
+                  angle = 45;
+                };
+                inactive_border = "rgba(${base02}aa)";
+              };
+              resize_on_border = true;
+              allow_tearing = false;
+              layout = "dwindle";
+            };
+            decoration = {
+              inherit rounding;
+              inactive_opacity = 1;
+              active_opacity = 1;
+            };
+            dwindle = {
+              preserve_split = true;
+            };
+            master = {new_status = "slave";};
+            misc = {
+              disable_hyprland_logo = true;
+              disable_splash_rendering = true;
+              force_default_wallpaper = 0;
+            };
+            input = {
+              repeat_delay = 200;
+              repeat_rate = 50;
+              follow_mouse = 1;
+              sensitivity = 0;
+              kb_layout = "us,pt";
+              kb_options = "grp:win_space_toggle";
+              touchpad.natural_scroll = true;
+            };
+            animations = {enabled = true;};
+          }
+        ];
+      };
+
+      # ---------------------------------------------------------------
+      # Bezier curves & animations
+      # ---------------------------------------------------------------
+      curve = [
+        {
+          _args = [
+            "snap"
+            {
+              type = "bezier";
+              points = [[0.1 0.9] [0.2 1.0]];
+            }
+          ];
+        }
       ];
 
+      animation = [
+        {_args = [{leaf = "windowsIn"; enabled = true; speed = 1; bezier = "snap"; style = "slide";}];}
+        {_args = [{leaf = "windowsOut"; enabled = true; speed = 1; bezier = "snap"; style = "slide";}];}
+        {_args = [{leaf = "windowsMove"; enabled = true; speed = 1; bezier = "snap"; style = "slide";}];}
+        {_args = [{leaf = "border"; enabled = true; speed = 2; bezier = "snap";}];}
+        {_args = [{leaf = "fade"; enabled = true; speed = 1; bezier = "snap";}];}
+        {_args = [{leaf = "workspaces"; enabled = true; speed = 1; bezier = "snap";}];}
+        {_args = [{leaf = "specialWorkspace"; enabled = true; speed = 1; bezier = "snap"; style = "slidefadevert 90%";}];}
+      ];
+
+      # ---------------------------------------------------------------
+      # Env
+      # ---------------------------------------------------------------
       env = [
-        "HYPRCURSOR_THEME,${vars.cursor.name}"
-        "HYPRCURSOR_SIZE,${toString vars.cursor.size}"
+        {_args = ["HYPRCURSOR_THEME" vars.cursor.name];}
+        {_args = ["HYPRCURSOR_SIZE" (toString vars.cursor.size)];}
       ];
 
-      general = {
-        gaps_in = vars.gaps / 2;
-        gaps_out = vars.gaps;
-        border_size = 1;
-        "col.active_border" = "rgba(${base0D}cc) rgba(${base0C}77) 45deg";
-        "col.inactive_border" = "rgba(${base02}aa)";
-        resize_on_border = true;
-        allow_tearing = false;
-        layout = "dwindle";
-      };
+      # ---------------------------------------------------------------
+      # Gestures
+      # ---------------------------------------------------------------
+      gesture = [
+        {_args = [{fingers = 3; direction = "horizontal"; action = "workspace";}];}
+        {_args = [{fingers = 4; direction = "horizontal"; action = "move";}];}
+        {_args = [{fingers = 3; direction = "vertical"; action = "special"; workspace_name = "music";}];}
+        {_args = [{fingers = 4; direction = "vertical"; action = "special"; workspace_name = "messages";}];}
+      ];
 
-      decoration = {
-        inherit rounding;
-        inactive_opacity = 1;
-        active_opacity = 1;
-      };
+      # ---------------------------------------------------------------
+      # Window rules
+      # ---------------------------------------------------------------
+      window_rule = [
+        {_args = [{match = {class = "^(spotify)$";}; float = true;}];}
+        {_args = [{match = {class = "^(spotify)$";}; center = true;}];}
+        {_args = [{match = {class = "^(spotify)$";}; rounding = 10;}];}
+        {_args = [{match = {class = "vesktop";}; border_size = 0;}];}
+        {
+          _args = [
+            {
+              match = {
+                class = "^$";
+                title = "^$";
+                xwayland = true;
+                float = true;
+                fullscreen = false;
+                pin = false;
+              };
+              no_focus = true;
+            }
+          ];
+        }
+      ];
 
-      animations = {
-        enabled = true;
-        bezier = ["snap, 0.1, 0.9, 0.2, 1.0"];
-        animation = [
-          "windowsIn, 1, 1, snap, slide"
-          "windowsOut, 1, 1, snap, slide"
-          "windowsMove, 1, 1, snap, slide"
-          "border, 1, 2, snap"
-          "fade, 1, 1, snap"
-          "workspaces, 1, 1, snap"
-          "specialWorkspace, 1, 1, snap, slidefadevert 90%"
+      # ---------------------------------------------------------------
+      # Workspace rules (special workspaces only;
+      # regular ones pinned at runtime by monitor-manager)
+      # ---------------------------------------------------------------
+      workspace_rule = [
+        {_args = [{workspace = "special:music"; on_created_empty = "spotify";}];}
+        {_args = [{workspace = "special:messages"; on_created_empty = "beeper";}];}
+      ];
+
+      # ---------------------------------------------------------------
+      # Startup (exec-once equivalent)
+      # ---------------------------------------------------------------
+      on = {
+        _args = [
+          "hyprland.start"
+          (inline ''
+            function()
+              hl.exec_cmd("waybar")
+              hl.exec_cmd("${monitorManager}")
+            end'')
         ];
       };
 
-      dwindle = {
-        pseudotile = true;
-        preserve_split = true;
-      };
-      master = {new_status = "slave";};
-      misc = {disable_hyprland_logo = true;};
+      # ---------------------------------------------------------------
+      # Keybindings
+      # ---------------------------------------------------------------
+      bind =
+        [
+          # Apps & window ops
+          (kb (modKey "Q") (exec vars.terminal))
+          (kb (modKey "C") (inline "hl.dsp.window.close()"))
+          (kb (modKey "P") (inline "hl.dsp.window.pin()"))
+          (kb (modKey "V") (inline ''hl.dsp.window.float({ action = "toggle" })''))
+          (kb (modKey "E") (exec "${rofi-launcher}"))
+          (kb (modKey "R") (inline "hl.dsp.window.pseudo()"))
+          (kb (modKey "T") (inline ''hl.dsp.layout("togglesplit")''))
 
-      input = {
-        repeat_delay = 200;
-        repeat_rate = 50;
-        follow_mouse = 1;
-        sensitivity = 0;
-        kb_layout = "us,pt";
-        kb_options = "grp:win_space_toggle";
-        touchpad.natural_scroll = true;
-      };
+          # Focus h/j/k/l
+          (kb (modKey "H") (focusDir "left"))
+          (kb (modKey "L") (focusDir "right"))
+          (kb (modKey "K") (focusDir "up"))
+          (kb (modKey "J") (focusDir "down"))
+        ]
+        ++ numWsBinds
+        ++ letterWsBinds
+        ++ [
+          # Special workspaces
+          (kb (modKey "comma") (toggleSpecial "music"))
+          (kb (modShiftKey "comma") (moveToSpecial "music"))
+          (kb (modKey "M") (toggleSpecial "messages"))
+          (kb (modShiftKey "M") (moveToSpecial "messages"))
 
-      gestures = {
-        gesture = [
-          "3, horizontal,  workspace"
-          "4, horizontal,  move"
-          "3, vertical,    special, music"
-          "4, vertical,    special, messages"
+          # Misc execs
+          (kb (modKey "B") (exec "${toggleWaybar}"))
+          (kb (modKey "N") (exec "${toggleMic}"))
+          (kb (modShiftKey "P") (exec "${rofi-powermenu}"))
+          (kb (modShiftKey "N") (exec "switch-bg"))
+          (kb (modKey "X") (exec "hyprshot -z -m region"))
+          (kb (modShiftKey "X") (exec "screenrec"))
+          (kb (modKey "slash") (exec "${productivityToggle}"))
+
+          # Swap windows
+          (kb (modShiftKey "h") (swapDir "left"))
+          (kb (modShiftKey "j") (swapDir "down"))
+          (kb (modShiftKey "k") (swapDir "up"))
+          (kb (modShiftKey "l") (swapDir "right"))
+
+          # Resize
+          (kb (modKey "Left") (resizeBy (-65) 0))
+          (kb (modKey "Down") (resizeBy 0 65))
+          (kb (modKey "Up") (resizeBy 0 (-65)))
+          (kb (modKey "Right") (resizeBy 65 0))
+
+          # Volume / brightness / gaps (bindel = locked + repeating)
+          (kbo (bareKey "XF86AudioRaiseVolume") (exec "wpctl set-volume @DEFAULT_SINK@ 0.05+") {locked = true; repeating = true;})
+          (kbo (bareKey "XF86AudioLowerVolume") (exec "wpctl set-volume @DEFAULT_SINK@ 0.05-") {locked = true; repeating = true;})
+          (kbo (bareKey "XF86AudioMicMute") (exec "${toggleMic}") {locked = true; repeating = true;})
+          (kbo (bareKey "XF86AudioMute") (exec "wpctl set-mute @DEFAULT_SINK@ toggle") {locked = true; repeating = true;})
+          (kbo (bareKey "XF86MonBrightnessUp") (exec "brightnessctl s 4%+") {locked = true; repeating = true;})
+          (kbo (bareKey "XF86MonBrightnessDown") (exec "brightnessctl s 4%-") {locked = true; repeating = true;})
+          (kbo (modKey "minus") (exec "${increase_gaps}") {locked = true; repeating = true;})
+          (kbo (modKey "equal") (exec "${decrease_gaps}") {locked = true; repeating = true;})
+
+          # Media + lid (bindl = locked)
+          (kbo (bareKey "XF86AudioNext") (exec "playerctl next") {locked = true;})
+          (kbo (bareKey "XF86AudioPause") (exec "playerctl play-pause") {locked = true;})
+          (kbo (bareKey "XF86AudioPlay") (exec "playerctl play-pause") {locked = true;})
+          (kbo (bareKey "XF86AudioPrev") (exec "playerctl previous") {locked = true;})
+          (kbo (bareKey "switch:on:Lid Switch") (exec "hyprlock & systemctl suspend") {locked = true;})
+
+          # Mouse (bindm)
+          (kbo (modKey "mouse:272") (inline "hl.dsp.window.drag()") {mouse = true;})
+          (kbo (modKey "mouse:273") (inline "hl.dsp.window.resize()") {mouse = true;})
         ];
-      };
-
-      "$mainMod" = "SUPER";
-
-      bind = [
-        "$mainMod, Q, exec, ${vars.terminal}"
-        "$mainMod, C, killactive,"
-        "$mainMod, P, exec, hyprctl dispatch pin"
-        "$mainMod, V, togglefloating,"
-        "$mainMod, E, exec, ${rofi-launcher}"
-        "$mainMod, R, pseudo,"
-        "$mainMod, T, togglesplit,"
-
-        "$mainMod, H, movefocus, l"
-        "$mainMod, L, movefocus, r"
-        "$mainMod, K, movefocus, u"
-        "$mainMod, J, movefocus, d"
-
-        "$mainMod, 1, workspace, 1"
-        "$mainMod, 2, workspace, 2"
-        "$mainMod, 3, workspace, 3"
-        "$mainMod, 4, workspace, 4"
-        "$mainMod, 5, workspace, 5"
-        "$mainMod, 6, workspace, 6"
-        "$mainMod, 7, workspace, 7"
-        "$mainMod, 8, workspace, 8"
-        "$mainMod, 9, workspace, 9"
-        "$mainMod, 0, workspace, 10"
-
-        "$mainMod, A, workspace, 1"
-        "$mainMod, S, workspace, 2"
-        "$mainMod, D, workspace, 3"
-        "$mainMod, F, workspace, 4"
-        "$mainMod, G, workspace, 5"
-
-        "$mainMod SHIFT, 1, movetoworkspace, 1"
-        "$mainMod SHIFT, 2, movetoworkspace, 2"
-        "$mainMod SHIFT, 3, movetoworkspace, 3"
-        "$mainMod SHIFT, 4, movetoworkspace, 4"
-        "$mainMod SHIFT, 5, movetoworkspace, 5"
-        "$mainMod SHIFT, 6, movetoworkspace, 6"
-        "$mainMod SHIFT, 7, movetoworkspace, 7"
-        "$mainMod SHIFT, 8, movetoworkspace, 8"
-        "$mainMod SHIFT, 9, movetoworkspace, 9"
-        "$mainMod SHIFT, 0, movetoworkspace, 10"
-
-        "$mainMod SHIFT, A, movetoworkspace, 1"
-        "$mainMod SHIFT, S, movetoworkspace, 2"
-        "$mainMod SHIFT, D, movetoworkspace, 3"
-        "$mainMod SHIFT, F, movetoworkspace, 4"
-        "$mainMod SHIFT, G, movetoworkspace, 5"
-
-        "$mainMod, comma,       togglespecialworkspace, music"
-        "$mainMod SHIFT, comma, movetoworkspace,        special:music"
-        "$mainMod, M,           togglespecialworkspace, messages"
-        "$mainMod SHIFT, M,     movetoworkspace,        special:messages"
-
-        "$mainMod, B,        exec, ${toggleWaybar}"
-        "$mainMod, N,        exec, ${toggleMic}"
-        "$mainMod SHIFT, P,  exec, ${rofi-powermenu}"
-        "$mainMod SHIFT, N,  exec, switch-bg"
-        "$mainMod, X,        exec, hyprshot -z -m region"
-        "$mainMod SHIFT, X,  exec, screenrec"
-        "$mainMod, slash,       exec, ${productivityToggle}"
-
-        "$mainMod SHIFT, h, swapwindow, l"
-        "$mainMod SHIFT, j, swapwindow, d"
-        "$mainMod SHIFT, k, swapwindow, u"
-        "$mainMod SHIFT, l, swapwindow, r"
-
-        "$mainMod, Left,  resizeactive, -65 0"
-        "$mainMod, Down,  resizeactive,  0 65"
-        "$mainMod, Up,    resizeactive,  0 -65"
-        "$mainMod, Right, resizeactive, 65 0"
-      ];
-
-      bindel = [
-        ",XF86AudioRaiseVolume,  exec, wpctl set-volume @DEFAULT_SINK@ 0.05+"
-        ",XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_SINK@ 0.05-"
-        ",XF86AudioMicMute,      exec, ${toggleMic}"
-        ",XF86AudioMute,         exec, wpctl set-mute @DEFAULT_SINK@ toggle"
-        ",XF86MonBrightnessUp,   exec, brightnessctl s 4%+"
-        ",XF86MonBrightnessDown, exec, brightnessctl s 4%-"
-        "$mainMod, minus, exec, ${increase_gaps}"
-        "$mainMod, equal, exec, ${decrease_gaps}"
-      ];
-
-      bindl = [
-        ", XF86AudioNext,  exec, playerctl next"
-        ", XF86AudioPause, exec, playerctl play-pause"
-        ", XF86AudioPlay,  exec, playerctl play-pause"
-        ", XF86AudioPrev,  exec, playerctl previous"
-        # Lid switch: always disable/enable the laptop panel directly.
-        # This is separate from the hotplug logic — closing the lid should
-        # blank the screen even when no external is connected.
-        ", switch:on:Lid Switch,  exec, hyprlock & systemctl suspend"
-      ];
-
-      bindm = [
-        "$mainMod, mouse:272, movewindow"
-        "$mainMod, mouse:273, resizewindow"
-      ];
-
-      windowrulev2 = [
-        "float,        class:^(spotify)$"
-        "center,       class:^(spotify)$"
-        "rounding 10,  class:^(spotify)$"
-
-        "bordersize 0, class:vesktop"
-
-        "nofocus, class:^$, title:^$, xwayland:1, floating:1, fullscreen:0, pinned:0"
-      ];
-
-      # Regular workspaces are pinned to the primary monitor at runtime
-      # by monitor-manager; only the special workspaces need static rules.
-      workspace = [
-        "special:music,    on-created-empty:spotify"
-        "special:messages, on-created-empty:beeper"
-      ];
     };
   };
 }
