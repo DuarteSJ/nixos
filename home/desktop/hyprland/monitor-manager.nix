@@ -1,17 +1,20 @@
-# Long-running script (exec-once) that reconciles runtime monitor state.
-# Hyprland handles per-monitor specs declaratively via the `monitor` array
-# (including the desc:-rules for known externals and the catch-all for
-# unknown displays); this script covers what Hyprland can't:
+# Runtime monitor reconciliation — now event-driven in Lua instead of a
+# socat/jq/flock shell loop.  Hyprland handles per-monitor specs declaratively
+# via the `monitor` array; this covers what the static config can't:
 #
 #   • Disables the laptop panel when externals are present (preferExternal)
 #     and re-enables it when the last external is unplugged.
 #   • Pins the configured workspaces to whichever monitor is primary
 #     (first external if any, else laptop).
-#   • Sets wallpapers for every active monitor, using the monitor's
-#     live `transform` to pick horizontal/vertical.
+#   • Per-monitor gaps (#5): tighter gaps on the small laptop panel, the
+#     configured gaps once an external is attached.
+#   • Sets wallpapers for every active monitor, orientation from live transform.
 #
-# apply_state is idempotent and drives every code path — startup, hotplug,
-# unplug.
+# `setup` is a Lua snippet meant to run inside the `hyprland.start` handler.
+# It defines `reconcile()` (idempotent) and subscribes it to monitor.added /
+# monitor.removed via short oneshot timers (debounce, replacing `sleep 0.3`).
+# `reconcile` re-queries live state every call, so it's robust to whatever
+# the event callbacks are or aren't passed.
 {
   pkgs,
   laptop,
@@ -19,124 +22,115 @@
   preferExternal,
   themeName,
   wallpapersPath,
+  gaps,
 }: let
-  # Lua `hl.monitor(...)` call that re-enables the laptop panel with its
-  # full spec.  Hyprland 0.55's non-legacy parser rejects `hyprctl keyword`
-  # ("Use eval."), so runtime monitor changes go through `hyprctl eval`.
+  # Lua expression that re-enables the laptop panel with its full spec.
   laptopEnable =
-    ''hl.monitor({ output = "${laptop.name}", mode = "${laptop.mode}", position = "${laptop.position}", scale = ${laptop.scale}, disabled = false''
+    ''hl.monitor({ output = LAPTOP, mode = "${laptop.mode}", position = "${laptop.position}", scale = "${laptop.scale}", disabled = false''
     + (
       if laptop.transform != 0
       then '', transform = ${toString laptop.transform}''
       else ""
     )
     + " })";
-in
-  pkgs.writeShellScript "monitor-manager" ''
+
+  # Small helper: pick newest wallpaper for <monitor> <orientation> and push it
+  # to hyprpaper.  Filesystem globbing has no Lua-sandbox equivalent, so this
+  # stays a tiny shell script invoked per-monitor via hl.exec_cmd.
+  setWallpaper = pkgs.writeShellScript "set-wallpaper" ''
     set -euo pipefail
-    exec 9>/tmp/monitor-manager.lock
-    flock -n 9 || exit 0
+    monitor="$1"
+    orientation="$2"
+    dir="${wallpapersPath}/${themeName}/$orientation"
+    wp=$(${pkgs.findutils}/bin/find "$dir" -maxdepth 1 -type f \
+           \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null \
+         | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
+    [ -n "$wp" ] || exit 0
+    hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null || true
+  '';
 
-    LAPTOP="${laptop.name}"
-    LAPTOP_ENABLE='${laptopEnable}'
-    PREFER_EXTERNAL=${
-      if preferExternal
-      then "1"
-      else "0"
-    }
-    WORKSPACES="${builtins.concatStringsSep " " (map toString workspaces)}"
-    THEME="${themeName}"
-    WALLPAPER_BASE="${wallpapersPath}/$THEME"
+  wsList = builtins.concatStringsSep ", " (map toString workspaces);
+  preferExternalLua =
+    if preferExternal
+    then "true"
+    else "false";
+  gapsIn = gaps / 2;
 
-    set_wallpaper() {
-      local monitor="$1" orientation="$2"
-      local dir="$WALLPAPER_BASE/$orientation"
-      local wp
-      wp=$(${pkgs.findutils}/bin/find "$dir" -maxdepth 1 -type f \
-             \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) \
-             2>/dev/null \
-           | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
-      [[ -n "$wp" ]] || return 0
-      hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null || true
-    }
+  setup = ''
+    -- ====================================================================
+    -- Monitor reconciliation (event-driven; replaces the socat shell loop)
+    -- ====================================================================
+    local LAPTOP           = "${laptop.name}"
+    local PREFER_EXTERNAL  = ${preferExternalLua}
+    local WORKSPACES       = { ${wsList} }
 
-    apply_state() {
-      local monitors_json has_external laptop_enabled primary
-      monitors_json=$(hyprctl monitors -j)
+    local function enableLaptop()
+      ${laptopEnable}
+    end
 
-      has_external=$(echo "$monitors_json" \
-        | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" 'any(.[]; .name != $l)')
+    local function reconcile()
+      local mons = hl.get_monitors()
 
-      # Laptop visibility — only send the command when state needs to change.
-      laptop_enabled=$(echo "$monitors_json" \
-        | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" 'any(.[]; .name == $l)')
-      if [[ "$PREFER_EXTERNAL" == "1" && "$has_external" == "true" ]]; then
-        if [[ "$laptop_enabled" == "true" ]]; then
-          hyprctl eval "hl.monitor({ output = \"$LAPTOP\", disabled = true })" >/dev/null
-          sleep 0.2
-          monitors_json=$(hyprctl monitors -j)
-        fi
+      -- Primary = first non-laptop monitor, else laptop.
+      local externalPrimary = nil
+      for _, m in ipairs(mons) do
+        if m.name ~= LAPTOP then
+          externalPrimary = externalPrimary or m.name
+        end
+      end
+      local hasExt  = externalPrimary ~= nil
+      local primary = externalPrimary or LAPTOP
+
+      -- #5 Per-monitor conditional config: tighter gaps on the laptop-only
+      -- layout, the configured gaps once an external is attached.
+      hl.config({
+        general = {
+          gaps_out = hasExt and ${toString gaps} or 1,
+          gaps_in  = hasExt and ${toString gapsIn} or 0,
+        },
+      })
+
+      -- Pin configured workspaces to primary (rule for future, move existing).
+      -- Done BEFORE toggling laptop visibility: moving workspaces triggers a
+      -- monitor reconfiguration that re-asserts the laptop's static `monitor`
+      -- rule (which has no `disabled`), so a disable issued earlier would be
+      -- silently undone.  Move first, disable last.
+      for _, ws in ipairs(WORKSPACES) do
+        hl.workspace_rule({ workspace = ws, monitor = primary })
+        local w = hl.get_workspace(ws)
+        if w and w.monitor and w.monitor.name ~= primary then
+          hl.dispatch(hl.dsp.workspace.move({ workspace = ws, monitor = primary }))
+        end
+      end
+
+      -- Wallpaper per active monitor, orientation from live transform.
+      for _, m in ipairs(hl.get_monitors()) do
+        local orient = (m.transform == 1 or m.transform == 3) and "vertical" or "horizontal"
+        hl.exec_cmd("${setWallpaper} " .. m.name .. " " .. orient)
+      end
+
+      -- Laptop panel visibility LAST, so nothing reconfigures monitors after
+      -- and re-enables the panel.  Disabling eDP-1 here auto-relocates any
+      -- workspace still on it to `primary`.
+      if PREFER_EXTERNAL and hasExt then
+        hl.monitor({ output = LAPTOP, disabled = true })
       else
-        if [[ "$laptop_enabled" != "true" ]]; then
-          hyprctl eval "$LAPTOP_ENABLE" >/dev/null
-          sleep 0.2
-          monitors_json=$(hyprctl monitors -j)
-        fi
-      fi
+        enableLaptop()
+      end
+    end
 
-      # Primary = first non-laptop monitor, else laptop.
-      primary=$(echo "$monitors_json" | ${pkgs.jq}/bin/jq -r --arg l "$LAPTOP" \
-        'map(select(.name != $l)) | if length > 0 then .[0].name else $l end')
+    -- Debounced reconcile: re-run a short moment after a topology change so
+    -- Hyprland has settled (replaces the old `sleep 0.3`).
+    local function scheduleReconcile()
+      hl.timer(function() reconcile() end, { timeout = 300, type = "oneshot" })
+    end
 
-      # Pin configured workspaces to primary.  Sets the rule (newly-created
-      # workspaces land on primary) and moves any that currently exist
-      # elsewhere.
-      local workspaces_json
-      workspaces_json=$(hyprctl workspaces -j)
-      for ws in $WORKSPACES; do
-        hyprctl eval "hl.workspace_rule({ workspace = $ws, monitor = \"$primary\" })" >/dev/null || true
-        local ws_monitor
-        ws_monitor=$(echo "$workspaces_json" \
-          | ${pkgs.jq}/bin/jq -r --argjson ws "$ws" '.[] | select(.id == $ws) | .monitor')
-        if [[ -n "$ws_monitor" && "$ws_monitor" != "$primary" ]]; then
-          hyprctl dispatch "hl.dsp.workspace.move({ workspace = $ws, monitor = \"$primary\" })" >/dev/null
-        fi
-      done
+    hl.on("monitor.added",   scheduleReconcile)
+    hl.on("monitor.removed", scheduleReconcile)
 
-      # Wallpapers for every enabled monitor, orientation from live transform.
-      while IFS=$'\t' read -r name transform; do
-        [[ -z "$name" ]] && continue
-        local orientation=horizontal
-        [[ "$transform" == "1" || "$transform" == "3" ]] && orientation=vertical
-        set_wallpaper "$name" "$orientation"
-      done < <(echo "$monitors_json" \
-        | ${pkgs.jq}/bin/jq -r '.[] | "\(.name)\t\(.transform)"')
-    }
-
-    # Wait for Hyprland and hyprpaper to be ready.
-    until [[ -S "$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ]]; do
-      sleep 0.2
-    done
-    until hyprctl hyprpaper listactive >/dev/null 2>&1; do
-      sleep 0.2
-    done
-
-    apply_state
-
-    # Reconcile on every topology change.  Unidirectional (-u): only pump the
-    # event socket to stdout, never read stdin.  Hyprland gives exec children a
-    # /dev/null stdin, and a bidirectional socat would see that EOF and exit,
-    # killing the reconcile loop right after the first apply_state.
-    ${pkgs.socat}/bin/socat -u \
-      "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" \
-      - \
-    | while IFS= read -r line; do
-        event="${"$"}{line%%>>*}"
-        case "$event" in
-          monitoradded|monitorremoved)
-            sleep 0.3
-            apply_state
-            ;;
-        esac
-      done
-  ''
+    -- First pass once hyprpaper has had a moment to come up.
+    hl.timer(function() reconcile() end, { timeout = 500, type = "oneshot" })
+  '';
+in {
+  inherit setup setWallpaper;
+}
