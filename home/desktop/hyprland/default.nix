@@ -136,7 +136,13 @@
         on = not on
         hl.config({
           animations = { enabled = not on },
-          general    = { gaps_in = on and 0 or ${toString (vars.gaps / 2)}, gaps_out = on and 0 or ${toString vars.gaps} },
+          general    = {
+            gaps_in  = on and 0 or ${toString (vars.gaps / 2)},
+            gaps_out = on and 0 or ${toString vars.gaps},
+            col = on
+              and { active_border = "rgba(${base02}aa)", inactive_border = "rgba(${base02}aa)" }
+              or  { active_border = { colors = {"rgba(${base0D}cc)", "rgba(${base0C}77)"}, angle = 45 }, inactive_border = "rgba(${base02}aa)" },
+          },
           decoration = {
             rounding     = on and 0 or ${toString rounding},
             dim_inactive = on,
