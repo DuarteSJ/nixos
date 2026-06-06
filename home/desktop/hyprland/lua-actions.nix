@@ -40,7 +40,7 @@ in {
             dim_strength = on and 0.15 or 0.0,
           },
         })
-        hl.exec_cmd(on and "pkill waybar" or "waybar")
+        hl.exec_cmd(on and "pkill waybar" or "pgrep waybar >/dev/null || waybar")
       end
     end)()'';
 
