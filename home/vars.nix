@@ -1,4 +1,9 @@
-{lib, ...}: {
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}: {
   options.vars = {
     rounding = lib.mkOption {
       description = "Corner radius";
@@ -7,7 +12,7 @@
     };
 
     gaps = lib.mkOption {
-      description = "Gaps configuration";
+      description = "Gaps configuration (inner set to half)";
       type = lib.types.int;
       default = 4;
     };
@@ -46,7 +51,7 @@
         options = {
           name = lib.mkOption {
             type = lib.types.str;
-            default = "Nordzy-cursors";
+            default = "Bibata-Modern-Ice";
           };
           size = lib.mkOption {
             type = lib.types.int;
@@ -75,7 +80,7 @@
 
   config.vars = {
     rounding = 2;
-    gaps = 4;
+    gaps = 24;
     font = {
       name = "JetBrainsMono Nerd Font";
       size = 12.5;
@@ -83,12 +88,22 @@
     terminal = "alacritty";
     editor = "nvim";
     cursor = {
-      name = "Nordzy-cursors";
+      name = "Bibata-Modern-Ice";
       size = 26;
     };
     paths = {
       notes = "~/notes";
       wallpapers = "$HOME/Pictures/wallpapers";
     };
+  };
+
+  # Single cursor source -> GTK, X11/XCursor, and Hyprland (hyprcursor).
+  config.home.pointerCursor = {
+    package = pkgs.bibata-cursors;
+    name = config.vars.cursor.name;
+    size = config.vars.cursor.size;
+    gtk.enable = true;
+    x11.enable = true;
+    hyprcursor.enable = true;
   };
 }

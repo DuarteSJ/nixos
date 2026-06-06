@@ -38,7 +38,6 @@
 
       # Fonts & themes
       nerd-fonts.jetbrains-mono
-      nordzy-cursor-theme
 
       # Applications
       alacritty

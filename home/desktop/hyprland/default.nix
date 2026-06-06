@@ -135,9 +135,8 @@ in {
       # ---------------------------------------------------------------
       # Env
       # ---------------------------------------------------------------
+      # Cursor env (HYPRCURSOR_THEME/SIZE) set by home.pointerCursor (see vars.nix).
       env = [
-        {_args = ["HYPRCURSOR_THEME" vars.cursor.name];}
-        {_args = ["HYPRCURSOR_SIZE" (toString vars.cursor.size)];}
       ];
 
       # ---------------------------------------------------------------
@@ -154,10 +153,12 @@ in {
       # Window rules
       # ---------------------------------------------------------------
       window_rule = [
-        {_args = [{match = {class = "^(spotify)$";}; float = true;}];}
-        {_args = [{match = {class = "^(spotify)$";}; center = true;}];}
-        {_args = [{match = {class = "^(spotify)$";}; rounding = 10;}];}
-        {_args = [{match = {class = "vesktop";}; border_size = 0;}];}
+        {_args = [{match = {class = "^(Spotify)$";}; float = true;}];}
+        {_args = [{match = {class = "^(Spotify)$";}; size = "60% 55%";}];}
+        {_args = [{match = {class = "^(Spotify)$";}; center = true;}];}
+        {_args = [{match = {class = "^(Spotify)$";}; rounding = 20;}];}
+        # Deny focus to XWayland phantom surfaces so
+        # they can't steal focus from the active window.
         {
           _args = [
             {

@@ -100,9 +100,9 @@ in {
       mainBar = {
         # Bar layout
         margin-top = 2;
-        margin-left = vars.gaps;
-        margin-right = vars.gaps;
-        margin-bottom = 0;
+        margin-left = 2;
+        margin-right = 2;
+        margin-bottom = 2;
         height = 26;
 
         modules-left = ["hyprland/workspaces" "hyprland/window" "custom/screenrec"];
