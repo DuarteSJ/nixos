@@ -89,7 +89,7 @@
     editor = "nvim";
     cursor = {
       name = "Bibata-Modern-Ice";
-      size = 26;
+      size = 24;
     };
     paths = {
       notes = "~/notes";
