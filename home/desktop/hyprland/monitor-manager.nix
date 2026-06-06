@@ -122,14 +122,26 @@
     -- Debounced reconcile: re-run a short moment after a topology change so
     -- Hyprland has settled (replaces the old `sleep 0.3`).
     local function scheduleReconcile()
-      hl.timer(function() reconcile() end, { timeout = 300, type = "oneshot" })
+      hlKeep(hl.timer(function() reconcile() end, { timeout = 300, type = "oneshot" }))
     end
 
-    hl.on("monitor.added",   scheduleReconcile)
-    hl.on("monitor.removed", scheduleReconcile)
+    -- hl.on / hl.timer return GC-managed handles: if the Lua handle is
+    -- collected, Hyprland drops the subscription from m_activeHandles and the
+    -- callback silently stops firing.  Everything here runs inside the
+    -- hyprland.start callback, so an unreferenced handle becomes unreachable the
+    -- moment that callback returns and dies at the next GC.  That is why the
+    -- 500ms first pass (fires before GC runs) works at login while the
+    -- monitor.added / monitor.removed subscriptions go dead before any hotplug.
+    -- Anchor every long-lived handle in a global so it lives for the session.
+    -- hlKeep is also used by the rest of the start handler (default.nix).
+    _G.__hlHandles = _G.__hlHandles or {}
+    function hlKeep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
+
+    hlKeep(hl.on("monitor.added",   scheduleReconcile))
+    hlKeep(hl.on("monitor.removed", scheduleReconcile))
 
     -- First pass once hyprpaper has had a moment to come up.
-    hl.timer(function() reconcile() end, { timeout = 500, type = "oneshot" })
+    hlKeep(hl.timer(function() reconcile() end, { timeout = 500, type = "oneshot" }))
   '';
 in {
   inherit setup setWallpaper;

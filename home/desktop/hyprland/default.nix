@@ -216,15 +216,17 @@
       local night = (h >= 21 or h < 7)
       hl.config({ decoration = { dim_inactive = night, dim_strength = night and 0.15 or 0.0 } })
     end
+    -- hlKeep (defined in monitorManager.setup above) anchors the returned
+    -- handle so GC can't drop the subscription/timer mid-session.
     if pcall(applyNightDim) then
-      hl.timer(applyNightDim, { timeout = 600000, type = "repeat" })
+      hlKeep(hl.timer(applyNightDim, { timeout = 600000, type = "repeat" }))
     end
 
     -- #2 Event handler — notify when a window marks itself urgent.
-    hl.on("window.urgent", function(win)
+    hlKeep(hl.on("window.urgent", function(win)
       local who = (win and win.class) or "A window"
       hl.exec_cmd("dunstify -u critical 'Attention' '" .. who .. " needs attention'")
-    end)
+    end))
   '';
 in {
   wayland.windowManager.hyprland = {
