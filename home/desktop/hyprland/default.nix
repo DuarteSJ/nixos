@@ -83,11 +83,15 @@ in {
               inherit rounding;
               inactive_opacity = 1;
               active_opacity = 1;
+              blur.enabled = false;
             };
             dwindle = {
               preserve_split = true;
             };
             master = {new_status = "slave";};
+            # 0 = no scroll debounce, so every SUPER+scroll notch fires (and is
+            # consumed by) the zoom bind instead of leaking to the focused app.
+            binds = {scroll_event_delay = 0;};
             misc = {
               disable_hyprland_logo = true;
               disable_splash_rendering = true;
@@ -147,6 +151,7 @@ in {
         {_args = [{fingers = 4; direction = "horizontal"; action = "move";}];}
         {_args = [{fingers = 3; direction = "vertical"; action = "special"; workspace_name = "music";}];}
         {_args = [{fingers = 4; direction = "vertical"; action = "special"; workspace_name = "messages";}];}
+        {_args = [{fingers = 2; direction = "pinch"; mods = "SUPER"; action = "cursorZoom"; zoom_level = 1; mode = "live";}];}
       ];
 
       # ---------------------------------------------------------------

@@ -8,7 +8,7 @@
 }: let
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
   inherit (scripts) rofi-launcher rofi-powermenu toggleWaybar toggleMic;
-  inherit (luaActions) prodToggle incGaps decGaps;
+  inherit (luaActions) prodToggle incGaps decGaps cursorZoom;
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
   numWsBinds = lib.flatten (lib.genList (i: let
@@ -80,6 +80,10 @@ in
     (kb (modShiftKey "N") (exec "switch-bg"))
     (kb (modKey "X") (exec "hyprshot -z -m region"))
     (kb (modShiftKey "X") (exec "screenrec"))
+
+    # Cursor magnifier: SUPER+scroll (step 0.5, clamp 1..3)
+    (kb (modKey "mouse_down") cursorZoom.zoomIn)
+    (kb (modKey "mouse_up") cursorZoom.zoomOut)
     (kb (modKey "slash") prodToggle) # #1 inline Lua closure
 
     # Swap windows

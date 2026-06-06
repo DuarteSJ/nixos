@@ -63,6 +63,21 @@ in {
       })
     end'';
 
+  # Cursor magnifier (native cursor:zoom_factor): step by `offset`, clamp 1..3.
+  cursorZoom = let
+    minZoom = "1";
+    maxZoom = "3";
+    mk = offset: inline ''
+      function()
+        local current = (hl.get_config("cursor.zoom_factor") or ${minZoom}) + ${offset}
+        current = math.max(${minZoom}, math.min(${maxZoom}, current))
+        hl.config({ cursor = { zoom_factor = current } })
+      end'';
+  in {
+    zoomIn = mk "0.5";
+    zoomOut = mk "-0.5";
+  };
+
   # Startup handler body (#2 events + #5 reconcile + #6 night dim)
   startupLua = ''
     hl.exec_cmd("waybar")
