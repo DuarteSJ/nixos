@@ -6,7 +6,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     # WM / tooling
-    hyprland.url = "github:hyprwm/Hyprland";
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
 
     # Home Manager
