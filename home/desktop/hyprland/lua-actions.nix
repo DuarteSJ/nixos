@@ -78,6 +78,28 @@ in {
     zoomOut = mk "-0.5";
   };
 
+  # Cycle the active workspace's tiled layout: scrolling -> dwindle -> master
+  # -> monocle -> (wrap). Per-workspace via workspace_rule.
+  cycleLayout = inline ''
+    function()
+      local layouts     = { "scrolling", "dwindle", "master", "monocle" }
+      local workspace   = hl.get_active_workspace()
+      local next_layout = "dwindle"
+      if not workspace then
+        return
+      end
+      for i = 1, #layouts do
+        if layouts[i] == workspace.tiled_layout then
+          local next_layout_idx = (i % #layouts) + 1
+          next_layout = layouts[next_layout_idx]
+          break
+        end
+      end
+      hl.workspace_rule({ workspace = workspace.name, layout = next_layout })
+      -- -r reuses one notification slot so rapid toggles update in place.
+      hl.exec_cmd("dunstify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
+    end'';
+
   # Startup handler body (#2 events + #5 reconcile + #6 night dim)
   startupLua = ''
     hl.exec_cmd("waybar")

@@ -8,7 +8,7 @@
 }: let
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
   inherit (scripts) rofi-launcher rofi-powermenu toggleWaybar toggleMic;
-  inherit (luaActions) prodToggle incGaps decGaps cursorZoom;
+  inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout;
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
   numWsBinds = lib.flatten (lib.genList (i: let
@@ -61,6 +61,7 @@ in
     (kb (modKey "E") (exec "${rofi-launcher}"))
     (kb (modKey "R") (inline "hl.dsp.window.pseudo()"))
     (kb (modKey "T") (inline ''hl.dsp.layout("togglesplit")''))
+    (kb (modKey "Tab") cycleLayout) # cycle workspace tiled layout
 
     # Focus h/j/k/l
     (kb (modKey "H") (focusDir "left"))
