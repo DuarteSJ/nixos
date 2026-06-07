@@ -106,20 +106,6 @@ in {
 
     ${monitorManager.setup}
 
-    -- #6 Time-of-day window dimming (additive to the hyprsunset service, which
-    -- only changes gamma/temperature).  pcall-guarded in case os.* is absent
-    -- from the Lua sandbox; re-checked every 10 min via a repeat timer.
-    local function applyNightDim()
-      local h = tonumber(os.date("%H"))
-      local night = (h >= 21 or h < 7)
-      hl.config({ decoration = { dim_inactive = night, dim_strength = night and 0.15 or 0.0 } })
-    end
-    -- hlKeep (defined in monitorManager.setup above) anchors the returned
-    -- handle so GC can't drop the subscription/timer mid-session.
-    if pcall(applyNightDim) then
-      hlKeep(hl.timer(applyNightDim, { timeout = 600000, type = "repeat" }))
-    end
-
     -- #2 Event handler — notify when a window marks itself urgent.
     hlKeep(hl.on("window.urgent", function(win)
       local who = (win and win.class) or "A window"

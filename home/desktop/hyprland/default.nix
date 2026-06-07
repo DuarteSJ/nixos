@@ -35,7 +35,7 @@
 in {
   wayland.windowManager.hyprland = {
     enable = true;
-    settings = with config.colorScheme.palette; {
+    settings = {
       # Locals
       mainMod = {_var = "SUPER";};
 
@@ -84,6 +84,7 @@ in {
               inactive_opacity = 1;
               active_opacity = 1;
               blur.enabled = false;
+              dim_inactive = false;
             };
             dwindle = {
               preserve_split = true;
