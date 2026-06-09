@@ -160,7 +160,7 @@ in {
       # ---------------------------------------------------------------
       window_rule = [
         {_args = [{match = {class = "^(Spotify)$";}; float = true;}];}
-        {_args = [{match = {class = "^(Spotify)$";}; size = "60% 55%";}];}
+        {_args = [{match = {class = "^(Spotify)$";}; size = "55% 65%";}];}
         {_args = [{match = {class = "^(Spotify)$";}; center = true;}];}
         {_args = [{match = {class = "^(Spotify)$";}; rounding = 20;}];}
         # Deny focus to XWayland phantom surfaces so

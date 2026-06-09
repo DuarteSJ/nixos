@@ -4,9 +4,22 @@
   ...
 }: let
   colors = config.colorScheme.palette;
+
+  # Sidebery addon ID + a pinned internal UUID. Firefox normally assigns a
+  # random moz-extension:// UUID per install, which would make any userContent
+  # rule targeting Sidebery's pages break on reinstall. Pinning it (below, via
+  # extensions.webextensions.uuids) keeps the URL stable so we can style the
+  # sidebar declaratively.
+  sideberyAddonId = "{3c078156-979c-498b-8990-85f7987dd929}";
+  sideberyUuid = "dc7f34b9-b0d4-4149-b166-8ac58fb2db03";
 in {
   programs.firefox = {
     enable = true;
+
+    # firefox-151 wrapper forces MOZ_LEGACY_PROFILES=1 (reads ~/.mozilla/firefox),
+    # but HM 26.05 defaults configPath to XDG ~/.config/mozilla/firefox.
+    # Pin to legacy so managed prefs land where Firefox actually reads them.
+    configPath = ".mozilla/firefox";
 
     profiles.default = {
       id = 0;
@@ -37,6 +50,10 @@ in {
         # UI preferences
         "browser.tabs.warnOnClose" = false;
 
+        # Disable native sidebar revamp launcher (use Sidebery only)
+        "sidebar.revamp" = false;
+        "sidebar.verticalTabs" = false;
+
         # Enable dark theme
         "browser.theme.dark-private-windows" = false;
         "extensions.activeThemeID" = "firefox-compact-dark@mozilla.org";
@@ -49,6 +66,12 @@ in {
 
         # Enable custom CSS
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+
+        # Pin Sidebery's moz-extension UUID so userContent.css can target its
+        # sidebar page at a stable URL (see userContent below).
+        "extensions.webextensions.uuids" = builtins.toJSON {
+          ${sideberyAddonId} = sideberyUuid;
+        };
 
         # Better dark colors for content
         "layout.css.prefers-color-scheme.content-override" = 0;
@@ -127,10 +150,14 @@ in {
         }
 
         /* Sidebar */
-        #sidebar-box,
-        #sidebar-header {
+        #sidebar-box {
           background-color: var(--nix-base00) !important;
           color: var(--nix-base05) !important;
+        }
+
+        /* Hide native sidebar header (Sidebery title + X) */
+        #sidebar-header {
+          display: none !important;
         }
 
         /* Context menus */
@@ -194,6 +221,18 @@ in {
         @media (prefers-color-scheme: dark) {
           :root {
             color-scheme: dark;
+          }
+        }
+
+        /* Sidebery sidebar background -> match the toolbar (base00).
+           Sidebery paints its own bg inside the sidebar, so #sidebar-box in
+           userChrome isn't enough; we style its extension page directly. URL
+           UUID is pinned via extensions.webextensions.uuids above. */
+        @-moz-document url-prefix("moz-extension://${sideberyUuid}/sidebery/sidebar.html") {
+          #root.root {
+            --frame-bg: #${colors.base00} !important;
+            --toolbar-bg: #${colors.base00} !important;
+            --bg: #${colors.base00} !important;
           }
         }
       '';
