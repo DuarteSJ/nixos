@@ -126,6 +126,13 @@ in {
         timeout = 0;
         default_icon = "dialog-error";
       };
+
+      # Beeper sends expire_timeout=0 (persist forever) on some messages.
+      # Rule timeout overrides the app-supplied dbus hint.
+      beeper = {
+        appname = "Beeper";
+        timeout = 10;
+      };
     };
   };
 }
