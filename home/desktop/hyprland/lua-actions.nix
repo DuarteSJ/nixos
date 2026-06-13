@@ -28,8 +28,8 @@ in {
         hl.config({
           animations = { enabled = not on },
           general    = {
-            gaps_in  = on and 0 or ${toString (vars.gaps / 2)},
-            gaps_out = on and 0 or ${toString vars.gaps},
+            gaps_in  = on and 0 or ${toString vars.gapsInner},
+            gaps_out = on and 0 or ${toString vars.gapsOuter},
             col = on
               and { active_border = "rgba(${base02}aa)", inactive_border = "rgba(${base02}aa)" }
               or  { active_border = { colors = {"rgba(${base0D}cc)", "rgba(${base0C}77)"}, angle = 45 }, inactive_border = "rgba(${base02}aa)" },

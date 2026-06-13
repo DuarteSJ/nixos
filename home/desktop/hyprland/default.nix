@@ -20,7 +20,7 @@
 
   monitorManager = import ./monitor-manager.nix {
     inherit pkgs laptop workspaces preferExternal;
-    inherit (vars) gaps;
+    inherit (vars) gapsOuter gapsInner;
     themeName = config.colorScheme.slug;
     wallpapersPath = vars.paths.wallpapers;
   };
@@ -65,8 +65,8 @@ in {
         _args = [
           {
             general = {
-              gaps_in = vars.gaps / 2;
-              gaps_out = vars.gaps;
+              gaps_in = vars.gapsInner;
+              gaps_out = vars.gapsOuter;
               border_size = 1;
               col = {
                 active_border = {

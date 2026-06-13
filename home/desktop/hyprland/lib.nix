@@ -1,7 +1,7 @@
 # Pure Lua/config helper functions shared across the hyprland modules.
 {lib}: let
   inline = lib.generators.mkLuaInline;
-in rec {
+in {
   inherit inline;
 
   # Monitor entry → hl monitor _args table.

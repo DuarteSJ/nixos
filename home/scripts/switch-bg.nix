@@ -22,11 +22,13 @@ in {
       [[ -d "$WALLPAPERS_DIR" ]] \
         || notify_error "Directory '$WALLPAPERS_DIR' not found"
 
-      # Focused monitor + its live transform.
+      # Focused monitor + its live transform. `|| true`: under `set -e`, read
+      # returns nonzero on EOF (no focused monitor) and would abort before the
+      # guard below; swallow it so the guard can emit the notification.
       read -r active_monitor active_transform < <(
-        hyprctl monitors -j \
+        ${pkgs.hyprland}/bin/hyprctl monitors -j \
           | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | "\(.name) \(.transform)"'
-      )
+      ) || true
       [[ -n "''${active_monitor:-}" ]] || notify_error "No focused monitor"
 
       orientation=horizontal
@@ -64,7 +66,7 @@ in {
       done
       ${pkgs.coreutils}/bin/mv "$tmp_state" "$STATE_FILE"
 
-      hyprctl hyprpaper wallpaper "$active_monitor,$next_wallpaper"
+      ${pkgs.hyprland}/bin/hyprctl hyprpaper wallpaper "$active_monitor,$next_wallpaper"
 
       wallpaper_name=$(${pkgs.coreutils}/bin/basename "$next_wallpaper" \
         | ${pkgs.gnused}/bin/sed 's/\.[^.]*$//')

@@ -21,7 +21,6 @@
 
   # Boot
   boot.loader = {
-    systemd-boot.enable = false;
     efi = {
       canTouchEfiVariables = true;
       efiSysMountPoint = "/boot";
@@ -51,7 +50,7 @@
     nameservers = ["1.1.1.1" "8.8.8.8"];
   };
 
-  environment.systemPackages = [pkgs.openvpn];
+  environment.systemPackages = [pkgs.openvpn pkgs.android-tools];
 
   # Locale & time
   time.timeZone = "Europe/Lisbon";
@@ -75,8 +74,14 @@
     isNormalUser = true;
     description = "Duarte S. Jose";
     shell = pkgs.zsh;
-    extraGroups = ["networkmanager" "wheel" "adbusers"];
+    extraGroups = ["networkmanager" "wheel"];
   };
+
+  # NVIDIA driver selection. REQUIRED to activate the hardware.nvidia block
+  # below: the nvidia module gates its entire config on
+  # `hardware.nvidia.enabled`, which is `elem "nvidia" videoDrivers`. Needed
+  # even on pure Wayland/Hyprland (no X server is started by setting this).
+  services.xserver.videoDrivers = ["nvidia"];
 
   # Hardware
   hardware = {

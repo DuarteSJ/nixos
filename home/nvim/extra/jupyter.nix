@@ -5,6 +5,9 @@
       src = pkgs.fetchFromGitHub {
         owner = "kiyoon";
         repo = "jupynium.nvim";
+        # TODO: pin to a commit SHA instead of the mutable `master` branch.
+        # With a branch ref, a content change upstream makes the fixed sha256
+        # mismatch and the build fails until the hash is bumped.
         rev = "master";
         sha256 = "13ssf2fpikfghmjr39nafjsdr83amddn4m9bqpp443ab852ai6d6";
       };

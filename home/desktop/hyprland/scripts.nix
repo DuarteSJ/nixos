@@ -21,6 +21,9 @@
         "$shutdown") systemctl poweroff ;;
         "$reboot")   systemctl reboot ;;
         "$lock")     hyprlock ;;
+        # Hyprland 0.55.x evaluates `hyprctl dispatch <arg>` as Lua
+        # (hl.dispatch(arg)), so it needs an hl.dsp.* descriptor, not the
+        # classic `exit` string.
         "$logout")   hyprctl dispatch 'hl.dsp.exit()' ;;
         "$suspend")  hyprlock & systemctl suspend ;;
     esac

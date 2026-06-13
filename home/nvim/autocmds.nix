@@ -17,7 +17,6 @@
     app,
     exts,
   }: {
-    enable = true;
     event = ["BufEnter"];
     pattern = map (e: "*.${e}") exts;
     command = "silent execute '!${app} ' . shellescape(expand('%')) . ' &' | bd";
@@ -29,7 +28,7 @@ in {
         event = ["TextYankPost"];
         pattern = ["*"];
         command = ''
-          lua vim.highlight.on_yank({higroup="IncSearch", timeout=50})
+          lua vim.hl.on_yank({higroup="IncSearch", timeout=50})
         '';
       }
       {
@@ -38,8 +37,7 @@ in {
         command = "setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab";
       }
       {
-        enable = true;
-        event = ["BufEnter"];
+        event = ["FileType"];
         pattern = ["*"];
         command = "setlocal indentexpr=nvim_treesitter#indent()";
       }

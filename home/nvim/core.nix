@@ -22,14 +22,7 @@
         enable = true;
         transparent = true;
       }
-      // (
-        if lib.hasInfix "gruvbox" (lib.toLower config.colorScheme.name)
-        then {
-          name = "gruvbox";
-          style = "light";
-        }
-        else {name = "nord";}
-      );
+      // config.colorScheme.nvf;
     telescope.enable = true;
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;

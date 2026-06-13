@@ -23,7 +23,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Claude Code (fresh builds)
+    # Claude Code. Intentionally does NOT `follows` our nixpkgs: claude-code-nix
+    # pins its own (unstable) nixpkgs to ship fresh builds, so a second nixpkgs
+    # is evaluated for this input only — accepted tradeoff for up-to-date builds.
     claude-code.url = "github:sadjow/claude-code-nix";
   };
 

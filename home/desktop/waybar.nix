@@ -48,7 +48,6 @@
     };
     recording = {
       active = "■";
-      inactive = "●";
     };
   };
 
@@ -62,8 +61,6 @@
     network = "base09";
     audio = "base08";
     muted = "base03";
-    recording = "base08";
-    recordingInactive = "base03";
   };
 
   # State thresholds
@@ -140,14 +137,18 @@ in {
         # System monitoring modules
         memory = mkModuleWithIcon icons.memory moduleColors.memory "{}%" {
           states = thresholds.memory;
-          on-click = mkTermCmd "btop";
+          on-click = mkTermCmd "${lib.getExe pkgs.btop}";
         };
 
         temperature = mkModuleWithIcon "{icon}" moduleColors.temperature "{temperatureC}°C" {
           critical-threshold = thresholds.temperature.critical;
           format-icons = with icons.temperature; [normal warm hot];
-          on-click = mkTermCmd "btop";
-          hwmon-path = "/sys/class/hwmon/hwmon6/temp1_input";
+          on-click = mkTermCmd "${lib.getExe pkgs.btop}";
+          # Match the coretemp device by its stable platform path; waybar globs
+          # the hwmonN subdir, so this survives reboots/kernel reordering
+          # (numeric /sys/class/hwmon indices do not).
+          hwmon-path-abs = "/sys/devices/platform/coretemp.0/hwmon";
+          input-filename = "temp1_input";
         };
 
         battery = {
@@ -178,7 +179,7 @@ in {
             inherit headphone hands-free headset phone portable car;
             default = levels;
           };
-          on-click = "pavucontrol";
+          on-click = "${pkgs.pavucontrol}/bin/pavucontrol";
         };
 
         # Screen recording indicator (only shows when recording)
@@ -267,8 +268,8 @@ in {
       .modules-left,
       .modules-center {
         background-color: #${colors.base00};
-        border-radius: ${toString vars.rounding};
-        padding: 1 10px;
+        border-radius: ${toString vars.rounding}px;
+        padding: 1px 10px;
       }
 
       /* Critical state animation */

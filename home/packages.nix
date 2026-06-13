@@ -10,10 +10,10 @@
       nvidia-vaapi-driver
 
       # CLI tools
-      git
+      # (git, home-manager, alacritty omitted: installed by their
+      #  programs.<name>.enable modules.)
       gh
       curl
-      home-manager
       eza
       fastfetch
       wl-clipboard
@@ -40,7 +40,6 @@
       nerd-fonts.jetbrains-mono
 
       # Applications
-      alacritty
       telegram-desktop
       obsidian
       scrcpy

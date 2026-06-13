@@ -22,7 +22,8 @@
   preferExternal,
   themeName,
   wallpapersPath,
-  gaps,
+  gapsOuter,
+  gapsInner,
 }: let
   # Lua expression that re-enables the laptop panel with its full spec.
   laptopEnable =
@@ -54,7 +55,7 @@
     if preferExternal
     then "true"
     else "false";
-  gapsIn = gaps / 2;
+  gapsIn = gapsInner;
 
   setup = ''
     -- ====================================================================
@@ -85,7 +86,7 @@
       -- layout, the configured gaps once an external is attached.
       hl.config({
         general = {
-          gaps_out = hasExt and ${toString gaps} or 1,
+          gaps_out = hasExt and ${toString gapsOuter} or 1,
           gaps_in  = hasExt and ${toString gapsIn} or 0,
         },
       })

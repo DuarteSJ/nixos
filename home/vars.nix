@@ -11,10 +11,16 @@
       default = 2;
     };
 
-    gaps = lib.mkOption {
-      description = "Gaps configuration (inner set to half)";
+    gapsOuter = lib.mkOption {
+      description = "Outer gap.";
       type = lib.types.int;
-      default = 4;
+      default = 24;
+    };
+
+    gapsInner = lib.mkOption {
+      description = "Inner gap. Derived as half the outer gap; single source for the gaps/2 relationship reused across hyprland/waybar.";
+      type = lib.types.int;
+      default = config.vars.gapsOuter / 2;
     };
 
     font = lib.mkOption {
@@ -45,6 +51,12 @@
       default = "nvim";
     };
 
+    theme = lib.mkOption {
+      description = "Active color scheme slug (must exist in themes; see theme.nix).";
+      type = lib.types.str;
+      default = "nord";
+    };
+
     cursor = lib.mkOption {
       description = "Cursor theme configuration";
       type = lib.types.submodule {
@@ -55,7 +67,7 @@
           };
           size = lib.mkOption {
             type = lib.types.int;
-            default = 26;
+            default = 24;
           };
         };
       };
@@ -75,25 +87,6 @@
           };
         };
       };
-    };
-  };
-
-  config.vars = {
-    rounding = 2;
-    gaps = 24;
-    font = {
-      name = "JetBrainsMono Nerd Font";
-      size = 12.5;
-    };
-    terminal = "alacritty";
-    editor = "nvim";
-    cursor = {
-      name = "Bibata-Modern-Ice";
-      size = 24;
-    };
-    paths = {
-      notes = "~/notes";
-      wallpapers = "$HOME/Pictures/wallpapers";
     };
   };
 

@@ -54,7 +54,7 @@ in {
         corners = "all";
 
         ### Text ###
-        font = vars.font.name;
+        font = "${vars.font.name} ${toString vars.font.size}";
         line_height = 2;
         markup = "full";
         format = "<b>%s</b>\\n%b";

@@ -32,16 +32,16 @@
         exit 1
       }
 
-      sleep 0.1
+      ${pkgs.coreutils}/bin/sleep 0.1
 
-      outfile="$VIDEOS_DIR/rec_$(date +%F_%H-%M-%S).mp4"
+      outfile="$VIDEOS_DIR/rec_$(${pkgs.coreutils}/bin/date +%F_%H-%M-%S).mp4"
 
       # Create recording flag
       touch "$RECORDING_FLAG"
 
       # Start recording (video + PipeWire system audio)
       ${pkgs.wf-recorder}/bin/wf-recorder \
-        --audio="$(${pkgs.pipewire}/bin/pactl get-default-sink).monitor" \
+        --audio="$(${pkgs.pulseaudio}/bin/pactl get-default-sink).monitor" \
         -g "$geometry" \
         -f "$outfile" &
 

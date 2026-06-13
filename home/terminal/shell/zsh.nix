@@ -21,7 +21,6 @@
     shellAliases = shellShared.aliases;
     initContent = ''
       ${shellShared.functions}
-      [[ -n $ZSH_CMDS ]] && eval "$ZSH_CMDS"
       bindkey '^L' autosuggest-accept
     '';
     autosuggestion.enable = true;

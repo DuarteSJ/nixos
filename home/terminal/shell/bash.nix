@@ -19,17 +19,12 @@
       "checkjobs"
     ];
 
-    shellAliases =
-      shellShared.aliases
-      // {
-      };
+    shellAliases = shellShared.aliases;
 
     initExtra = ''
       set -o vi
 
       ${shellShared.functions}
-
-      [[ -n $BASH_CMDS ]] && eval "$BASH_CMDS"
     '';
   };
 }

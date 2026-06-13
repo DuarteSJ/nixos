@@ -10,6 +10,15 @@
       name = mkOption {type = types.str;};
       slug = mkOption {type = types.str;};
       palette = mkOption {type = types.attrsOf types.str;};
+      nvf = mkOption {
+        description = "nvf vim.theme settings for this scheme (merged into programs.nvf.settings.vim.theme); at minimum the theme name.";
+        type = types.attrsOf types.str;
+        default = {};
+        example = {
+          name = "gruvbox";
+          style = "dark";
+        };
+      };
     };
   };
 
@@ -17,6 +26,7 @@
     nord = {
       name = "Nord";
       slug = "nord";
+      nvf = {name = "nord";};
       palette = {
         base00 = "2E3440";
         base01 = "3B4252";
@@ -38,18 +48,10 @@
     };
   };
 in {
-  options.themes = {
-    schemes = mkOption {
-      description = "All known color schemes, keyed by slug.";
-      type = types.attrsOf schemeType;
-      default = builtinSchemes;
-    };
-
-    active = mkOption {
-      description = "Slug of the active scheme. Must exist in themes.schemes.";
-      type = types.str;
-      default = "nord";
-    };
+  options.themes = mkOption {
+    description = "All known color schemes, keyed by slug. Active one is selected via vars.theme.";
+    type = types.attrsOf schemeType;
+    default = builtinSchemes;
   };
 
   options.colorScheme = mkOption {
@@ -61,13 +63,13 @@ in {
   config = {
     assertions = [
       {
-        assertion = config.themes.schemes ? ${config.themes.active};
-        message = "themes.active = \"${config.themes.active}\" is not in themes.schemes (known: ${
-          lib.concatStringsSep ", " (lib.attrNames config.themes.schemes)
+        assertion = config.themes ? ${config.vars.theme};
+        message = "vars.theme = \"${config.vars.theme}\" is not in themes (known: ${
+          lib.concatStringsSep ", " (lib.attrNames config.themes)
         }).";
       }
     ];
 
-    colorScheme = config.themes.schemes.${config.themes.active};
+    colorScheme = config.themes.${config.vars.theme};
   };
 }

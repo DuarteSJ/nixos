@@ -4,12 +4,13 @@
   ...
 }: let
   colors = config.colorScheme.palette;
+  inherit (config) vars;
 
   spotifyScript = pkgs.writeShellScript "spotify-status" ''
     # Get metadata
-    artist=$(playerctl metadata artist 2>/dev/null || echo "No artist")
-    title=$(playerctl metadata title 2>/dev/null || echo "No track")
-    status=$(playerctl status 2>/dev/null || echo "Stopped")
+    artist=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "No artist")
+    title=$(${pkgs.playerctl}/bin/playerctl metadata title 2>/dev/null || echo "No track")
+    status=$(${pkgs.playerctl}/bin/playerctl status 2>/dev/null || echo "Stopped")
 
     # Display only if music is playing
     if [ "$status" != "Stopped" ]; then
@@ -64,7 +65,7 @@ in {
           text = "cmd[update:1000] date +\"%A, %d %B\" | sed 's/\\b\\(.\\)/\\U\\1/g'";
           color = "rgb(${colors.base05})";
           font_size = 22;
-          font_family = "JetBrains Mono";
+          font_family = vars.font.name;
           position = "0, -100";
           halign = "center";
           valign = "center";
@@ -86,7 +87,7 @@ in {
           text = "cmd[update:2000] ${spotifyScript}";
           color = "rgb(${colors.base05})";
           font_size = 14;
-          font_family = "JetBrains Mono";
+          font_family = vars.font.name;
           position = "0, -515";
           halign = "center";
           valign = "center";

@@ -27,7 +27,6 @@
       directory = {
         format = "[$path]($style) ";
         style = "bold #${base0D}";
-        # style = "bold fg:#${base0D} bg:#${base02}";
         truncation_length = 3;
         truncate_to_repo = true;
         truncation_symbol = "…/";

@@ -10,6 +10,9 @@
   # rule targeting Sidebery's pages break on reinstall. Pinning it (below, via
   # extensions.webextensions.uuids) keeps the URL stable so we can style the
   # sidebar declaratively.
+  # NOTE: Sidebery itself is installed manually (not declaratively via
+  # profiles.default.extensions.packages). The UUID pin + userContent styling
+  # below only take effect once it is installed by hand.
   sideberyAddonId = "{3c078156-979c-498b-8990-85f7987dd929}";
   sideberyUuid = "dc7f34b9-b0d4-4149-b166-8ac58fb2db03";
 in {
