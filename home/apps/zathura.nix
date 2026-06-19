@@ -56,8 +56,8 @@ in {
       notification-warning-bg = "#${colors.base09}";
       notification-warning-fg = "#${colors.base00}";
 
-      highlight-color = hexToRgba colors.base0D "0.15"; # text selection + inactive search matches
-      highlight-active-color = hexToRgba colors.base0D "0.5"; # current search match
+      highlight-color = hexToRgba colors.base0D "0.6"; # text selection + inactive search matches
+      highlight-active-color = hexToRgba colors.base0B "0.6"; # current search match
 
       # Recolor mode colors
       recolor-lightcolor = "#${colors.base00}";
