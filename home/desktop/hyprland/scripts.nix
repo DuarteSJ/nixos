@@ -16,10 +16,10 @@
     runtimeInputs = [pkgs.rofi pkgs.systemd pkgs.hyprlock pkgs.hyprland];
     text = ''
       shutdown="⏻ shutdown"
-      reboot=" reboot"
-      lock=" lock"
-      logout=" logout"
-      suspend=" suspend"
+      reboot=" reboot"
+      lock=" lock"
+      logout=" logout"
+      suspend=" suspend"
 
       options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
 
