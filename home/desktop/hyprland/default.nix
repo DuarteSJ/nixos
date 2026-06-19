@@ -42,18 +42,6 @@
     inherit lib helpers scripts luaActions vars;
   };
 in {
-  services.hypridle = {
-    enable = true;
-    settings.general = {
-      lock_cmd = "pidof hyprlock || hyprlock";
-      before_sleep_cmd = "loginctl lock-session";
-      # 0.55.x evaluates `hyprctl dispatch <arg>` as Lua, so the classic
-      # `dpms on` string is dead — use the hl.dsp.* descriptor (matches the
-      # `hyprctl dispatch 'hl.dsp.exit()'` convention used elsewhere here).
-      after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms(\"on\")'";
-    };
-  };
-
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {

@@ -33,9 +33,7 @@
           # (hl.dispatch(arg)), so it needs an hl.dsp.* descriptor, not the
           # classic `exit` string.
           "$logout")   hyprctl dispatch 'hl.dsp.exit()' ;;
-          # Just suspend: hypridle's before_sleep_cmd locks via the systemd
-          # sleep inhibitor before the system suspends, so there's no lock race.
-          "$suspend")  systemctl suspend ;;
+          "$suspend")  hyprlock & systemctl suspend ;;
       esac
     '';
   };
