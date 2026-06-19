@@ -38,8 +38,14 @@
     '';
   };
 
+  # NOTE: the package name must NOT contain "waybar". Hyprland sets a
+  # keybind-launched process's `comm` to the script's basename, and `pgrep
+  # waybar` does a substring match — so a script named "toggle-waybar" matches
+  # itself, always takes the kill branch, and never spawns (toggle only ever
+  # disables). Naming it "bar-toggle" keeps `pgrep/pkill waybar` matching only
+  # the real waybar (whose wrapped comm `.waybar-wrapped` contains "waybar").
   toggleWaybar = pkgs.writeShellApplication {
-    name = "toggle-waybar";
+    name = "bar-toggle";
     runtimeInputs = [pkgs.procps pkgs.waybar];
     text = ''
       if pgrep waybar > /dev/null; then
