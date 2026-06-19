@@ -20,7 +20,7 @@ in {
 
     /*****----- Global Properties -----*****/
     * {
-        font:  "${vars.font.name} ${toString vars.font.size}";
+        font:  "${vars.font.name} ${vars.font.sizeStr}";
 
         background:                  #${base00};
         background-alt:              #${base01};

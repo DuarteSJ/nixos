@@ -1,7 +1,6 @@
 {
   pkgs,
   inputs,
-  system,
   ...
 }: {
   home.packages =
@@ -52,6 +51,6 @@
       perl
     ])
     ++ [
-      inputs.claude-code.packages.${system}.default
+      inputs.claude-code.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 }

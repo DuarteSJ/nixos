@@ -31,6 +31,12 @@
       device = "nodev";
       useOSProber = false;
       configurationLimit = 10;
+      # Hand-maintained Windows entry. useOSProber = false above means GRUB
+      # does NOT auto-detect other OSes, so this menuentry is written by hand.
+      # 7801-1D56 is the Windows ESP (its own FAT32 EFI System Partition),
+      # which is distinct from /boot's NixOS ESP (73EE-BBCB, see
+      # hardware-configuration.nix). If Windows is ever reinstalled or its ESP
+      # repartitioned the UUID will change and this entry breaks silently.
       extraEntries = ''
         menuentry "Windows" {
           insmod part_gpt

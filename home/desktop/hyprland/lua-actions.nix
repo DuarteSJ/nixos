@@ -2,11 +2,9 @@
 # Native hl.config / hl.get_config — no /tmp state, no hyprctl eval.
 {
   inline,
-  vars,
   rounding,
   base02,
-  base0D,
-  base0C,
+  windowBorderLua,
   monitorManager,
 }: let
   # general.gaps_out comes back as CCssGapData (a {top,right,bottom,left}
@@ -28,11 +26,9 @@ in {
         hl.config({
           animations = { enabled = not on },
           general    = {
-            gaps_in  = on and 0 or ${toString vars.gapsInner},
-            gaps_out = on and 0 or ${toString vars.gapsOuter},
             col = on
               and { active_border = "rgba(${base02}aa)", inactive_border = "rgba(${base02}aa)" }
-              or  { active_border = { colors = {"rgba(${base0D}cc)", "rgba(${base0C}77)"}, angle = 45 }, inactive_border = "rgba(${base02}aa)" },
+              or  ${windowBorderLua},
           },
           decoration = {
             rounding     = on and 0 or ${toString rounding},
@@ -40,6 +36,15 @@ in {
             dim_strength = on and 0.15 or 0.0,
           },
         })
+        -- #6 Gaps: flat 0 in focus mode; otherwise restore the topology-derived
+        -- baseline via the same writer reconcile() uses, so the two can't drift.
+        -- Guarded: after a `hyprctl reload` the dynamic layer (and this global)
+        -- is gone until relogin, so skip rather than error.
+        if on then
+          hl.config({ general = { gaps_in = 0, gaps_out = 0 } })
+        elseif _G.hlBaselineGaps then
+          _G.hlBaselineGaps()
+        end
         hl.exec_cmd(on and "pkill waybar" or "pgrep waybar >/dev/null || waybar")
       end
     end)()'';
@@ -67,12 +72,13 @@ in {
   cursorZoom = let
     minZoom = "1";
     maxZoom = "3";
-    mk = offset: inline ''
-      function()
-        local current = (hl.get_config("cursor.zoom_factor") or ${minZoom}) + ${offset}
-        current = math.max(${minZoom}, math.min(${maxZoom}, current))
-        hl.config({ cursor = { zoom_factor = current } })
-      end'';
+    mk = offset:
+      inline ''
+        function()
+          local current = (hl.get_config("cursor.zoom_factor") or ${minZoom}) + ${offset}
+          current = math.max(${minZoom}, math.min(${maxZoom}, current))
+          hl.config({ cursor = { zoom_factor = current } })
+        end'';
   in {
     zoomIn = mk "0.5";
     zoomOut = mk "-0.5";
@@ -108,7 +114,11 @@ in {
 
     -- #2 Event handler — notify when a window marks itself urgent.
     hlKeep(hl.on("window.urgent", function(win)
+      -- win.class is app-controlled and is interpolated into the single-quoted
+      -- shell arg below; strip single quotes (the only char that can break out
+      -- of the quotes) and backslashes so a crafted class can't inject shell.
       local who = (win and win.class) or "A window"
+      who = who:gsub("'", ""):gsub("''\\''\\", "")
       hl.exec_cmd("dunstify -u critical 'Attention' '" .. who .. " needs attention'")
     end))
   '';

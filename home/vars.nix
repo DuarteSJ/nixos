@@ -35,6 +35,10 @@
             type = lib.types.float;
             default = 12.5;
           };
+          sizeStr = lib.mkOption {
+            type = lib.types.str;
+            default = "12.5";
+          };
         };
       };
     };
@@ -79,11 +83,11 @@
         options = {
           notes = lib.mkOption {
             type = lib.types.str;
-            default = "~/notes";
+            default = "${config.home.homeDirectory}/notes";
           };
           wallpapers = lib.mkOption {
             type = lib.types.str;
-            default = "$HOME/Pictures/wallpapers";
+            default = "${config.home.homeDirectory}/Pictures/wallpapers";
           };
         };
       };

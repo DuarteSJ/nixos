@@ -27,7 +27,7 @@
 }: let
   # Lua expression that re-enables the laptop panel with its full spec.
   laptopEnable =
-    ''hl.monitor({ output = LAPTOP, mode = "${laptop.mode}", position = "${laptop.position}", scale = "${laptop.scale}", disabled = false''
+    ''hl.monitor({ output = LAPTOP, mode = "${laptop.mode}", position = "${laptop.position}", scale = ${toString laptop.scale}, disabled = false''
     + (
       if laptop.transform != 0
       then '', transform = ${toString laptop.transform}''
@@ -35,27 +35,30 @@
     )
     + " })";
 
-  # Small helper: pick newest wallpaper for <monitor> <orientation> and push it
-  # to hyprpaper.  Filesystem globbing has no Lua-sandbox equivalent, so this
-  # stays a tiny shell script invoked per-monitor via hl.exec_cmd.
-  setWallpaper = pkgs.writeShellScript "set-wallpaper" ''
-    set -euo pipefail
-    monitor="$1"
-    orientation="$2"
-    dir="${wallpapersPath}/${themeName}/$orientation"
-    wp=$(${pkgs.findutils}/bin/find "$dir" -maxdepth 1 -type f \
-           \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null \
-         | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/head -n1)
-    [ -n "$wp" ] || exit 0
-    hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null || true
-  '';
+  # Small helper: pick a wallpaper for <monitor> <orientation> and push it to
+  # hyprpaper.  `sort -V | head -n1` picks the first by version-sorted filename
+  # (a deterministic choice within the curated per-theme dir), NOT the newest by
+  # mtime.  Filesystem globbing has no Lua-sandbox equivalent, so this stays a
+  # tiny shell script invoked per-monitor via hl.exec_cmd.
+  setWallpaper = pkgs.writeShellApplication {
+    name = "set-wallpaper";
+    runtimeInputs = [pkgs.findutils pkgs.coreutils pkgs.hyprland];
+    text = ''
+      monitor="$1"
+      orientation="$2"
+      dir="${wallpapersPath}/${themeName}/$orientation"
+      # `|| true`: head closes the pipe early, so sort takes SIGPIPE and the
+      # pipeline returns non-zero — which would abort under set -o pipefail.
+      wp=$(find "$dir" -maxdepth 1 -type f \
+             \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null \
+           | sort -V | head -n1) || true
+      [ -n "$wp" ] || exit 0
+      hyprctl hyprpaper wallpaper "$monitor,$wp" 2>/dev/null || true
+    '';
+  };
 
   wsList = builtins.concatStringsSep ", " (map toString workspaces);
-  preferExternalLua =
-    if preferExternal
-    then "true"
-    else "false";
-  gapsIn = gapsInner;
+  preferExternalLua = pkgs.lib.boolToString preferExternal;
 
   setup = ''
     -- ====================================================================
@@ -67,6 +70,23 @@
 
     local function enableLaptop()
       ${laptopEnable}
+    end
+
+    -- #6 Single source of truth for the topology-derived gap baseline: tight
+    -- gaps on the laptop-only layout, the configured gaps once an external is
+    -- attached.  Global so the productivity toggle (lua-actions) restores this
+    -- exact baseline instead of hardcoding values that drift away from here.
+    function _G.hlBaselineGaps()
+      local hasExt = false
+      for _, m in ipairs(hl.get_monitors()) do
+        if m.name ~= LAPTOP then hasExt = true; break end
+      end
+      hl.config({
+        general = {
+          gaps_out = hasExt and ${toString gapsOuter} or 1,
+          gaps_in  = hasExt and ${toString gapsInner} or 0,
+        },
+      })
     end
 
     local function reconcile()
@@ -82,14 +102,9 @@
       local hasExt  = externalPrimary ~= nil
       local primary = externalPrimary or LAPTOP
 
-      -- #5 Per-monitor conditional config: tighter gaps on the laptop-only
-      -- layout, the configured gaps once an external is attached.
-      hl.config({
-        general = {
-          gaps_out = hasExt and ${toString gapsOuter} or 1,
-          gaps_in  = hasExt and ${toString gapsIn} or 0,
-        },
-      })
+      -- #5/#6 Per-monitor conditional gaps via the shared baseline writer
+      -- (also used by prodToggle's restore branch).
+      _G.hlBaselineGaps()
 
       -- Pin configured workspaces to primary (rule for future, move existing).
       -- Done BEFORE toggling laptop visibility: moving workspaces triggers a
@@ -107,7 +122,7 @@
       -- Wallpaper per active monitor, orientation from live transform.
       for _, m in ipairs(hl.get_monitors()) do
         local orient = (m.transform == 1 or m.transform == 3) and "vertical" or "horizontal"
-        hl.exec_cmd("${setWallpaper} " .. m.name .. " " .. orient)
+        hl.exec_cmd("${pkgs.lib.getExe setWallpaper} " .. m.name .. " " .. orient)
       end
 
       -- Laptop panel visibility LAST, so nothing reconfigures monitors after
@@ -121,7 +136,11 @@
     end
 
     -- Debounced reconcile: re-run a short moment after a topology change so
-    -- Hyprland has settled (replaces the old `sleep 0.3`).
+    -- Hyprland has settled (replaces the old `sleep 0.3`).  Each call anchors a
+    -- fresh oneshot timer in __hlHandles that's never pruned, but growth is
+    -- bounded by the hotplug count for the session (the VM — and the table —
+    -- reset on relogin), so the leak is negligible and not worth the GC risk of
+    -- self-pruning a handle the callback still needs while it runs.
     local function scheduleReconcile()
       hlKeep(hl.timer(function() reconcile() end, { timeout = 300, type = "oneshot" }))
     end

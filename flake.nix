@@ -40,7 +40,7 @@
       inherit system;
 
       specialArgs = {
-        inherit inputs system;
+        inherit inputs;
       };
 
       modules = [
@@ -60,7 +60,7 @@
             useGlobalPkgs = true;
             useUserPackages = true;
             extraSpecialArgs = {
-              inherit inputs system;
+              inherit inputs;
             };
           };
 

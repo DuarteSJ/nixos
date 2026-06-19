@@ -13,11 +13,9 @@ in {
             if m ? description
             then "desc:${m.description}"
             else m.name;
-          mode = m.mode;
-          position = m.position;
-          scale = m.scale;
+          inherit (m) mode position scale;
         }
-        // lib.optionalAttrs ((m.transform or 0) != 0) {transform = m.transform;}
+        // lib.optionalAttrs ((m.transform or 0) != 0) {inherit (m) transform;}
       )
     ];
   };

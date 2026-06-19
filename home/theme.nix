@@ -10,9 +10,14 @@
       name = mkOption {type = types.str;};
       slug = mkOption {type = types.str;};
       palette = mkOption {type = types.attrsOf types.str;};
+      batTheme = mkOption {
+        description = "bat/delta syntax-theme name for this scheme (must be a theme bat ships or knows; e.g. \"Nord\", \"ansi\").";
+        type = types.str;
+        default = "ansi";
+      };
       nvf = mkOption {
         description = "nvf vim.theme settings for this scheme (merged into programs.nvf.settings.vim.theme); at minimum the theme name.";
-        type = types.attrsOf types.str;
+        type = types.attrsOf types.anything;
         default = {};
         example = {
           name = "gruvbox";
@@ -26,6 +31,7 @@
     nord = {
       name = "Nord";
       slug = "nord";
+      batTheme = "Nord";
       nvf = {name = "nord";};
       palette = {
         base00 = "2E3440";
@@ -61,14 +67,22 @@ in {
   };
 
   config = {
-    assertions = [
-      {
-        assertion = config.themes ? ${config.vars.theme};
-        message = "vars.theme = \"${config.vars.theme}\" is not in themes (known: ${
-          lib.concatStringsSep ", " (lib.attrNames config.themes)
-        }).";
-      }
-    ];
+    assertions =
+      [
+        {
+          assertion = config.themes ? ${config.vars.theme};
+          message = "vars.theme = \"${config.vars.theme}\" is not in themes (known: ${
+            lib.concatStringsSep ", " (lib.attrNames config.themes)
+          }).";
+        }
+      ]
+      # Guard the slug/key dual source of truth: every scheme's slug must
+      # equal its attribute key, since consumers read .slug as the key.
+      ++ lib.mapAttrsToList (key: scheme: {
+        assertion = scheme.slug == key;
+        message = "themes.${key}.slug = \"${scheme.slug}\" must equal its attr key \"${key}\".";
+      })
+      config.themes;
 
     colorScheme = config.themes.${config.vars.theme};
   };

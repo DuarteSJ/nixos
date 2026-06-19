@@ -12,15 +12,16 @@
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
   numWsBinds = lib.flatten (lib.genList (i: let
-    n = i + 1;
-    k =
-      if n == 10
-      then "0"
-      else toString n;
-  in [
-    (kb (modKey k) (focusWs n))
-    (kb (modShiftKey k) (moveToWs n))
-  ]) 10);
+      n = i + 1;
+      k =
+        if n == 10
+        then "0"
+        else toString n;
+    in [
+      (kb (modKey k) (focusWs n))
+      (kb (modShiftKey k) (moveToWs n))
+    ])
+    10);
 
   # a/s/d/f/g → workspaces 1..5
   letterWsBinds = lib.flatten (lib.imap1 (i: l: [
@@ -30,26 +31,86 @@
 
   # special workspaces: SUPER+key toggles, SUPER+SHIFT+key moves window there.
   specialWs = [
-    {key = "comma"; name = "music";}
-    {key = "M"; name = "messages";}
+    {
+      key = "comma";
+      name = "music";
+    }
+    {
+      key = "M";
+      name = "messages";
+    }
   ];
-  specialBinds = lib.concatMap (s: [
-    (kb (modKey s.key) (toggleSpecial s.name))
-    (kb (modShiftKey s.key) (moveToSpecial s.name))
-  ]) specialWs;
+  specialBinds =
+    lib.concatMap (s: [
+      (kb (modKey s.key) (toggleSpecial s.name))
+      (kb (modShiftKey s.key) (moveToSpecial s.name))
+    ])
+    specialWs;
 
   # media / volume / brightness keys, derived from a {key, cmd, opts} list.
   mediaBinds = map (b: kbo (bareKey b.key) (exec b.cmd) b.opts) [
-    {key = "XF86AudioRaiseVolume"; cmd = "wpctl set-volume @DEFAULT_SINK@ 0.05+"; opts = {locked = true; repeating = true;};}
-    {key = "XF86AudioLowerVolume"; cmd = "wpctl set-volume @DEFAULT_SINK@ 0.05-"; opts = {locked = true; repeating = true;};}
-    {key = "XF86AudioMicMute"; cmd = "${toggleMic}"; opts = {locked = true; repeating = true;};}
-    {key = "XF86AudioMute"; cmd = "wpctl set-mute @DEFAULT_SINK@ toggle"; opts = {locked = true; repeating = true;};}
-    {key = "XF86MonBrightnessUp"; cmd = "brightnessctl s 4%+"; opts = {locked = true; repeating = true;};}
-    {key = "XF86MonBrightnessDown"; cmd = "brightnessctl s 4%-"; opts = {locked = true; repeating = true;};}
-    {key = "XF86AudioNext"; cmd = "playerctl next"; opts = {locked = true;};}
-    {key = "XF86AudioPause"; cmd = "playerctl play-pause"; opts = {locked = true;};}
-    {key = "XF86AudioPlay"; cmd = "playerctl play-pause"; opts = {locked = true;};}
-    {key = "XF86AudioPrev"; cmd = "playerctl previous"; opts = {locked = true;};}
+    {
+      key = "XF86AudioRaiseVolume";
+      cmd = "wpctl set-volume @DEFAULT_SINK@ 0.05+";
+      opts = {
+        locked = true;
+        repeating = true;
+      };
+    }
+    {
+      key = "XF86AudioLowerVolume";
+      cmd = "wpctl set-volume @DEFAULT_SINK@ 0.05-";
+      opts = {
+        locked = true;
+        repeating = true;
+      };
+    }
+    {
+      key = "XF86AudioMicMute";
+      cmd = "${lib.getExe toggleMic}";
+      opts = {locked = true;};
+    }
+    {
+      key = "XF86AudioMute";
+      cmd = "wpctl set-mute @DEFAULT_SINK@ toggle";
+      opts = {locked = true;};
+    }
+    {
+      key = "XF86MonBrightnessUp";
+      cmd = "brightnessctl s 4%+";
+      opts = {
+        locked = true;
+        repeating = true;
+      };
+    }
+    {
+      key = "XF86MonBrightnessDown";
+      cmd = "brightnessctl s 4%-";
+      opts = {
+        locked = true;
+        repeating = true;
+      };
+    }
+    {
+      key = "XF86AudioNext";
+      cmd = "playerctl next";
+      opts = {locked = true;};
+    }
+    {
+      key = "XF86AudioPause";
+      cmd = "playerctl play-pause";
+      opts = {locked = true;};
+    }
+    {
+      key = "XF86AudioPlay";
+      cmd = "playerctl play-pause";
+      opts = {locked = true;};
+    }
+    {
+      key = "XF86AudioPrev";
+      cmd = "playerctl previous";
+      opts = {locked = true;};
+    }
   ];
 in
   [
@@ -58,7 +119,7 @@ in
     (kb (modKey "C") (inline "hl.dsp.window.close()"))
     (kb (modKey "P") (inline "hl.dsp.window.pin()"))
     (kb (modKey "V") (inline ''hl.dsp.window.float({ action = "toggle" })''))
-    (kb (modKey "E") (exec "${rofi-launcher}"))
+    (kb (modKey "E") (exec "${lib.getExe rofi-launcher}"))
     (kb (modKey "R") (inline "hl.dsp.window.pseudo()"))
     (kb (modKey "T") (inline ''hl.dsp.layout("togglesplit")''))
     (kb (modKey "Tab") cycleLayout) # cycle workspace tiled layout
@@ -75,9 +136,9 @@ in
   ++ mediaBinds # #4 generated media/volume/brightness binds
   ++ [
     # Misc execs
-    (kb (modKey "B") (exec "${toggleWaybar}"))
-    (kb (modKey "N") (exec "${toggleMic}"))
-    (kb (modShiftKey "P") (exec "${rofi-powermenu}"))
+    (kb (modKey "B") (exec "${lib.getExe toggleWaybar}"))
+    (kb (modKey "N") (exec "${lib.getExe toggleMic}"))
+    (kb (modShiftKey "P") (exec "${lib.getExe rofi-powermenu}"))
     (kb (modShiftKey "N") (exec "switch-bg"))
     (kb (modKey "X") (exec "hyprshot -z -m region"))
     (kb (modShiftKey "X") (exec "screenrec"))
@@ -100,11 +161,17 @@ in
     (kb (modKey "Right") (resizeBy 65 0))
 
     # Gaps (#1 inline Lua closures, locked + repeating)
-    (kbo (modKey "minus") incGaps {locked = true; repeating = true;})
-    (kbo (modKey "equal") decGaps {locked = true; repeating = true;})
+    (kbo (modKey "minus") incGaps {
+      locked = true;
+      repeating = true;
+    })
+    (kbo (modKey "equal") decGaps {
+      locked = true;
+      repeating = true;
+    })
 
     # Lid (bindl = locked)
-    (kbo (bareKey "switch:on:Lid Switch") (exec "hyprlock & systemctl suspend") {locked = true;})
+    (kbo (bareKey "switch:on:Lid Switch") (exec "systemctl suspend") {locked = true;})
 
     # Mouse (bindm)
     (kbo (modKey "mouse:272") (inline "hl.dsp.window.drag()") {mouse = true;})

@@ -20,6 +20,14 @@
       memfetch = "fastfetch --config examples/9.jsonc";
     };
 
+    history = {
+      size = 1000;
+      ignore = ["ls" "cd" "exit"];
+      ignoreAllDups = true;
+    };
+
+    keymap = "emacs";
+
     functions = ''
         # Tree with depth
         ltl() {
@@ -51,7 +59,7 @@
         # Copy current working directory to clipboard
         cpwd() {
           local current_path=$(pwd)
-          if echo "$current_path" | wl-copy; then
+          if printf '%s' "$current_path" | wl-copy; then
             echo -e "\033[1;32m✓ Success:\033[0m '$current_path' copied."
           else
             echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
@@ -167,11 +175,20 @@
           echo -e "\033[1;31m✗ Error:\033[0m '$1' is not a symlink."
           return 1
         fi
-        local target
+        local target tmp
         target=$(readlink -f "$1")
-        rm "$1"
-        cp --no-preserve=mode,ownership "$target" "$1"
-        echo -e "\033[1;32m✓ Success:\033[0m '$1' is now a regular writable file."
+        # Copy into a sibling temp file first; only swap in the real copy once
+        # cp has succeeded, so a failed copy leaves the original symlink intact.
+        tmp="$1.unnix.$$"
+        if cp --no-preserve=mode,ownership "$target" "$tmp"; then
+          rm "$1"
+          mv "$tmp" "$1"
+          echo -e "\033[1;32m✓ Success:\033[0m '$1' is now a regular writable file."
+        else
+          rm -f "$tmp"
+          echo -e "\033[1;31m✗ Error:\033[0m Failed to copy '$target'."
+          return 1
+        fi
       }
 
     '';

@@ -1,4 +1,4 @@
-# Aggregates user scripts
+# Aggregates terminal and TUI configs
 {
   imports = [
     ./shell

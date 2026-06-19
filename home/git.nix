@@ -18,7 +18,7 @@
       light = false;
       side-by-side = true;
       line-numbers = true;
-      syntax-theme = config.colorScheme.name;
+      syntax-theme = config.colorScheme.batTheme;
     };
     enableGitIntegration = true;
   };

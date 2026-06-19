@@ -54,6 +54,7 @@
   # Color keys for module icons
   moduleColors = {
     clock = "base0D";
+    calendar = "base07";
     memory = "base0A";
     temperature = "base0C";
     battery = "base0B";
@@ -124,7 +125,7 @@ in {
         # Clock with date copy functionality
         clock =
           mkModuleWithIcon icons.clock moduleColors.clock
-          "{:%H:%M  ${coloredIcon icons.calendar "base07"} %b %d}"
+          "{:%H:%M  ${coloredIcon icons.calendar moduleColors.calendar} %b %d}"
           {
             tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
             on-click = lib.concatStringsSep " | " [
@@ -167,7 +168,7 @@ in {
           tooltip-format = "{ifname} via {gwaddr}";
           format-linked = "${coloredIcon linked moduleColors.network} {ifname} (No IP)";
           format-disconnected = "${coloredIcon disconnected moduleColors.network} ⚠ ";
-          on-click = mkTermCmd "${pkgs.networkmanager}/bin/nmtui";
+          on-click = mkTermCmd (lib.getExe' pkgs.networkmanager "nmtui");
         };
 
         # Audio with pavucontrol
@@ -179,7 +180,7 @@ in {
             inherit headphone hands-free headset phone portable car;
             default = levels;
           };
-          on-click = "${pkgs.pavucontrol}/bin/pavucontrol";
+          on-click = lib.getExe pkgs.pavucontrol;
         };
 
         # Screen recording indicator (only shows when recording)

@@ -1,8 +1,5 @@
 # NOTE: For future, consider that it is possible to set per app rules in dunst.
-{
-  config,
-  ...
-}: let
+{config, ...}: let
   colors = config.colorScheme.palette;
   inherit (config) vars;
 in {
@@ -11,7 +8,6 @@ in {
     settings = {
       global = {
         ### Display ###
-        monitor = 0;
         follow = "mouse";
 
         ### Geometry ###
@@ -42,19 +38,17 @@ in {
         ### Visual ###
         indicate_hidden = "yes";
         transparency = 0;
-        separator_height = 2;
         padding = 12;
         horizontal_padding = 14;
         text_icon_padding = 12;
         frame_width = 1;
         gap_size = 8;
-        separator_color = "frame";
         sort = "yes";
         corner_radius = vars.rounding;
         corners = "all";
 
         ### Text ###
-        font = "${vars.font.name} ${toString vars.font.size}";
+        font = "${vars.font.name} ${vars.font.sizeStr}";
         line_height = 2;
         markup = "full";
         format = "<b>%s</b>\\n%b";

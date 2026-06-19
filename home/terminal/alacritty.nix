@@ -35,10 +35,6 @@ in {
           x = 15;
           y = 15;
         };
-        dimensions = {
-          columns = 50;
-          lines = 12;
-        };
       };
       cursor.style = {
         shape = "Underline";

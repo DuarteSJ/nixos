@@ -24,7 +24,7 @@
       cpu_graph_upper = "total";
       cpu_graph_lower = "total";
 
-      # Memory
+      # Disk
       show_disks = true;
       show_io_stat = true;
       io_mode = false;

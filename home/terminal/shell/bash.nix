@@ -5,11 +5,17 @@
 }: {
   programs.bash = {
     enable = true;
-    historySize = 1000;
-    historyFileSize = 1000;
+    historySize = shellShared.history.size;
+    historyFileSize = shellShared.history.size;
     historyFile = "${config.home.homeDirectory}/.bash_history";
-    historyControl = ["ignoredups" "ignorespace"];
-    historyIgnore = ["ls" "cd" "exit"];
+    historyControl =
+      (
+        if shellShared.history.ignoreAllDups
+        then ["erasedups"]
+        else ["ignoredups"]
+      )
+      ++ ["ignorespace"];
+    historyIgnore = shellShared.history.ignore;
 
     shellOptions = [
       "histappend"
@@ -22,7 +28,11 @@
     shellAliases = shellShared.aliases;
 
     initExtra = ''
-      set -o vi
+      ${
+        if shellShared.keymap == "vi"
+        then "set -o vi"
+        else "set -o emacs"
+      }
 
       ${shellShared.functions}
     '';

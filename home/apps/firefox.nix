@@ -5,14 +5,8 @@
 }: let
   colors = config.colorScheme.palette;
 
-  # Sidebery addon ID + a pinned internal UUID. Firefox normally assigns a
-  # random moz-extension:// UUID per install, which would make any userContent
-  # rule targeting Sidebery's pages break on reinstall. Pinning it (below, via
-  # extensions.webextensions.uuids) keeps the URL stable so we can style the
-  # sidebar declaratively.
-  # NOTE: Sidebery itself is installed manually (not declaratively via
-  # profiles.default.extensions.packages). The UUID pin + userContent styling
-  # below only take effect once it is installed by hand.
+  # NOTE: Sidebery is NOT installed declaratively here
+  nixSnowflakeIcon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
   sideberyAddonId = "{3c078156-979c-498b-8990-85f7987dd929}";
   sideberyUuid = "dc7f34b9-b0d4-4149-b166-8ac58fb2db03";
 in {
@@ -39,7 +33,6 @@ in {
 
         # File handling (open inline instead of auto-download)
         "browser.download.useDownloadDir" = false;
-        "browser.download.always_ask_before_save" = true;
         "browser.download.always_ask_before_handling_new_types" = true;
         "browser.download.improvements_to_download_panel" = false;
         "browser.download.open_pdf_attachments_inline" = true;
@@ -261,7 +254,7 @@ in {
                 ];
               }
             ];
-            icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+            icon = nixSnowflakeIcon;
             definedAliases = ["@np"];
           };
 
@@ -271,7 +264,7 @@ in {
                 template = "https://mynixos.com/home-manager/options/programs.{searchTerms}";
               }
             ];
-            icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+            icon = nixSnowflakeIcon;
             definedAliases = ["@hm"];
           };
 

@@ -10,6 +10,15 @@
   inherit (vars) rounding;
   inherit (config.colorScheme.palette) base0D base0C base02;
 
+  windowBorder = {
+    active_border = {
+      colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
+      angle = 45;
+    };
+    inactive_border = "rgba(${base02}aa)";
+  };
+  windowBorderLua = lib.generators.toLua {multiline = false;} windowBorder;
+
   # ------------------------------------------------------------------
   # Sub-modules
   # ------------------------------------------------------------------
@@ -26,13 +35,25 @@
   };
 
   luaActions = import ./lua-actions.nix {
-    inherit inline vars rounding base02 base0D base0C monitorManager;
+    inherit inline rounding base02 monitorManager windowBorderLua;
   };
 
   bind = import ./keybinds.nix {
     inherit lib helpers scripts luaActions vars;
   };
 in {
+  services.hypridle = {
+    enable = true;
+    settings.general = {
+      lock_cmd = "pidof hyprlock || hyprlock";
+      before_sleep_cmd = "loginctl lock-session";
+      # 0.55.x evaluates `hyprctl dispatch <arg>` as Lua, so the classic
+      # `dpms on` string is dead — use the hl.dsp.* descriptor (matches the
+      # `hyprctl dispatch 'hl.dsp.exit()'` convention used elsewhere here).
+      after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms(\"on\")'";
+    };
+  };
+
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
@@ -68,13 +89,7 @@ in {
               gaps_in = vars.gapsInner;
               gaps_out = vars.gapsOuter;
               border_size = 1;
-              col = {
-                active_border = {
-                  colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
-                  angle = 45;
-                };
-                inactive_border = "rgba(${base02}aa)";
-              };
+              col = windowBorder;
               resize_on_border = true;
               allow_tearing = false;
               layout = "dwindle";
@@ -128,13 +143,80 @@ in {
       ];
 
       animation = [
-        {_args = [{leaf = "windowsIn"; enabled = true; speed = 1; bezier = "snap"; style = "slide";}];}
-        {_args = [{leaf = "windowsOut"; enabled = true; speed = 1; bezier = "snap"; style = "slide";}];}
-        {_args = [{leaf = "windowsMove"; enabled = true; speed = 1; bezier = "snap"; style = "slide";}];}
-        {_args = [{leaf = "border"; enabled = true; speed = 2; bezier = "snap";}];}
-        {_args = [{leaf = "fade"; enabled = true; speed = 1; bezier = "snap";}];}
-        {_args = [{leaf = "workspaces"; enabled = true; speed = 1; bezier = "snap";}];}
-        {_args = [{leaf = "specialWorkspace"; enabled = true; speed = 1; bezier = "snap"; style = "slidefadevert 90%";}];}
+        {
+          _args = [
+            {
+              leaf = "windowsIn";
+              enabled = true;
+              speed = 1;
+              bezier = "snap";
+              style = "slide";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "windowsOut";
+              enabled = true;
+              speed = 1;
+              bezier = "snap";
+              style = "slide";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "windowsMove";
+              enabled = true;
+              speed = 1;
+              bezier = "snap";
+              style = "slide";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "border";
+              enabled = true;
+              speed = 2;
+              bezier = "snap";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "fade";
+              enabled = true;
+              speed = 1;
+              bezier = "snap";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "workspaces";
+              enabled = true;
+              speed = 1;
+              bezier = "snap";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              leaf = "specialWorkspace";
+              enabled = true;
+              speed = 1;
+              bezier = "snap";
+              style = "slidefadevert 90%";
+            }
+          ];
+        }
       ];
 
       # ---------------------------------------------------------------
@@ -148,21 +230,94 @@ in {
       # Gestures
       # ---------------------------------------------------------------
       gesture = [
-        {_args = [{fingers = 3; direction = "horizontal"; action = "workspace";}];}
-        {_args = [{fingers = 4; direction = "horizontal"; action = "move";}];}
-        {_args = [{fingers = 3; direction = "vertical"; action = "special"; workspace_name = "music";}];}
-        {_args = [{fingers = 4; direction = "vertical"; action = "special"; workspace_name = "messages";}];}
-        {_args = [{fingers = 2; direction = "pinch"; mods = "SUPER"; action = "cursorZoom"; zoom_level = 1; mode = "live";}];}
+        {
+          _args = [
+            {
+              fingers = 3;
+              direction = "horizontal";
+              action = "workspace";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              fingers = 4;
+              direction = "horizontal";
+              action = "move";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              fingers = 3;
+              direction = "vertical";
+              action = "special";
+              workspace_name = "music";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              fingers = 4;
+              direction = "vertical";
+              action = "special";
+              workspace_name = "messages";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              fingers = 2;
+              direction = "pinch";
+              mods = "SUPER";
+              action = "cursorZoom";
+              zoom_level = 1;
+              mode = "live";
+            }
+          ];
+        }
       ];
 
       # ---------------------------------------------------------------
       # Window rules
       # ---------------------------------------------------------------
       window_rule = [
-        {_args = [{match = {class = "^(Spotify)$";}; float = true;}];}
-        {_args = [{match = {class = "^(Spotify)$";}; size = "55% 65%";}];}
-        {_args = [{match = {class = "^(Spotify)$";}; center = true;}];}
-        {_args = [{match = {class = "^(Spotify)$";}; rounding = 20;}];}
+        {
+          _args = [
+            {
+              match = {class = "^(Spotify)$";};
+              float = true;
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              match = {class = "^(Spotify)$";};
+              size = "55% 65%";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              match = {class = "^(Spotify)$";};
+              center = true;
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              match = {class = "^(Spotify)$";};
+              rounding = 20;
+            }
+          ];
+        }
         # Deny focus to XWayland phantom surfaces so
         # they can't steal focus from the active window.
         {
@@ -187,8 +342,22 @@ in {
       # regular ones pinned at runtime by monitor-manager)
       # ---------------------------------------------------------------
       workspace_rule = [
-        {_args = [{workspace = "special:music"; on_created_empty = "spotify";}];}
-        {_args = [{workspace = "special:messages"; on_created_empty = "beeper";}];}
+        {
+          _args = [
+            {
+              workspace = "special:music";
+              on_created_empty = "spotify";
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              workspace = "special:messages";
+              on_created_empty = "beeper";
+            }
+          ];
+        }
       ];
 
       # ---------------------------------------------------------------

@@ -21,8 +21,8 @@
         description = "Position in the global canvas (e.g. 1920x0). 'auto' lets Hyprland place it.";
       };
       scale = lib.mkOption {
-        type = lib.types.str;
-        default = "1";
+        type = lib.types.numbers.positive;
+        default = 1;
       };
       transform = lib.mkOption {
         type = lib.types.int;
@@ -47,8 +47,8 @@
         default = "0x0";
       };
       scale = lib.mkOption {
-        type = lib.types.str;
-        default = "1";
+        type = lib.types.numbers.positive;
+        default = 1;
       };
       transform = lib.mkOption {
         type = lib.types.int;

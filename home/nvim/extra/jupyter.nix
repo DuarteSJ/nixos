@@ -5,11 +5,11 @@
       src = pkgs.fetchFromGitHub {
         owner = "kiyoon";
         repo = "jupynium.nvim";
-        # TODO: pin to a commit SHA instead of the mutable `master` branch.
-        # With a branch ref, a content change upstream makes the fixed sha256
-        # mismatch and the build fails until the hash is bumped.
-        rev = "master";
-        sha256 = "13ssf2fpikfghmjr39nafjsdr83amddn4m9bqpp443ab852ai6d6";
+        # Pinned to an immutable commit SHA (not the mutable `master` branch)
+        # so the fixed hash stays reproducible. Bump rev + hash together via:
+        #   nix run nixpkgs#nix-prefetch-github -- kiyoon jupynium.nvim
+        rev = "dbd632bfa7883244c36152fc97fd6da54c443eed";
+        sha256 = "sha256-aINa8ZubUKgE52nKWXStJXR4B+rJM8ETKQt2vKc49wk=";
       };
     };
     setup = ''
