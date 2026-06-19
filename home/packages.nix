@@ -22,6 +22,7 @@
       ripgrep
       alejandra
       statix
+      mcp-nixos
       ffmpeg
       swayimg
       mpv
