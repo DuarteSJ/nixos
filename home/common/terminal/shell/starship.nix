@@ -81,7 +81,7 @@
       username = {
         style_user = "bold #${base0B}";
         style_root = "bold #${base08}";
-        format = "[$user]($style) ";
+        format = "[$user]($style)";
         disabled = false;
         show_always = false;
       };
