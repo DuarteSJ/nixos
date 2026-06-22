@@ -29,8 +29,6 @@
     };
   };
 
-  services.tailscale.enable = true;
-
   # Run with the lid closed.
   services.logind.settings.Login = {
     HandleLidSwitch = "ignore";
