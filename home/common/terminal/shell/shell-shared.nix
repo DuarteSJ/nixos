@@ -1,7 +1,7 @@
 {config, ...}: {
   _module.args.shellShared = {
     aliases = {
-      rb = "sudo -v && nixos-rebuild switch --sudo";
+      rb = "sudo -v && nixos-rebuild switch --flake /etc/nixos#desktop --sudo";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
       la = "l -a";
