@@ -38,12 +38,16 @@ in {
         })
         -- #6 Gaps: flat 0 in focus mode; otherwise restore the topology-derived
         -- baseline via the same writer reconcile() uses, so the two can't drift.
-        -- Guarded: after a `hyprctl reload` the dynamic layer (and this global)
-        -- is gone until relogin, so skip rather than error.
+        -- After a `hyprctl reload` the start handler (and _G.hlBaselineGaps) is
+        -- gone until relogin, but this keybind closure survives — so without a
+        -- fallback the restore branch silently no-ops and gaps stay pinned at 0.
+        -- Recompute the same baseline inline (shared nix source) in that case.
         if on then
           hl.config({ general = { gaps_in = 0, gaps_out = 0 } })
         elseif _G.hlBaselineGaps then
           _G.hlBaselineGaps()
+        else
+          ${monitorManager.baselineGapsLua}
         end
         hl.exec_cmd(on and "pkill waybar" or "pgrep waybar >/dev/null || waybar")
       end

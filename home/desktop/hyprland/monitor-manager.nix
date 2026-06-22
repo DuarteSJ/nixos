@@ -60,6 +60,23 @@
   wsList = builtins.concatStringsSep ", " (map toString workspaces);
   preferExternalLua = pkgs.lib.boolToString preferExternal;
 
+  # #6 Topology-derived gap baseline as self-contained statements (laptop name
+  # literal, no LAPTOP upvalue) so the same source can both define
+  # _G.hlBaselineGaps inside the start handler AND be inlined from prodToggle's
+  # restore path after a `hyprctl reload` has wiped that global.  One nix string
+  # => the two callers can't drift.
+  baselineGapsLua = ''
+    local hasExt = false
+    for _, m in ipairs(hl.get_monitors()) do
+      if m.name ~= "${laptop.name}" then hasExt = true; break end
+    end
+    hl.config({
+      general = {
+        gaps_out = hasExt and ${toString gapsOuter} or 1,
+        gaps_in  = hasExt and ${toString gapsInner} or 0,
+      },
+    })'';
+
   setup = ''
     -- ====================================================================
     -- Monitor reconciliation (event-driven; replaces the socat shell loop)
@@ -77,16 +94,7 @@
     -- attached.  Global so the productivity toggle (lua-actions) restores this
     -- exact baseline instead of hardcoding values that drift away from here.
     function _G.hlBaselineGaps()
-      local hasExt = false
-      for _, m in ipairs(hl.get_monitors()) do
-        if m.name ~= LAPTOP then hasExt = true; break end
-      end
-      hl.config({
-        general = {
-          gaps_out = hasExt and ${toString gapsOuter} or 1,
-          gaps_in  = hasExt and ${toString gapsInner} or 0,
-        },
-      })
+      ${baselineGapsLua}
     end
 
     local function reconcile()
@@ -164,5 +172,5 @@
     hlKeep(hl.timer(function() reconcile() end, { timeout = 500, type = "oneshot" }))
   '';
 in {
-  inherit setup setWallpaper;
+  inherit setup setWallpaper baselineGapsLua;
 }

@@ -1,4 +1,3 @@
-# Aggregates terminal configuration
 {
   imports = [
     ./shell-shared.nix
