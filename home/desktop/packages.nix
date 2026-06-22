@@ -11,21 +11,15 @@
       # CLI tools
       # (git, home-manager, alacritty omitted: installed by their
       #  programs.<name>.enable modules.)
-      gh
-      curl
-      eza
-      fastfetch
       wl-clipboard
       brightnessctl
       playerctl
-      ripgrep
       alejandra
       statix
       mcp-nixos
       ffmpeg
       swayimg
       mpv
-      jq
       usbutils
 
       # Desktop utilities
