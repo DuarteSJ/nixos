@@ -28,9 +28,9 @@
   services.tailscale.enable = true;
 
   # Run with the lid closed.
-  services.logind = {
-    lidSwitch = "ignore";
-    lidSwitchExternalPower = "ignore";
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
   };
 
   networking.firewall = {
