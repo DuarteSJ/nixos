@@ -35,38 +35,27 @@
     ...
   } @ inputs: let
     system = "x86_64-linux";
-  in {
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      inherit system;
 
-      specialArgs = {
-        inherit inputs;
-      };
-
-      modules = [
-        ./system/configuration.nix
-
-        # Home Manager as NixOS module
-        home-manager.nixosModules.home-manager
-
-        # Global nixpkgs config
-        {
-          nixpkgs.config.allowUnfree = true;
-        }
-
-        # Home Manager config
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = {
-              inherit inputs;
+    mkHost = hostPath:
+      nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {inherit inputs;};
+        modules = [
+          hostPath
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs = {inherit inputs;};
             };
-          };
-
-          home-manager.users.duartesj = import ./home;
-        }
-      ];
+          }
+        ];
+      };
+  in {
+    nixosConfigurations = {
+      desktop = mkHost ./hosts/desktop/default.nix;
+      homelab = mkHost ./hosts/homelab/default.nix;
     };
   };
 }

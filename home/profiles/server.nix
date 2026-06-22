@@ -1,0 +1,11 @@
+{...}: {
+  imports = [
+    ../common
+  ];
+
+  home = {
+    username = "duartesj";
+    homeDirectory = "/home/duartesj";
+    stateVersion = "26.05";
+  };
+}
