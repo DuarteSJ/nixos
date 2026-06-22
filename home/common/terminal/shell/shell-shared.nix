@@ -2,6 +2,7 @@
   _module.args.shellShared = {
     aliases = {
       rb = "sudo -v && nixos-rebuild switch --flake /etc/nixos#desktop --sudo";
+      rbs = "nixos-rebuild switch --flake /etc/nixos#homelab --target-host duartesj@100.115.170.125 --sudo --use-substitutes";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
       la = "l -a";
