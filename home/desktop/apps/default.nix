@@ -1,4 +1,4 @@
-{
+{...}: {
   imports = [
     ./spicetify.nix
     ./firefox.nix

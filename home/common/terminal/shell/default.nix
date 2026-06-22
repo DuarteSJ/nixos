@@ -1,4 +1,4 @@
-{
+{...}: {
   imports = [
     ./shell-shared.nix
     ./zsh.nix

@@ -1,4 +1,4 @@
-_: let
+{...}: let
   externalOpeners = [
     {
       app = "zathura";
