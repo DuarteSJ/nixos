@@ -1,8 +1,4 @@
-{
-  pkgs,
-  lib,
-  ...
-}: {
+{pkgs, ...}: {
   # duartesj needs networkmanager on the desktop (added on top of common's wheel).
   users.users.duartesj.extraGroups = ["networkmanager"];
 
