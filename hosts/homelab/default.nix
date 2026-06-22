@@ -6,6 +6,10 @@
 
   system.stateVersion = "26.05";
 
+  # UEFI bootloader (the generated hardware-configuration.nix does not set one).
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   networking = {
     hostName = "homelab";
     # Old laptop almost certainly uses wifi; NetworkManager is the simplest path.
@@ -43,6 +47,11 @@
 
   # Allow remote `nixos-rebuild --target-host` to write to the store.
   nix.settings.trusted-users = ["root" "duartesj"];
+
+  # Passwordless sudo for the deploy user so `nixos-rebuild --target-host
+  # --use-remote-sudo` runs non-interactively. Acceptable here: single-user
+  # box, key-only SSH, behind firewall + Tailscale.
+  security.sudo.wheelNeedsPassword = false;
 
   home-manager.users.duartesj = import ../../home/profiles/server.nix;
 }
