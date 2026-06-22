@@ -7,7 +7,7 @@
 
   system.stateVersion = "26.05";
 
-  networking.hostName = "nixos";
+  networking.hostName = "desktop";
 
   boot.loader = {
     efi = {
