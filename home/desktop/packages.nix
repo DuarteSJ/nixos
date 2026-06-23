@@ -9,8 +9,6 @@
       nvidia-vaapi-driver
 
       # CLI tools
-      # (git, home-manager, alacritty omitted: installed by their
-      #  programs.<name>.enable modules.)
       wl-clipboard
       brightnessctl
       playerctl
