@@ -1,0 +1,16 @@
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "us(basic)"
+    include "level3(ralt_switch)"
+    name[Group1] = "US + PT dead keys";
+
+    // --- Dactyl dead keys on intl/lang codes (inet leaves these alone) ---
+    override key <HENK> { type="TWO_LEVEL", [ dead_acute, dead_grave      ] };
+    override key <MUHE> { type="TWO_LEVEL", [ dead_tilde, dead_circumflex ] };
+    override key <AB11> { type="TWO_LEVEL", [ ccedilla,   Ccedilla        ] };
+
+    // --- Laptop / any-keyboard fallback at AltGr level ---
+    key <AC11> { [ apostrophe, quotedbl,   dead_acute,  dead_grave      ] };
+    key <TLDE> { [ grave,      asciitilde, dead_tilde,  dead_circumflex ] };
+    key <AB03> { [ c,          C,          ccedilla,    Ccedilla        ] };
+};
