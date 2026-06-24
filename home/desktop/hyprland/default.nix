@@ -106,8 +106,9 @@ in {
               repeat_rate = 50;
               follow_mouse = 1;
               sensitivity = 0;
-              kb_layout = "us,pt";
-              kb_options = "grp:win_space_toggle";
+              kb_layout = "us";
+              kb_variant = "altgr-intl";
+              kb_options = "";
               touchpad.natural_scroll = true;
             };
             animations = {enabled = true;};
