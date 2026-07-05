@@ -16,5 +16,11 @@
       action = "<cmd>lua vim.lsp.buf.definition()<CR>";
       desc = "Go to definition";
     }
+    {
+      mode = "n";
+      key = "<C-Tab>";
+      action = ":bnext<CR>";
+      desc = "Next buffer";
+    }
   ];
 }
