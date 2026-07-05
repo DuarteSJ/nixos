@@ -22,5 +22,11 @@
       action = ":bnext<CR>";
       desc = "Next buffer";
     }
+    {
+      mode = "n";
+      key = "<C-S-Tab>";
+      action = ":bprevious<CR>";
+      desc = "Previous buffer";
+    }
   ];
 }
