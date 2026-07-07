@@ -5,5 +5,7 @@
     eza
     ripgrep
     jq
+    zip
+    unzip
   ];
 }
