@@ -55,7 +55,6 @@
   in {
     nixosConfigurations = {
       desktop = mkHost ./hosts/desktop/default.nix;
-      homelab = mkHost ./hosts/homelab/default.nix;
     };
   };
 }

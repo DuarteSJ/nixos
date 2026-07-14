@@ -4,6 +4,5 @@
     ./users.nix
     ./locale.nix
     ./keyboard.nix
-    ./tailscale.nix
   ];
 }
