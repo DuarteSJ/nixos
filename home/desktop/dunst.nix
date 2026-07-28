@@ -84,7 +84,7 @@ in {
         mouse_right_click = "close_all";
 
         ### Idle ###
-        idle_threshold = 120;
+        idle_threshold = 0; # 0 = notifications time out even when user idle
 
         ### Action menu (rofi, wayland-native) ###
         dmenu = "rofi -dmenu -p dunst";

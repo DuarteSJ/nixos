@@ -19,6 +19,10 @@
   };
   windowBorderLua = lib.generators.toLua {multiline = false;} windowBorder;
 
+  # Animation entries share enabled/speed/bezier; override per-leaf via attrs.
+  mkAnim = attrs: {_args = [({enabled = true; speed = 1; bezier = "snap";} // attrs)];};
+  spotifyMatch = {class = "^(Spotify)$";};
+
   # ------------------------------------------------------------------
   # Sub-modules
   # ------------------------------------------------------------------
@@ -130,80 +134,13 @@ in {
       ];
 
       animation = [
-        {
-          _args = [
-            {
-              leaf = "windowsIn";
-              enabled = true;
-              speed = 1;
-              bezier = "snap";
-              style = "slide";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              leaf = "windowsOut";
-              enabled = true;
-              speed = 1;
-              bezier = "snap";
-              style = "slide";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              leaf = "windowsMove";
-              enabled = true;
-              speed = 1;
-              bezier = "snap";
-              style = "slide";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              leaf = "border";
-              enabled = true;
-              speed = 2;
-              bezier = "snap";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              leaf = "fade";
-              enabled = true;
-              speed = 1;
-              bezier = "snap";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              leaf = "workspaces";
-              enabled = true;
-              speed = 1;
-              bezier = "snap";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              leaf = "specialWorkspace";
-              enabled = true;
-              speed = 1;
-              bezier = "snap";
-              style = "slidefadevert 90%";
-            }
-          ];
-        }
+        (mkAnim {leaf = "windowsIn"; style = "slide";})
+        (mkAnim {leaf = "windowsOut"; style = "slide";})
+        (mkAnim {leaf = "windowsMove"; style = "slide";})
+        (mkAnim {leaf = "border"; speed = 2;})
+        (mkAnim {leaf = "fade";})
+        (mkAnim {leaf = "workspaces";})
+        (mkAnim {leaf = "specialWorkspace"; style = "slidefadevert 90%";})
       ];
 
       # ---------------------------------------------------------------
@@ -276,7 +213,7 @@ in {
         {
           _args = [
             {
-              match = {class = "^(Spotify)$";};
+              match = spotifyMatch;
               float = true;
             }
           ];
@@ -284,7 +221,7 @@ in {
         {
           _args = [
             {
-              match = {class = "^(Spotify)$";};
+              match = spotifyMatch;
               size = "55% 65%";
             }
           ];
@@ -292,7 +229,7 @@ in {
         {
           _args = [
             {
-              match = {class = "^(Spotify)$";};
+              match = spotifyMatch;
               center = true;
             }
           ];
@@ -300,7 +237,7 @@ in {
         {
           _args = [
             {
-              match = {class = "^(Spotify)$";};
+              match = spotifyMatch;
               rounding = 20;
             }
           ];

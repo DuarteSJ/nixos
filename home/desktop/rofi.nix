@@ -1,6 +1,10 @@
 {config, ...}: let
   colors = config.colorScheme.palette;
   inherit (config) vars;
+  # Theme design tokens: pill rounding + accent border width, reused across
+  # the rasi rules below so a single edit re-flows every element.
+  radius = "10px";
+  accent = "2px";
 in {
   # programs.rofi is intentionally not used here; we manage the config file
   # directly because the rofi package is installed via home.packages.
@@ -94,7 +98,7 @@ in {
         margin:                      0px 0px 10px 0px;
         padding:                     5px 10px;
         border:                      0px solid;
-        border-radius:               10px;
+        border-radius:               ${radius};
         border-color:                @border-colour;
         background-color:            @alternate-background;
         text-color:                  @foreground-colour;
@@ -170,8 +174,8 @@ in {
         spacing:                     5px;
         margin:                      0px;
         padding:                     10px;
-        border:                      0px 2px 2px 2px;
-        border-radius:               0px 0px 10px 10px;
+        border:                      0px ${accent} ${accent} ${accent};
+        border-radius:               0px 0px ${radius} ${radius};
         border-color:                @border-colour;
         background-color:            transparent;
         text-color:                  @foreground-colour;
@@ -181,7 +185,7 @@ in {
     scrollbar {
         handle-width:                5px;
         handle-color:                @handle-colour;
-        border-radius:               10px;
+        border-radius:               ${radius};
         background-color:            @alternate-background;
     }
 
@@ -268,8 +272,8 @@ in {
 
     button {
         padding:                     10px;
-        border:                      0px 0px 2px 0px;
-        border-radius:               10px 10px 0px 0px;
+        border:                      0px 0px ${accent} 0px;
+        border-radius:               ${radius} ${radius} 0px 0px;
         border-color:                @border-colour;
         background-color:            @background-colour;
         text-color:                  inherit;
@@ -277,8 +281,8 @@ in {
     }
 
     button selected {
-        border:                      2px 2px 0px 2px;
-        border-radius:               10px 10px 0px 0px;
+        border:                      ${accent} ${accent} 0px ${accent};
+        border-radius:               ${radius} ${radius} 0px 0px;
         border-color:                @border-colour;
         background-color:            var(normal-background);
         text-color:                  var(normal-foreground);
@@ -299,7 +303,7 @@ in {
     textbox {
         padding:                     10px;
         border:                      0px solid;
-        border-radius:               10px;
+        border-radius:               ${radius};
         border-color:                @border-colour;
         background-color:            @alternate-background;
         text-color:                  @foreground-colour;
@@ -313,8 +317,8 @@ in {
 
     error-message {
         padding:                     10px;
-        border:                      2px solid;
-        border-radius:               10px;
+        border:                      ${accent} solid;
+        border-radius:               ${radius};
         border-color:                @border-colour;
         background-color:            @background-colour;
         text-color:                  @foreground-colour;

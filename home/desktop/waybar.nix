@@ -91,6 +91,7 @@
 
   # Build path for terminal commands
   mkTermCmd = bin: "${lib.getExe pkgs.${vars.terminal}} -e ${bin}";
+  btopCmd = mkTermCmd (lib.getExe pkgs.btop);
 in {
   programs.waybar = {
     enable = true;
@@ -138,13 +139,13 @@ in {
         # System monitoring modules
         memory = mkModuleWithIcon icons.memory moduleColors.memory "{}%" {
           states = thresholds.memory;
-          on-click = mkTermCmd "${lib.getExe pkgs.btop}";
+          on-click = btopCmd;
         };
 
         temperature = mkModuleWithIcon "{icon}" moduleColors.temperature "{temperatureC}°C" {
           critical-threshold = thresholds.temperature.critical;
           format-icons = with icons.temperature; [normal warm hot];
-          on-click = mkTermCmd "${lib.getExe pkgs.btop}";
+          on-click = btopCmd;
           # Match the coretemp device by its stable platform path; waybar globs
           # the hwmonN subdir, so this survives reboots/kernel reordering
           # (numeric /sys/class/hwmon indices do not).
@@ -152,10 +153,12 @@ in {
           input-filename = "temp1_input";
         };
 
-        battery = {
+        battery = let
+          batteryFmt = "${coloredIcon "{icon}" moduleColors.battery} {capacity}%";
+        in {
           states = thresholds.battery;
-          format = "${coloredIcon "{icon}" moduleColors.battery} {capacity}%";
-          format-full = "${coloredIcon "{icon}" moduleColors.battery} {capacity}%";
+          format = batteryFmt;
+          format-full = batteryFmt;
           format-charging = "${coloredIcon icons.battery.charging moduleColors.batteryCharging} {capacity}%";
           format-plugged = "${coloredIcon icons.battery.plugged moduleColors.batteryCharging} {capacity}%";
           format-icons = icons.battery.levels;
@@ -172,10 +175,12 @@ in {
         };
 
         # Audio with pavucontrol
-        pulseaudio = mkModuleWithIcon "{icon}" moduleColors.audio "{volume}%" {
+        pulseaudio = let
+          mutedIcon = coloredIcon icons.audio.muted moduleColors.muted;
+        in mkModuleWithIcon "{icon}" moduleColors.audio "{volume}%" {
           format-bluetooth = "{volume}% ${coloredIcon "{icon}" moduleColors.audio} {format_source}";
-          format-bluetooth-muted = "${coloredIcon icons.audio.muted moduleColors.muted} {icon} {format_source}";
-          format-muted = coloredIcon icons.audio.muted moduleColors.muted;
+          format-bluetooth-muted = "${mutedIcon} {icon} {format_source}";
+          format-muted = mutedIcon;
           format-icons = with icons.audio; {
             inherit headphone hands-free headset phone portable car;
             default = levels;
@@ -291,9 +296,8 @@ in {
         animation-direction: alternate;
       }
 
-      /* Screen recording indicator */
+      /* Screen recording indicator (padding inherited from module rule above) */
       #custom-screenrec {
-        padding: 0 10px;
         margin-left: 10px;
       }
 
