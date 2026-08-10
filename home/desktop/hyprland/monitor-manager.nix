@@ -6,8 +6,8 @@
 #     and re-enables it when the last external is unplugged.
 #   • Pins the configured workspaces to whichever monitor is primary
 #     (first external if any, else laptop).
-#   • Per-monitor gaps (#5): tighter gaps on the small laptop panel, the
-#     configured gaps once an external is attached.
+#   • Re-asserts the configured gaps (#5/#6) after topology changes, via the
+#     same writer the productivity toggle uses to restore them.
 #   • Sets wallpapers for every active monitor, orientation from live transform.
 #
 # `setup` is a Lua snippet meant to run inside the `hyprland.start` handler.
@@ -60,20 +60,17 @@
   wsList = builtins.concatStringsSep ", " (map toString workspaces);
   preferExternalLua = pkgs.lib.boolToString preferExternal;
 
-  # #6 Topology-derived gap baseline as self-contained statements (laptop name
-  # literal, no LAPTOP upvalue) so the same source can both define
-  # _G.hlBaselineGaps inside the start handler AND be inlined from prodToggle's
-  # restore path after a `hyprctl reload` has wiped that global.  One nix string
-  # => the two callers can't drift.
+  # #6 Gap baseline as self-contained statements so the same source can both
+  # define _G.hlBaselineGaps inside the start handler AND be inlined from
+  # prodToggle's restore path after a `hyprctl reload` has wiped that global.
+  # One nix string => the two callers can't drift.  Values match the static
+  # `config` block in default.nix, so restoring the baseline always lands on
+  # exactly what you get at login regardless of monitor topology.
   baselineGapsLua = ''
-    local hasExt = false
-    for _, m in ipairs(hl.get_monitors()) do
-      if m.name ~= "${laptop.name}" then hasExt = true; break end
-    end
     hl.config({
       general = {
-        gaps_out = hasExt and ${toString gapsOuter} or 1,
-        gaps_in  = hasExt and ${toString gapsInner} or 0,
+        gaps_out = ${toString gapsOuter},
+        gaps_in  = ${toString gapsInner},
       },
     })'';
 
@@ -89,10 +86,9 @@
       ${laptopEnable}
     end
 
-    -- #6 Single source of truth for the topology-derived gap baseline: tight
-    -- gaps on the laptop-only layout, the configured gaps once an external is
-    -- attached.  Global so the productivity toggle (lua-actions) restores this
-    -- exact baseline instead of hardcoding values that drift away from here.
+    -- #6 Single source of truth for the gap baseline.  Global so the
+    -- productivity toggle (lua-actions) restores this exact baseline instead of
+    -- hardcoding values that drift away from here.
     function _G.hlBaselineGaps()
       ${baselineGapsLua}
     end
@@ -110,8 +106,8 @@
       local hasExt  = externalPrimary ~= nil
       local primary = externalPrimary or LAPTOP
 
-      -- #5/#6 Per-monitor conditional gaps via the shared baseline writer
-      -- (also used by prodToggle's restore branch).
+      -- #5/#6 Re-assert the gap baseline via the shared writer (also used by
+      -- prodToggle's restore branch).
       _G.hlBaselineGaps()
 
       -- Pin configured workspaces to primary (rule for future, move existing).

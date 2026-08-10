@@ -36,7 +36,7 @@ in {
             dim_strength = on and 0.15 or 0.0,
           },
         })
-        -- #6 Gaps: flat 0 in focus mode; otherwise restore the topology-derived
+        -- #6 Gaps: flat 0 in focus mode; otherwise restore the configured
         -- baseline via the same writer reconcile() uses, so the two can't drift.
         -- After a `hyprctl reload` the start handler (and _G.hlBaselineGaps) is
         -- gone until relogin, but this keybind closure survives — so without a

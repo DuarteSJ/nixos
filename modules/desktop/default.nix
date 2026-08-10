@@ -38,6 +38,8 @@
     xwayland.enable = true;
   };
 
+  programs.steam.enable = true;
+
   services = {
     resolved.enable = true;
     printing.enable = true;
