@@ -123,7 +123,7 @@ in {
       -- of the quotes) and backslashes so a crafted class can't inject shell.
       local who = (win and win.class) or "A window"
       who = who:gsub("'", ""):gsub("''\\''\\", "")
-      hl.exec_cmd("dunstify -u critical 'Attention' '" .. who .. " needs attention'")
+      hl.exec_cmd("dunstify -u low 'Attention' '" .. who .. " needs attention'")
     end))
   '';
 }

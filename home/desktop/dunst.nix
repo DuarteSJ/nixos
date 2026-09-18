@@ -99,7 +99,7 @@ in {
         foreground = "#${colors.base05}";
         frame_color = "#${colors.base03}";
         highlight = "#${colors.base0D}";
-        timeout = 6;
+        timeout = 2;
         default_icon = "dialog-information";
       };
 
@@ -108,7 +108,7 @@ in {
         foreground = "#${colors.base05}";
         frame_color = "#${colors.base0D}";
         highlight = "#${colors.base0D}";
-        timeout = 10;
+        timeout = 5;
         default_icon = "dialog-information";
       };
 
@@ -117,7 +117,7 @@ in {
         foreground = "#${colors.base08}";
         frame_color = "#${colors.base08}";
         highlight = "#${colors.base08}";
-        timeout = 0;
+        timeout = 0; # critical stays until dismissed
         default_icon = "dialog-error";
       };
     };

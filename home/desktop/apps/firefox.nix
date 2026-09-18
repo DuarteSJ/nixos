@@ -69,8 +69,12 @@ in {
           ${sideberyAddonId} = sideberyUuid;
         };
 
-        # Better dark colors for content
-        "layout.css.prefers-color-scheme.content-override" = 0;
+        # Website content color scheme: 0 = force dark, 1 = force light,
+        # 2 = follow browser theme. Forcing dark broke webmail: SAPO paints the
+        # message iframe white while Firefox hands the document a white default
+        # text color, leaving the body unreadable. Browser UI stays dark via
+        # ui.systemUsesDarkTheme / the compact-dark theme above.
+        "layout.css.prefers-color-scheme.content-override" = 1;
 
         # Simplify new tab page
         "browser.newtabpage.activity-stream.showSponsored" = false;
