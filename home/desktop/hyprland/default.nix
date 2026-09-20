@@ -336,5 +336,14 @@ in {
       # ---------------------------------------------------------------
       inherit bind;
     };
+
+    # Raw Lua appended after `settings`, so the static monitor rules above are
+    # already applied when this runs.  Home Manager re-emits the whole file on
+    # rebuild and Hyprland re-executes it on every reload, which is what makes
+    # profile matching here self-healing.
+    extraConfig = lib.concatStringsSep "\n" [
+      monitorManager.topLevel
+      wallpaper.topLevel
+    ];
   };
 }

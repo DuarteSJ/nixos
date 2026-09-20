@@ -43,28 +43,18 @@
     end
   '';
 
-  # Subscriptions + first pass.  Runs on its own debounce, after the monitor
-  # manager's (500ms), so geometry has settled before wallpapers are pushed.
-  init = ''
+  # Top-level program, for `extraConfig`.  No event subscriptions: every
+  # topology change goes through a config reload now, which re-runs this.
+  # 800ms puts it after the monitor manager.s 500ms match, so geometry has
+  # settled before wallpapers are pushed.
+  topLevel = ''
     ${setup}
 
-    function _G.hlWallpaperInit()
-      if _G.__hlWpInit then return end
-      _G.__hlWpInit = true
-
-      local function schedule()
-        hlKeep(hl.timer(function() _G.hlWallpapers() end,
-                        { timeout = 600, type = "oneshot" }))
-      end
-
-      hlKeep(hl.on("monitor.added",   schedule))
-      hlKeep(hl.on("monitor.removed", schedule))
-      hlKeep(hl.timer(function() _G.hlWallpapers() end,
-                      { timeout = 800, type = "oneshot" }))
-    end
-
-    _G.hlWallpaperInit()
+    _G.__hlHandles = _G.__hlHandles or {}
+    _G.__hlHandles[#_G.__hlHandles + 1] = hl.timer(
+      function() _G.hlWallpapers() end,
+      { timeout = 800, type = "oneshot" })
   '';
 in {
-  inherit setup init setWallpaper;
+  inherit setup topLevel setWallpaper;
 }

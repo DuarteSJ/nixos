@@ -273,14 +273,11 @@
       hl.exec_cmd("dunstify -r 7778 -t 6000 'Monitors' '" .. safe .. "'")
     end
 
-    -- Profile changes are worth a toast; the first pass at login is not.
+    -- Recorded for the status keybind.  No change-detection toast: every
+    -- topology change now goes through a reload, which wipes _G, so there is
+    -- never a previous value to compare against.
     local function trackProfile(name)
-      local prev = _G.hlMonitorProfile
       _G.hlMonitorProfile = name
-      if prev and prev ~= name then
-        hl.exec_cmd(
-          "dunstify -r 7778 -u low -t 4000 'Monitors' 'profile: " .. name .. "'")
-      end
     end
 
     function _G.hlMonitorReconcile()
@@ -293,39 +290,57 @@
     end
   '';
 
-  # Subscriptions + first pass.  Idempotent: safe to call more than once.
+  # Top-level program.  Goes in `extraConfig`, which Home Manager appends to
+  # the END of hyprland.lua — so it runs on every config load, including the
+  # reload that `hyprctl reload` (and every nixos-rebuild switch) performs.
   #
-  # NOTE: the Lua VM is wiped by `hyprctl reload`, taking these subscriptions
-  # with it, so after a `nixos-rebuild switch` reconciliation is dead until
-  # relogin.  If Hyprland re-executes the Lua config on reload, calling
-  # `hlMonitorInit()` from the top level of the config (instead of only from
-  # the `hyprland.start` handler) fixes that — the _G guard below resets
-  # along with the VM, so re-subscribing is correct rather than duplicated.
-  init = ''
+  # Why profile matching lives at config-load time rather than in an event
+  # handler: the static `monitor` rules rendered earlier in this same file are
+  # the BASELINE — every configured output enabled with its geometry.  A
+  # profile only ever subtracts from that baseline (disable) or overrides
+  # geometry.  Since every load re-establishes the baseline before we run,
+  # there is never anything to un-disable.
+  #
+  # That matters because Hyprland 0.55.4 cannot un-disable an output at all:
+  # once hl.monitor{disabled=true} has been applied, hl.monitor{disabled=false}
+  # is silently ignored — by connector name or `desc:`, with or without
+  # force_renderer_reload.  A config reload is the only thing that clears it.
+  # So a reload is exactly the primitive this design is built on, rather than
+  # the failure mode it used to be.
+  topLevel = ''
     ${setup}
 
-    function _G.hlMonitorInit()
-      if _G.__hlMonInit then return end
-      _G.__hlMonInit = true
+    _G.__hlHandles = _G.__hlHandles or {}
+    local function keep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
 
-      -- Debounced: re-run shortly after a topology change so Hyprland has
-      -- settled.  hl.timer/hl.on hand back GC-managed handles — drop the
-      -- reference and the subscription dies silently, hence hlKeep.
-      local function schedule()
-        hlKeep(hl.timer(function() _G.hlMonitorReconcile() end,
-                        { timeout = 300, type = "oneshot" }))
-      end
+    -- Monitors are not up yet while the config is first parsed, so the first
+    -- match is deferred briefly.  The same delay covers the reload case,
+    -- where they already exist.
+    keep(hl.timer(function() _G.hlMonitorReconcile() end,
+                  { timeout = 500, type = "oneshot" }))
 
-      hlKeep(hl.on("monitor.added",   schedule))
-      hlKeep(hl.on("monitor.removed", schedule))
-      hlKeep(hl.timer(function() _G.hlMonitorReconcile() end,
-                      { timeout = 500, type = "oneshot" }))
+    -- Settling window: our own disable makes Hyprland emit monitor.removed,
+    -- which would otherwise trigger a reload, which would disable again...
+    -- Swallow topology events until the first match has landed.
+    _G.__hlSettling = true
+    keep(hl.timer(function() _G.__hlSettling = false end,
+                  { timeout = 1500, type = "oneshot" }))
+
+    -- A real topology change just reloads.  The reload re-runs this file from
+    -- the baseline and re-matches — that IS the reconcile.  Nothing to
+    -- re-derive at runtime, nothing to undo.
+    local function onTopologyChange()
+      if _G.__hlSettling then return end
+      _G.__hlSettling = true
+      hl.exec_cmd("hyprctl reload")
     end
 
-    _G.hlMonitorInit()
+    keep(hl.on("monitor.added",   onTopologyChange))
+    keep(hl.on("monitor.removed", onTopologyChange))
   '';
+
   # Bindable action: notify with the current profile + live monitor mapping.
   statusAction = "function() _G.hlMonitorStatusNotify() end";
 in {
-  inherit setup init statusAction;
+  inherit setup topLevel statusAction;
 }

@@ -129,8 +129,6 @@ in {
     hl.exec_cmd("waybar")
 
     ${gaps.setup}
-    ${monitorManager.init}
-    ${wallpaper.init}
 
     -- Event handler — notify when a window marks itself urgent.
     hlKeep(hl.on("window.urgent", function(win)
