@@ -9,7 +9,7 @@
     ./packages.nix
     ./git.nix
 
-    ./hypr
+    ./desktop
     ./shell
     ./terminal
     ./nvim
