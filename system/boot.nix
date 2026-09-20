@@ -1,14 +1,4 @@
 {...}: {
-  imports = [
-    ./hardware-configuration.nix
-    ../../modules/common
-    ../../modules/desktop
-  ];
-
-  system.stateVersion = "26.05";
-
-  networking.hostName = "desktop";
-
   boot.loader = {
     efi = {
       canTouchEfiVariables = true;
@@ -31,6 +21,4 @@
       '';
     };
   };
-
-  home-manager.users.duartesj = import ../../home/profiles/desktop.nix;
 }

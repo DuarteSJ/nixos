@@ -4,13 +4,14 @@
 in {
   inherit inline;
 
-  # Monitor entry → hl monitor _args table.
+  # Configured output -> hl monitor _args table.  Static geometry only; the
+  # runtime profile layer (monitor-manager) overrides this where it needs to.
   mkMonitor = m: {
     _args = [
       (
         {
           output =
-            if m ? description
+            if m.description != null
             then "desc:${m.description}"
             else m.name;
           inherit (m) mode position scale;

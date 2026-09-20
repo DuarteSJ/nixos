@@ -5,7 +5,9 @@
   rounding,
   base02,
   windowBorderLua,
+  gaps,
   monitorManager,
+  wallpaper,
 }: let
   # general.gaps_out comes back as CCssGapData (a {top,right,bottom,left}
   # table), not a number — pull a single edge before doing arithmetic.
@@ -47,7 +49,7 @@ in {
         elseif _G.hlBaselineGaps then
           _G.hlBaselineGaps()
         else
-          ${monitorManager.baselineGapsLua}
+          ${gaps.baselineGapsLua}
         end
         hl.exec_cmd(on and "pkill waybar" or "pgrep waybar >/dev/null || waybar")
       end
@@ -110,13 +112,24 @@ in {
       hl.exec_cmd("dunstify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
     end'';
 
-  # Startup handler body (#2 events + #5 reconcile + #6 night dim)
+  # Startup handler body.  Order: prelude, then each subsystem's own init.
   startupLua = ''
+    -- hl.on / hl.timer return GC-managed handles: if the Lua handle is
+    -- collected, Hyprland drops the subscription from m_activeHandles and the
+    -- callback silently stops firing.  Everything here runs inside the
+    -- hyprland.start callback, so an unreferenced handle becomes unreachable
+    -- the moment that callback returns and dies at the next GC.  Anchor every
+    -- long-lived handle in a global so it lives for the session.
+    _G.__hlHandles = _G.__hlHandles or {}
+    function hlKeep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
+
     hl.exec_cmd("waybar")
 
-    ${monitorManager.setup}
+    ${gaps.setup}
+    ${monitorManager.init}
+    ${wallpaper.init}
 
-    -- #2 Event handler — notify when a window marks itself urgent.
+    -- Event handler — notify when a window marks itself urgent.
     hlKeep(hl.on("window.urgent", function(win)
       -- win.class is app-controlled and is interpolated into the single-quoted
       -- shell arg below; strip single quotes (the only char that can break out

@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (config) monitors;
-  inherit (monitors) laptop externals workspaces preferExternal;
+  inherit (monitors) outputs profiles announceUnknown;
   inherit (config) vars;
   inherit (vars) rounding;
   inherit (config.colorScheme.palette) base0D base0C base02;
@@ -32,14 +32,22 @@
   scripts = import ./scripts.nix {inherit pkgs;};
 
   monitorManager = import ./monitor-manager.nix {
-    inherit pkgs laptop workspaces preferExternal;
+    inherit lib outputs profiles announceUnknown;
+  };
+
+  gaps = import ./gaps.nix {
     inherit (vars) gapsOuter gapsInner;
+  };
+
+  wallpaper = import ./wallpaper.nix {
+    inherit pkgs;
     themeName = config.colorScheme.slug;
     wallpapersPath = vars.paths.wallpapers;
   };
 
   luaActions = import ./lua-actions.nix {
-    inherit inline rounding base02 monitorManager windowBorderLua;
+    inherit inline rounding base02 windowBorderLua;
+    inherit gaps monitorManager wallpaper;
   };
 
   bind = import ./keybinds.nix {
@@ -55,9 +63,11 @@ in {
       # ---------------------------------------------------------------
       # Monitors
       # ---------------------------------------------------------------
+      # Static per-output geometry + a catch-all so an unconfigured display
+      # lights up on its own (preferred mode, auto position).  The runtime
+      # profile layer only overrides what a matched profile names.
       monitor =
-        [(mkMonitor laptop)]
-        ++ map mkMonitor externals
+        map mkMonitor (lib.attrValues outputs)
         ++ [
           {
             _args = [

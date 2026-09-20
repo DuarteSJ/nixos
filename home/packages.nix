@@ -9,6 +9,13 @@
       nvidia-vaapi-driver
 
       # CLI tools
+      gh
+      curl
+      eza
+      ripgrep
+      jq
+      zip
+      unzip
       wl-clipboard
       brightnessctl
       playerctl

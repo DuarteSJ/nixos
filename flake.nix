@@ -33,28 +33,21 @@
     nixpkgs,
     home-manager,
     ...
-  } @ inputs: let
-    system = "x86_64-linux";
-
-    mkHost = hostPath:
-      nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = {inherit inputs;};
-        modules = [
-          hostPath
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = {inherit inputs;};
-            };
-          }
-        ];
-      };
-  in {
-    nixosConfigurations = {
-      desktop = mkHost ./hosts/desktop/default.nix;
+  } @ inputs: {
+    nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = {inherit inputs;};
+      modules = [
+        ./system
+        home-manager.nixosModules.home-manager
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = {inherit inputs;};
+          };
+        }
+      ];
     };
   };
 }
