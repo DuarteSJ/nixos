@@ -102,7 +102,7 @@ in {
         margin-top = 0;
         margin-left = 0;
         margin-right = 0;
-        margin-bottom = vars.gapsOuter;
+        margin-bottom = 1;
         height = 26;
 
         modules-left = ["hyprland/workspaces" "hyprland/window" "custom/screenrec"];
@@ -285,15 +285,15 @@ in {
          are NOT on a screen edge get rounded.  Shorthand order is
          top-left top-right bottom-right bottom-left. */
       .modules-left {
-        border-radius: 0 0 ${toString vars.rounding}px 0;
+        border-radius: 0 0 ${toString vars.waybarRounding}px 0;
       }
 
       .modules-center {
-        border-radius: 0 0 ${toString vars.rounding}px ${toString vars.rounding}px;
+        border-radius: 0 0 ${toString vars.waybarRounding}px ${toString vars.waybarRounding}px;
       }
 
       .modules-right {
-        border-radius: 0 0 0 ${toString vars.rounding}px;
+        border-radius: 0 0 0 ${toString vars.waybarRounding}px;
       }
 
       /* Critical state animation */

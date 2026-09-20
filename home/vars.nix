@@ -6,8 +6,8 @@
   options.vars = {
     rounding = lib.mkOption {
       description = ''
-        Surface corner radius: hyprland windows, dunst notifications, waybar
-        module groups, the rofi window.  Deliberately NOT hardcoded -- the
+        Surface corner radius: hyprland windows, dunst notifications, the
+        rofi window.  Deliberately NOT hardcoded -- the
         hyprland value alone is read from four places that must agree (the
         static decoration block plus prodToggle, incGaps and decGaps in
         lua-actions.nix).  If they drift, toggling focus mode or nudging gaps
@@ -15,16 +15,33 @@
 
         Anything nested INSIDE a surface (rofi's inner boxes, the waybar
         recording chip, the Spotify panel) is a local aesthetic choice and is
-        hardcoded at its single use site instead.
+        hardcoded at its single use site instead.  Waybar's module groups get
+        their own knob, `waybarRounding` below.
       '';
       type = lib.types.int;
-      default = 2;
+      default = 0;
+    };
+
+    waybarRounding = lib.mkOption {
+      description = ''
+        Corner radius for waybar's module groups.  Separate from `rounding`
+        because the bar is flush against the top, left and right screen edges,
+        so only the corners that sit on no edge are rounded at all -- and those
+        want a different weight than a free-floating tiled window.
+
+        Applied per group in home/shell/waybar.nix:
+          .modules-left    bottom-right only   (top + left edges are walls)
+          .modules-center  both bottom corners (only the top edge is a wall)
+          .modules-right   bottom-left only    (top + right edges are walls)
+      '';
+      type = lib.types.int;
+      default = 8;
     };
 
     gapsOuter = lib.mkOption {
       description = "Outer gap. Matches waybar's bar margin so windows and the bar sit the same distance from the screen edge.";
       type = lib.types.int;
-      default = 4;
+      default = 8;
     };
 
     gapsInner = lib.mkOption {
