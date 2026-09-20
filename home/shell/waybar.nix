@@ -177,16 +177,17 @@ in {
         # Audio with pavucontrol
         pulseaudio = let
           mutedIcon = coloredIcon icons.audio.muted moduleColors.muted;
-        in mkModuleWithIcon "{icon}" moduleColors.audio "{volume}%" {
-          format-bluetooth = "{volume}% ${coloredIcon "{icon}" moduleColors.audio} {format_source}";
-          format-bluetooth-muted = "${mutedIcon} {icon} {format_source}";
-          format-muted = mutedIcon;
-          format-icons = with icons.audio; {
-            inherit headphone hands-free headset phone portable car;
-            default = levels;
+        in
+          mkModuleWithIcon "{icon}" moduleColors.audio "{volume}%" {
+            format-bluetooth = "{volume}% ${coloredIcon "{icon}" moduleColors.audio} {format_source}";
+            format-bluetooth-muted = "${mutedIcon} {icon} {format_source}";
+            format-muted = mutedIcon;
+            format-icons = with icons.audio; {
+              inherit headphone hands-free headset phone portable car;
+              default = levels;
+            };
+            on-click = lib.getExe pkgs.pavucontrol;
           };
-          on-click = lib.getExe pkgs.pavucontrol;
-        };
 
         # Screen recording indicator (only shows when recording)
         "custom/screenrec" = {

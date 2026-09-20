@@ -1,7 +1,5 @@
 # GPU, audio, bluetooth, peripherals.
-{...}: {
-  services.xserver.videoDrivers = ["nvidia"];
-
+_: {
   hardware = {
     bluetooth.enable = true;
     graphics = {
@@ -23,18 +21,23 @@
     };
   };
 
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-  security.rtkit.enable = true;
+  services = {
+    xserver.videoDrivers = ["nvidia"];
 
-  # Vial keyboard: let the desktop user talk to the raw HID device.
-  services.udev.extraRules = ''
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="vial:f64c2b3c", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
-  '';
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+
+    # Vial keyboard: let the desktop user talk to the raw HID device.
+    udev.extraRules = ''
+      KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="vial:f64c2b3c", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
+    '';
+  };
+
+  security.rtkit.enable = true;
 
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "nvidia";

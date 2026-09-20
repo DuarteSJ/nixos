@@ -20,7 +20,16 @@
   windowBorderLua = lib.generators.toLua {multiline = false;} windowBorder;
 
   # Animation entries share enabled/speed/bezier; override per-leaf via attrs.
-  mkAnim = attrs: {_args = [({enabled = true; speed = 1; bezier = "snap";} // attrs)];};
+  mkAnim = attrs: {
+    _args = [
+      ({
+          enabled = true;
+          speed = 1;
+          bezier = "snap";
+        }
+        // attrs)
+    ];
+  };
   spotifyMatch = {class = "^(Spotify)$";};
 
   # ------------------------------------------------------------------
@@ -144,13 +153,28 @@ in {
       ];
 
       animation = [
-        (mkAnim {leaf = "windowsIn"; style = "slide";})
-        (mkAnim {leaf = "windowsOut"; style = "slide";})
-        (mkAnim {leaf = "windowsMove"; style = "slide";})
-        (mkAnim {leaf = "border"; speed = 2;})
+        (mkAnim {
+          leaf = "windowsIn";
+          style = "slide";
+        })
+        (mkAnim {
+          leaf = "windowsOut";
+          style = "slide";
+        })
+        (mkAnim {
+          leaf = "windowsMove";
+          style = "slide";
+        })
+        (mkAnim {
+          leaf = "border";
+          speed = 2;
+        })
         (mkAnim {leaf = "fade";})
         (mkAnim {leaf = "workspaces";})
-        (mkAnim {leaf = "specialWorkspace"; style = "slidefadevert 90%";})
+        (mkAnim {
+          leaf = "specialWorkspace";
+          style = "slidefadevert 90%";
+        })
       ];
 
       # ---------------------------------------------------------------

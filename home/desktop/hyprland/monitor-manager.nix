@@ -49,10 +49,11 @@
     else {};
 
   # attrsOf -> sorted array, so generated Lua is deterministic.
-  sortedPairs = attrs: map (k: {
-    key = k;
-    value = attrs.${k};
-  }) (lib.sort (a: b: a < b) (lib.attrNames attrs));
+  sortedPairs = attrs:
+    map (k: {
+      key = k;
+      value = attrs.${k};
+    }) (lib.sort (a: b: a < b) (lib.attrNames attrs));
 
   mkEnable = e: let
     ov = stripNull (builtins.removeAttrs e.value ["mirror"]);
@@ -72,12 +73,11 @@
     }) (sortedPairs p.workspaces);
   };
 
-  luaOutputs =
-    lib.mapAttrs (_: o:
-      stripNull {
-        inherit (o) name description builtin;
-      })
-    outputs;
+  luaOutputs = lib.mapAttrs (_: o:
+    stripNull {
+      inherit (o) name description builtin;
+    })
+  outputs;
 
   setup = ''
     -- ====================================================================
