@@ -239,11 +239,56 @@
       end
     end
 
+    -- Human-readable snapshot of what the manager decided and what the
+    -- compositor is actually showing.  Read it from a keybind, or from a
+    -- shell with:
+    --   hyprctl dispatch 'hl.dsp.exec_cmd("dunstify Monitors \"" ..
+    --                                      _G.hlMonitorStatus() .. "\"")'
+    -- (`hyprctl dispatch` evaluates its argument as Lua in the compositor,
+    -- so _G is reachable; it must still resolve to a dispatcher.)
+    function _G.hlMonitorStatus()
+      local lines = { "profile: " .. (_G.hlMonitorProfile or "(none yet)") }
+      local snap = snapshot()
+      for _, m in ipairs(hl.get_monitors()) do
+        local nick = matchNick(m)
+        local aw   = m.active_workspace
+        lines[#lines + 1] = string.format(
+          "%s  [%s]  ws %s",
+          m.name,
+          nick or "unconfigured",
+          aw and tostring(aw.id) or "-")
+      end
+      -- get_monitors() only lists ENABLED outputs, so a panel we blanked is
+      -- invisible above.  Say so explicitly rather than leaving it off.
+      if not snap.byNick[${toLua builtinNick}] then
+        lines[#lines + 1] = BUILTIN .. "  [${builtinNick}]  disabled"
+      end
+      return table.concat(lines, "\n")
+    end
+
+    -- Bindable: show the status as a notification.  -r reuses one slot so
+    -- repeated presses update in place instead of stacking.
+    function _G.hlMonitorStatusNotify()
+      local safe = _G.hlMonitorStatus():gsub("'", "")
+      hl.exec_cmd("dunstify -r 7778 -t 6000 'Monitors' '" .. safe .. "'")
+    end
+
+    -- Profile changes are worth a toast; the first pass at login is not.
+    local function trackProfile(name)
+      local prev = _G.hlMonitorProfile
+      _G.hlMonitorProfile = name
+      if prev and prev ~= name then
+        hl.exec_cmd(
+          "dunstify -r 7778 -u low -t 4000 'Monitors' 'profile: " .. name .. "'")
+      end
+    end
+
     function _G.hlMonitorReconcile()
       local snap = snapshot()
       local p = pick(snap)
       if not p then return end
       apply(snap, p)
+      trackProfile(p.name)
       announce(snap)
     end
   '';
@@ -279,6 +324,8 @@
 
     _G.hlMonitorInit()
   '';
+  # Bindable action: notify with the current profile + live monitor mapping.
+  statusAction = "function() _G.hlMonitorStatusNotify() end";
 in {
-  inherit setup init;
+  inherit setup init statusAction;
 }

@@ -112,6 +112,9 @@ in {
       hl.exec_cmd("dunstify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
     end'';
 
+  # Monitor status: current profile + per-output workspace mapping.
+  monitorStatus = inline monitorManager.statusAction;
+
   # Startup handler body.  Order: prelude, then each subsystem's own init.
   startupLua = ''
     -- hl.on / hl.timer return GC-managed handles: if the Lua handle is
