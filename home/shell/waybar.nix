@@ -97,11 +97,12 @@ in {
     enable = true;
     settings = {
       mainBar = {
-        # Bar layout
-        margin-top = 2;
-        margin-left = 2;
-        margin-right = 2;
-        margin-bottom = 2;
+        # Bar layout.  Margins track vars.gapsOuter so the bar and tiled
+        # windows sit the same distance from the screen edge.
+        margin-top = vars.gapsOuter;
+        margin-left = vars.gapsOuter;
+        margin-right = vars.gapsOuter;
+        margin-bottom = vars.gapsOuter;
         height = 26;
 
         modules-left = ["hyprland/workspaces" "hyprland/window" "custom/screenrec"];

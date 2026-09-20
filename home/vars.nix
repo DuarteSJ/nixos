@@ -11,9 +11,9 @@
     };
 
     gapsOuter = lib.mkOption {
-      description = "Outer gap.";
+      description = "Outer gap. Matches waybar's bar margin so windows and the bar sit the same distance from the screen edge.";
       type = lib.types.int;
-      default = 24;
+      default = 2;
     };
 
     gapsInner = lib.mkOption {
