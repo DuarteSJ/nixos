@@ -19,7 +19,7 @@
         their own knob, `waybarRounding` below.
       '';
       type = lib.types.int;
-      default = 0;
+      default = 2;
     };
 
     waybarRounding = lib.mkOption {
