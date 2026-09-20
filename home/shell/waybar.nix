@@ -99,9 +99,9 @@ in {
       mainBar = {
         # Bar layout.  Margins track vars.gapsOuter so the bar and tiled
         # windows sit the same distance from the screen edge.
-        margin-top = vars.gapsOuter;
-        margin-left = vars.gapsOuter;
-        margin-right = vars.gapsOuter;
+        margin-top = 0;
+        margin-left = 0;
+        margin-right = 0;
         margin-bottom = vars.gapsOuter;
         height = 26;
 
@@ -217,7 +217,9 @@ in {
 
       window#waybar {
         background-color: rgba(0, 0, 0, 0);
-        border-radius: 13px;
+        /* Flush against top/left/right; the free bottom edge is the only
+           place a radius could show, and that is set per module group. */
+        border-radius: 0;
         transition-property: background-color;
         transition-duration: .5s;
       }
@@ -276,8 +278,22 @@ in {
       .modules-left,
       .modules-center {
         background-color: #${colors.base00};
-        border-radius: ${toString vars.rounding}px;
         padding: 1px 10px;
+      }
+
+      /* The bar sits flush against top/left/right, so only the corners that
+         are NOT on a screen edge get rounded.  Shorthand order is
+         top-left top-right bottom-right bottom-left. */
+      .modules-left {
+        border-radius: 0 0 ${toString vars.rounding}px 0;
+      }
+
+      .modules-center {
+        border-radius: 0 0 ${toString vars.rounding}px ${toString vars.rounding}px;
+      }
+
+      .modules-right {
+        border-radius: 0 0 0 ${toString vars.rounding}px;
       }
 
       /* Critical state animation */
@@ -303,6 +319,8 @@ in {
         margin-left: 10px;
       }
 
+      /* A chip inside the bar, not a surface -- its radius is its own
+         business and stays literal. */
       #custom-screenrec.recording {
         background-color: #${colors.base08};
         color: #${colors.base00};

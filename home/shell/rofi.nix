@@ -3,6 +3,11 @@
   inherit (config) vars;
   # Theme design tokens: pill rounding + accent border width, reused across
   # the rasi rules below so a single edit re-flows every element.
+  #
+  # Note `radius` is rofi's INTERNAL rounding and is intentionally unrelated to
+  # vars.rounding.  The outer `window` rule below uses vars.rounding because
+  # that is a surface, matching every other window on screen; everything nested
+  # inside it uses `radius`.  Two different things, two different numbers.
   radius = "10px";
   accent = "2px";
 in {

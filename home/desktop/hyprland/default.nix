@@ -30,7 +30,11 @@
         // attrs)
     ];
   };
-  spotifyMatch = {class = "^(Spotify)$";};
+  # Spotify reports its class as lowercase "spotify" (verified against a live
+  # window via `hyprctl clients`).  The previous "^(Spotify)$" matched nothing,
+  # so none of the four rules below ever fired -- the window tiled like any
+  # other.  Bracket the first letter in case a future build capitalises it.
+  spotifyMatch = {class = "^[Ss]potify$";};
 
   # ------------------------------------------------------------------
   # Sub-modules
@@ -272,6 +276,8 @@ in {
           _args = [
             {
               match = spotifyMatch;
+              # Deliberately heavy, unlike vars.rounding: this is a floating
+              # media panel, not a tiled surface.  One site, so no token.
               rounding = 20;
             }
           ];

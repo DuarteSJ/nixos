@@ -5,7 +5,18 @@
 }: {
   options.vars = {
     rounding = lib.mkOption {
-      description = "Corner radius";
+      description = ''
+        Surface corner radius: hyprland windows, dunst notifications, waybar
+        module groups, the rofi window.  Deliberately NOT hardcoded -- the
+        hyprland value alone is read from four places that must agree (the
+        static decoration block plus prodToggle, incGaps and decGaps in
+        lua-actions.nix).  If they drift, toggling focus mode or nudging gaps
+        silently leaves windows at a different radius than you logged in with.
+
+        Anything nested INSIDE a surface (rofi's inner boxes, the waybar
+        recording chip, the Spotify panel) is a local aesthetic choice and is
+        hardcoded at its single use site instead.
+      '';
       type = lib.types.int;
       default = 2;
     };
@@ -13,7 +24,7 @@
     gapsOuter = lib.mkOption {
       description = "Outer gap. Matches waybar's bar margin so windows and the bar sit the same distance from the screen edge.";
       type = lib.types.int;
-      default = 2;
+      default = 4;
     };
 
     gapsInner = lib.mkOption {
