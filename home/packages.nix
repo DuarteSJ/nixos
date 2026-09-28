@@ -39,7 +39,6 @@
       nerd-fonts.jetbrains-mono
 
       # Applications
-      telegram-desktop
       obsidian
       scrcpy
       vial

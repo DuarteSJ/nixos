@@ -36,8 +36,8 @@
       name = "music";
     }
     {
-      key = "M";
-      name = "messages";
+      key = "m";
+      name = "scratch";
     }
   ];
   specialBinds =

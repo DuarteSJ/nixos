@@ -223,16 +223,6 @@ in {
         {
           _args = [
             {
-              fingers = 4;
-              direction = "vertical";
-              action = "special";
-              workspace_name = "messages";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
               fingers = 2;
               direction = "pinch";
               mods = "SUPER";
@@ -311,14 +301,6 @@ in {
             {
               workspace = "special:music";
               on_created_empty = "spotify";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              workspace = "special:messages";
-              on_created_empty = "beeper";
             }
           ];
         }
