@@ -112,6 +112,30 @@ in {
       hl.exec_cmd("dunstify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
     end'';
 
+  # Cycle the active window: tiled -> floating -> fullscreen -> tiled.
+  # win.fullscreen is the internal eFullscreenMode bitmask (0 none,
+  # 1 maximized, 2 fullscreen); unset must name the mode actually active or
+  # it no-ops.  A fullscreened float stays floating underneath, so leaving
+  # fullscreen also unfloats to land back on tiled.
+  cycleWindowMode = inline ''
+    function()
+      local win = hl.get_active_window()
+      if not win then
+        return
+      end
+      if win.fullscreen ~= 0 then
+        local mode = win.fullscreen == 1 and "maximized" or "fullscreen"
+        hl.dispatch(hl.dsp.window.fullscreen({ mode = mode, action = "unset" }))
+        if win.floating then
+          hl.dispatch(hl.dsp.window.float({ action = "unset" }))
+        end
+      elseif win.floating then
+        hl.dispatch(hl.dsp.window.fullscreen({ action = "set" }))
+      else
+        hl.dispatch(hl.dsp.window.float({ action = "set" }))
+      end
+    end'';
+
   # Monitor status: current profile + per-output workspace mapping.
   monitorStatus = inline monitorManager.statusAction;
 
