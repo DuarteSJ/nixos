@@ -19,6 +19,9 @@
       xwayland.enable = true;
     };
     steam.enable = true;
+    # Only active while a `gamemoderun`-wrapped process runs (set per game in
+    # Steam launch options).
+    gamemode.enable = true;
   };
 
   services.printing.enable = true;
