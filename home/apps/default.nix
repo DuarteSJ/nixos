@@ -3,5 +3,6 @@
     ./spicetify.nix
     ./firefox.nix
     ./zathura.nix
+    ./games.nix
   ];
 }
