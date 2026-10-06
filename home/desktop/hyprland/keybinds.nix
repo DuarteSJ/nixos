@@ -143,6 +143,8 @@ in
     (kb (modKey "X") (exec "hyprshot -z -m region"))
     (kb (modShiftKey "X") (exec "screenrec"))
     (kb (modShiftKey "O") monitorStatus) # which monitor profile is active
+    (kb (modKey "F5") (exec "bonk-reroll toggle")) # Megabonk reroller
+    (kb (modShiftKey "F5") (exec "bonk-reroll next-mode"))
 
     # Cursor magnifier: SUPER+scroll (step 0.5, clamp 1..3)
     (kb (modKey "mouse_down") cursorZoom.zoomIn)

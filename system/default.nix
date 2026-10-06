@@ -24,6 +24,11 @@
     gamemode.enable = true;
   };
 
+  # bonk-reroll (home/apps/bonk-reroll) presses quick reset through a virtual
+  # keyboard. (Reading Megabonk's memory needs no sysctl: the game opts in to
+  # being traced itself, verified with ptrace_scope = 1.)
+  hardware.uinput.enable = true;
+
   services.printing.enable = true;
 
   environment.systemPackages = [pkgs.openvpn pkgs.android-tools];

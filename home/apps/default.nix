@@ -4,5 +4,6 @@
     ./firefox.nix
     ./zathura.nix
     ./games.nix
+    ./bonk-reroll
   ];
 }

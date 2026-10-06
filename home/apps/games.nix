@@ -56,10 +56,13 @@
         sleep 2
       done
 
-      # Last game out shuts Steam down.
+      # Last game out shuts Steam down. Skip if Steam is already gone (e.g. it
+      # died with the session): `steam -shutdown` would *start* the client.
       if [ -e "$marker" ] && ! pgrep -f "$any_game" >/dev/null; then
         rm -f "$marker"
-        steam -shutdown
+        if pgrep -x steam >/dev/null; then
+          steam -shutdown
+        fi
       fi
     '';
   };
