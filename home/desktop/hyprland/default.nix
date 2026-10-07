@@ -289,6 +289,16 @@ in {
             }
           ];
         }
+        # Keep Megabonk running on a hidden workspace: without frame
+        # callbacks it blocks on vsync and freezes until shown again.
+        {
+          _args = [
+            {
+              match = {class = "^Megabonk\\.x86_64$";};
+              render_unfocused = true;
+            }
+          ];
+        }
       ];
 
       # ---------------------------------------------------------------
