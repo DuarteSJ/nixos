@@ -32,6 +32,7 @@ PanelWindow {
         item: barStrip
         Region { item: calendar.hit }
         Region { item: launcher.hit }
+        Region { item: statusDrawer.hit }
         Region { item: catcher }
     }
 
@@ -48,8 +49,8 @@ PanelWindow {
         property vector4d d0: calendar.rect
         property vector4d d1: launcher.rect
         property vector4d d2: launcher.neck
-        property vector4d d3: Qt.vector4d(0, 0, 0, 0)
-        property vector4d radii: Qt.vector4d(calendar.rr, launcher.rr, Math.min(launcher.neckW / 2, 26), 0)
+        property vector4d d3: statusDrawer.rect
+        property vector4d radii: Qt.vector4d(calendar.rr, launcher.rr, Math.min(launcher.neckW / 2, 26), statusDrawer.rr)
         property vector4d dripX: Qt.vector4d(launcher.dripX[0], launcher.dripX[1], launcher.dripX[2], launcher.dripX[3])
         property vector4d dripY: Qt.vector4d(launcher.dripY[0], launcher.dripY[1], launcher.dripY[2], launcher.dripY[3])
         property vector4d dripR: Qt.vector4d(launcher.dripR[0], launcher.dripR[1], launcher.dripR[2], launcher.dripR[3])
@@ -126,6 +127,7 @@ PanelWindow {
         }
 
         Status {
+            id: status
             anchors { right: parent.right; rightMargin: Theme.frameEdge + 12; verticalCenter: parent.verticalCenter }
         }
     }
@@ -164,21 +166,93 @@ PanelWindow {
         HoverHandler { id: calHover }
     }
 
-    // Launcher: buds out of the top centre, grows, then pinches off and
-    // floats down to the middle of the screen.
+    // Status drawer: one drawer shared by the status modules.  Hover sound,
+    // wifi, memory/temperature or battery and it hangs under that icon;
+    // move to the next icon and it slides along the bar, resizes, and the
+    // new panel cascades in.
+    property string statusKey: ""          // panel currently shown
+    readonly property var statusAnchor: status.hoverItem
+        ? status.hoverItem.mapToItem(frame.contentItem, status.hoverItem.width / 2, 0).x
+        : statusDrawer.anchorX
+
+    Drawer {
+        id: statusDrawer
+        anchorX: frame.statusAnchor
+        maxX: frame.width - Theme.frameEdge - 8
+        openWidth: 340
+        openHeight: 28 + (frame.statusKey === "audio" ? audioPanel.wantedHeight
+                        : frame.statusKey === "network" ? netPanel.wantedHeight
+                        : frame.statusKey === "system" ? sysPanel.wantedHeight
+                        : batPanel.wantedHeight)
+        open: statusHold || statusHover.hovered
+        property bool statusHold: false
+
+        Item {
+            width: statusDrawer.openWidth
+            height: statusDrawer.openHeight - 28
+            AudioPanel {
+                id: audioPanel; drawer: statusDrawer
+                x: 16; y: 14; width: parent.width - 32
+                visible: frame.statusKey === "audio"
+            }
+            NetworkPanel {
+                id: netPanel; drawer: statusDrawer
+                x: 16; y: 14; width: parent.width - 32
+                visible: frame.statusKey === "network"
+            }
+            SystemPanel {
+                id: sysPanel; drawer: statusDrawer; stats: status
+                x: 16; y: 14; width: parent.width - 32
+                visible: frame.statusKey === "system"
+            }
+            BatteryPanel {
+                id: batPanel; drawer: statusDrawer; stats: status
+                x: 16; y: 14; width: parent.width - 32
+                visible: frame.statusKey === "battery"
+            }
+        }
+    }
+    Item {
+        x: statusDrawer.hit.x; y: statusDrawer.hit.y; width: statusDrawer.hit.width; height: statusDrawer.hit.height
+        HoverHandler { id: statusHover }
+    }
+    Timer { id: statusDelay; interval: 150; onTriggered: if (status.hoverKey !== "") { frame.statusKey = status.hoverKey; statusDrawer.statusHold = true; } }
+    Timer { id: statusStay; interval: 250; onTriggered: if (status.hoverKey === "") statusDrawer.statusHold = false }
+    // Switching panels while open: let the old content fade, then cascade
+    // the new one in while the glass slides/resizes underneath.
+    Timer { id: statusSwap; interval: 110; onTriggered: { frame.statusKey = status.hoverKey; statusDrawer.contentShown = true; } }
+    Connections {
+        target: status
+        function onHoverKeyChanged() {
+            const k = status.hoverKey;
+            if (k === "") { statusDelay.stop(); statusStay.restart(); return; }
+            statusStay.stop();
+            if (!statusDrawer.open) { statusDelay.restart(); return; }
+            if (k !== frame.statusKey) {
+                statusDrawer.contentShown = false;
+                statusSwap.restart();
+            }
+        }
+    }
+
+    // Launcher: buds out of the top centre, grows with its content revealed
+    // by the glass, then drops just below the bar -- the liquid bridge
+    // stretches, snaps and drips back up.
     Drawer {
         id: launcher
         anchorX: frame.width / 2
         maxX: frame.width - Theme.frameEdge - 8
-        openWidth: 600
+        openWidth: 620
         openHeight: launcherContent.wantedHeight
-        floatY: Math.round(frame.height * 0.2)
-        openRadius: 24
+        floatY: Theme.barHeight + 34
+        openRadius: 26
+        revealContent: true
         open: frame.launcherHere
         onOpenChanged: if (open) launcherContent.reset()
 
         LauncherContent {
             id: launcherContent
+            drawer: launcher
             width: launcher.openWidth
             height: launcher.openHeight
         }

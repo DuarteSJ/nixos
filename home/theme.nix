@@ -28,6 +28,36 @@
   };
 
   builtinSchemes = {
+    # Light-on-deep teal, made for the liquid-glass frame: white text over
+    # frosted turquoise, aqua accent.
+    lagoon = {
+      name = "Lagoon";
+      slug = "lagoon";
+      batTheme = "base16";
+      nvf = {
+        name = "base16";
+        base16-colors = builtinSchemes.lagoon.palette;
+      };
+      palette = {
+        base00 = "0f1c24";
+        base01 = "16262f";
+        base02 = "1f3440";
+        base03 = "3a5562";
+        base04 = "9fb6c0";
+        base05 = "dce9ee";
+        base06 = "eef6f8";
+        base07 = "ffffff";
+        base08 = "f2777a";
+        base09 = "f6a86c";
+        base0A = "f2d27a";
+        base0B = "8fd6a8";
+        base0C = "6ee0e0";
+        base0D = "7cc4f2";
+        base0E = "b9a6f2";
+        base0F = "e09f7d";
+      };
+    };
+
     nord = {
       name = "Nord";
       slug = "nord";

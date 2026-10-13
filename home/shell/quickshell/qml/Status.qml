@@ -5,12 +5,24 @@ import Quickshell.Networking
 import Quickshell.Services.Pipewire
 
 // Right-hand modules: volume, network, memory, temperature, battery.
+// Hovering one reports it (hoverKey/hoverItem) so Frame.qml can open the
+// matching status drawer under it.
 Row {
     id: root
 
     spacing: 16
 
-    // ── sysfs / procfs poll (memory %, CPU temp, battery) ───────────────
+    // Which module the pointer is on ("" = none), for the status drawer.
+    property string hoverKey: ""
+    property var hoverItem: null
+    function track(key, item, on) {
+        if (on) { hoverKey = key; hoverItem = item; }
+        else if (hoverItem === item) { hoverKey = ""; }
+    }
+
+    // ── sysfs / procfs poll (CPU %, memory %, CPU temp, battery) ────────
+    property int cpuPct: 0
+    property var cpuPrev: [0, 0]          // idle, total from the last poll
     property int memPct: 0
     property int tempC: 0
     property int batPct: -1
@@ -22,7 +34,8 @@ Row {
             "awk '/^MemTotal/{t=$2} /^MemAvailable/{a=$2} END{print int((t-a)*100/t)}' /proc/meminfo;" +
             "cat /sys/devices/platform/coretemp.0/hwmon/hwmon*/temp1_input 2>/dev/null | head -1 || echo 0;" +
             "cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo -1;" +
-            "cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo none"]
+            "cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo none;" +
+            "head -1 /proc/stat"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const l = text.trim().split("\n");
@@ -30,6 +43,13 @@ Row {
                 root.tempC = Math.round((parseInt(l[1]) || 0) / 1000);
                 root.batPct = parseInt(l[2]);
                 root.batStatus = l[3] ?? "";
+                const f = (l[4] ?? "").trim().split(/\s+/).slice(1).map(Number);
+                if (f.length >= 4) {
+                    const idle = f[3] + (f[4] || 0), total = f.reduce((a, b) => a + b, 0);
+                    const dt = total - root.cpuPrev[1], di = idle - root.cpuPrev[0];
+                    if (root.cpuPrev[1] > 0 && dt > 0) root.cpuPct = Math.round(100 * (1 - di / dt));
+                    root.cpuPrev = [idle, total];
+                }
             }
         }
     }
@@ -49,6 +69,8 @@ Row {
     PwObjectTracker { objects: [Pipewire.defaultAudioSink] }
 
     Module {
+        id: volMod
+        onHoveredChanged: root.track("audio", volMod, hovered)
         readonly property var audio: Pipewire.defaultAudioSink?.audio ?? null
         readonly property int vol: Math.round((audio?.volume ?? 0) * 100)
         readonly property bool muted: audio?.muted ?? false
@@ -74,6 +96,8 @@ Row {
 
     // ── network ─────────────────────────────────────────────────────────
     Module {
+        id: netMod
+        onHoveredChanged: root.track("network", netMod, hovered)
         readonly property var devices: Networking.devices?.values ?? []
         readonly property var wired: devices.find(d => d.type === DeviceType.Wired && d.connected)
         readonly property var wifi: devices.find(d => d.type === DeviceType.Wifi && d.connected)
@@ -85,6 +109,8 @@ Row {
 
     // ── memory ──────────────────────────────────────────────────────────
     Module {
+        id: memMod
+        onHoveredChanged: root.track("system", memMod, hovered)
         glyph: ""
         glyphColor: root.memPct >= 70 ? Theme.orange : Theme.yellow
         label: root.memPct + "%"
@@ -94,6 +120,8 @@ Row {
 
     // ── temperature ─────────────────────────────────────────────────────
     Module {
+        id: tempMod
+        onHoveredChanged: root.track("system", tempMod, hovered)
         glyph: root.tempC >= 80 ? "" : root.tempC >= 60 ? "" : ""
         glyphColor: Theme.teal
         label: root.tempC + "°C"
@@ -103,6 +131,8 @@ Row {
 
     // ── battery ─────────────────────────────────────────────────────────
     Module {
+        id: batMod
+        onHoveredChanged: root.track("battery", batMod, hovered)
         readonly property bool charging: root.batStatus === "Charging"
         readonly property bool plugged: root.batStatus === "Full" || root.batStatus === "Not charging"
         readonly property var levels: ["\u{f007a}", "\u{f007c}", "\u{f007e}", "\u{f0080}", "\u{f0079}"]

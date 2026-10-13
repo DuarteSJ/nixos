@@ -9,11 +9,14 @@ import QtQuick
 //   0 hidden   tiny, tucked inside the bar (melted in: nothing shows)
 //   1 bud      a circle bulging out under the trigger
 //   2 grown    full size, still hanging from the bar
-//   3 floating moved down to floatY; a liquid strand (the "neck") keeps it
-//              tied to the bar, thins out and snaps, leaving drips that
-//              pull back into the bar
+//   3 floating moved down to floatY.  Kept close to the bar, the smooth
+//              union itself stretches a liquid bridge that snaps as the gap
+//              opens, leaving drips that pull back into the bar.  (useNeck
+//              adds an explicit strand for longer drops.)
 //
-// Content fades in only once the glass has (mostly) arrived.
+// Content either fades in once the glass has arrived (default), or is
+// revealed by the growing glass itself (revealContent).  `reveal` runs 0..1
+// as content appears, so children can stagger themselves (see stagger()).
 Item {
     id: d
 
@@ -26,10 +29,17 @@ Item {
     property real openRadius: 22
     property real minX: Theme.frameEdge + 8
     property real maxX: 10000
+    property bool revealContent: false
+    property bool useNeck: false
 
     property int stage: 0
     property bool contentShown: false
     readonly property bool active: stage > 0
+
+    // 0..1 as content appears; rows can use stagger(i) for a cascade.
+    property real reveal: contentShown ? 1 : 0
+    Behavior on reveal { NumberAnimation { duration: d.contentShown ? 460 : 110; easing.type: Easing.OutCubic } }
+    function stagger(i) { return Math.max(0, Math.min(1, reveal * 1.8 - i * 0.09)); }
 
     default property alias content: holder.data
 
@@ -72,11 +82,14 @@ Item {
         id: opening
         ScriptAction { script: { closing.stop(); d.stage = 1; } }
         PauseAnimation { duration: 85 }
-        ScriptAction { script: d.stage = 2 }
-        PauseAnimation { duration: d.floatY >= 0 ? 200 : 140 }
+        ScriptAction { script: { d.stage = 2; if (d.revealContent) d.contentShown = true; } }
+        PauseAnimation { duration: d.floatY >= 0 ? 190 : 150 }
         ScriptAction {
             script: {
-                if (d.floatY >= 0) { d.stage = 3; neckAnim.restart(); }
+                if (d.floatY >= 0) {
+                    d.stage = 3;
+                    if (d.useNeck) neckAnim.restart(); else dripDelay.restart();
+                }
                 d.contentShown = true;
             }
         }
@@ -84,7 +97,7 @@ Item {
 
     SequentialAnimation {
         id: closing
-        ScriptAction { script: { opening.stop(); neckAnim.stop(); d.neckW = 0; d.contentShown = false; } }
+        ScriptAction { script: { opening.stop(); neckAnim.stop(); dripDelay.stop(); d.neckW = 0; d.contentShown = false; } }
         PauseAnimation { duration: 90 }
         ScriptAction { script: if (d.stage === 3) d.stage = 2 }
         PauseAnimation { duration: d.floatY >= 0 ? 200 : 0 }
@@ -108,12 +121,16 @@ Item {
         ScriptAction { script: drips.trigger() }
     }
 
-    // ── drips: spawned where the neck snaps, then sucked back up ────────
+    // Without a neck, the bridge snaps by itself ~when the gap passes the
+    // smooth-union width; drop the drips right about then.
+    Timer { id: dripDelay; interval: 120; onTriggered: drips.trigger() }
+
+    // ── drips: spawned where the bridge snaps, then sucked back up ──────
     QtObject {
         id: drips
         function trigger() {
-            const cx = d.rx + d.rw / 2;
-            d.dripX = [cx - 46, cx - 6, cx + 30, cx + 64];
+            const cx = d.rx + d.rw / 2, w = Math.min(d.rw, 420);
+            d.dripX = [cx - w * 0.30, cx - w * 0.08, cx + w * 0.12, cx + w * 0.33];
             d.dripY = [d.attachY + 7, d.attachY + 12, d.attachY + 8, d.attachY + 4];
             d.dripR = [9, 12, 8, 6];
             dripAnim.restart();

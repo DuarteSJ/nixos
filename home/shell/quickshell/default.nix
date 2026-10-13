@@ -60,8 +60,13 @@
         readonly property int frameEdge: 6          // left/right/bottom rim
         readonly property int frameRadius: 16       // corners of the window area
         readonly property real gooey: 30            // smooth-union width, px
-        readonly property color glassTint: Qt.rgba(${rgbF c.base00}, 0.40)
-        readonly property color glassRim: Qt.rgba(${rgbF c.base06}, 0.65)
+        // Milky frost (light, low alpha) over Hyprland's blur; white rim.
+        readonly property color glassTint: Qt.rgba(0.55, 0.68, 0.74, 0.26)
+        readonly property color glassRim: Qt.rgba(1, 1, 1, 0.55)
+        // Surfaces *inside* the glass: fields, chips, highlighted rows.
+        readonly property color glassFill: Qt.rgba(1, 1, 1, 0.07)
+        readonly property color glassFillStrong: Qt.rgba(1, 1, 1, 0.14)
+        readonly property color glassEdge: Qt.rgba(1, 1, 1, 0.12)
         readonly property int barRadius: ${toString vars.barRounding}
         readonly property int radius: ${toString vars.rounding}
 
