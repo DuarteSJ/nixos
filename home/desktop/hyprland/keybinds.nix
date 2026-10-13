@@ -141,6 +141,7 @@ in
     (kb (modKey "B") (exec "${qs} bar toggle"))
     (kb (modKey "N") (exec "${lib.getExe toggleMic}"))
     (kb (modShiftKey "P") (exec "${qs} session toggle"))
+    (kb (modKey "W") (exec "${qs} dashboard toggle")) # calendar + all status panels
     (kb (modShiftKey "N") (exec "switch-bg"))
     (kb (modKey "X") (exec "hyprshot -z -m region"))
     (kb (modShiftKey "X") (exec "screenrec"))

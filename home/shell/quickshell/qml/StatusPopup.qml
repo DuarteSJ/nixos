@@ -3,7 +3,8 @@ import QtQuick
 // Hover panels for the status modules (sound, wifi, bluetooth, system,
 // battery), growing out of the bar's right group (see AttachedDrawer.qml).
 // The card buds out under the hovered icon, grows into the panel, and
-// slides to the next icon when you move along the bar.
+// slides to the next icon when you move along the bar.  With the dashboard
+// on (Shell.dashboard, Super+W) it shows every panel stacked instead.
 AttachedDrawer {
     id: popup
 
@@ -27,16 +28,14 @@ AttachedDrawer {
         }
     }
 
-    readonly property real wantedH: key === "audio" ? audioPanel.wantedHeight
-                                  : key === "network" ? netPanel.wantedHeight
-                                  : key === "bluetooth" ? btPanel.wantedHeight
-                                  : key === "system" ? sysPanel.wantedHeight
-                                  : batPanel.wantedHeight
+    readonly property bool all: Shell.dashboard
+    function shows(k) { return all || key === k; }
+    readonly property real wantedH: stack.implicitHeight + 32
 
-    drawer.anchorX: anchorX
+    drawer.anchorX: all ? winW : anchorX
     drawer.openWidth: panelW
     drawer.openHeight: wantedH
-    drawer.open: hold || hovered
+    drawer.open: hold || hovered || all
 
     // ── hover logic: short delay to open, grace period to reach the card ─
     Timer { id: openDelay; interval: 150; onTriggered: if (popup.status.hoverKey !== "") { popup.key = popup.status.hoverKey; popup.hold = true; } }
@@ -46,6 +45,7 @@ AttachedDrawer {
         target: popup.status
         function onHoverKeyChanged() {
             const k = popup.status.hoverKey;
+            if (popup.all) return;          // dashboard: hovering doesn't switch
             if (k === "") { openDelay.stop(); stay.restart(); return; }
             stay.stop();
             if (!popup.drawer.open) { openDelay.restart(); return; }
@@ -53,33 +53,35 @@ AttachedDrawer {
         }
     }
 
-    Item {
-        width: popup.panelW
-        height: popup.wantedH
+    Column {
+        id: stack
+        x: 16; y: 12
+        width: popup.panelW - 32
+        spacing: 22
         AudioPanel {
             id: audioPanel; drawer: popup.drawer
-            x: 16; y: 12; width: parent.width - 32
-            visible: popup.key === "audio"
+            width: parent.width
+            visible: popup.shows("audio")
         }
         NetworkPanel {
             id: netPanel; drawer: popup.drawer
-            x: 16; y: 12; width: parent.width - 32
-            visible: popup.key === "network"
+            width: parent.width
+            visible: popup.shows("network")
         }
         BluetoothPanel {
             id: btPanel; drawer: popup.drawer
-            x: 16; y: 12; width: parent.width - 32
-            visible: popup.key === "bluetooth"
+            width: parent.width
+            visible: popup.shows("bluetooth")
         }
         SystemPanel {
             id: sysPanel; drawer: popup.drawer; stats: popup.status
-            x: 16; y: 12; width: parent.width - 32
-            visible: popup.key === "system"
+            width: parent.width
+            visible: popup.shows("system")
         }
         BatteryPanel {
             id: batPanel; drawer: popup.drawer; stats: popup.status
-            x: 16; y: 12; width: parent.width - 32
-            visible: popup.key === "battery"
+            width: parent.width
+            visible: popup.shows("battery")
         }
     }
 }

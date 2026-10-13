@@ -35,6 +35,10 @@ ShellRoot {
         function brightness(): void { osd.showBrightness(); }
     }
     IpcHandler {
+        target: "dashboard"
+        function toggle(): void { Shell.dashboard = !Shell.dashboard; }
+    }
+    IpcHandler {
         target: "rec"
         function start(): void { Shell.recording = true; }
         function stop(): void { Shell.recording = false; }

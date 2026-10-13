@@ -14,7 +14,7 @@ AttachedDrawer {
     drawer.anchorX: winW / 2
     drawer.openWidth: 300
     drawer.openHeight: calContent.wantedHeight
-    drawer.open: hold || hovered
+    drawer.open: hold || hovered || Shell.dashboard
 
     Timer { id: openDelay; interval: 150; onTriggered: if (cal.clock.hovered) cal.hold = true }
     Timer { id: stay; interval: 250; onTriggered: if (!cal.clock.hovered) cal.hold = false }

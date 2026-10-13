@@ -6,6 +6,7 @@
 #   qs -c shell ipc call bar     toggle|reveal|hide   ("show" is swallowed by the qs CLI)
 #   qs -c shell ipc call session toggle|open
 #   qs -c shell ipc call launcher toggle
+#   qs -c shell ipc call dashboard toggle
 #   qs -c shell ipc call osd      brightness
 #   qs -c shell ipc call rec     start|stop
 {

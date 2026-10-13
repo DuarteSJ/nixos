@@ -40,7 +40,9 @@ PanelWindow {
     WlrLayershell.namespace: "qs-attached"
     WlrLayershell.layer: WlrLayer.Top
     implicitWidth: winW
-    implicitHeight: 640
+    // Full screen height (transparent; the input mask is the card only),
+    // so a tall drawer -- the dashboard's panel stack -- always fits.
+    implicitHeight: barWindow.screen.height
     color: "transparent"
     visible: drawer.open || drawer.active || drawer.rw > 17
     mask: Region { item: drawer.hit }
