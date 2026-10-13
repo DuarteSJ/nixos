@@ -71,10 +71,10 @@ PanelWindow {
     Rectangle {
         id: card
         anchors.fill: parent
-        radius: Theme.radius
-        color: Theme.bg
+        radius: Theme.frameRadius
+        color: Theme.glassTint
         border.width: 1
-        border.color: Theme.blue
+        border.color: Theme.glassRim
 
         opacity: osd.shown ? 1 : 0
         transform: Translate { y: osd.shown ? 0 : 18; Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } } }
@@ -99,7 +99,7 @@ PanelWindow {
                 width: parent.width - 22 - 36 - 28
                 height: 6
                 radius: 3
-                color: Theme.surface
+                color: Theme.glassFill
 
                 Rectangle {
                     width: parent.width * Math.max(0, Math.min(1, osd.value))

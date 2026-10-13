@@ -6,7 +6,9 @@ import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
 // Notification daemon (replaces dunst).  Popups stack in the bottom-right
-// corner of the focused monitor, newest nearest the corner.
+// corner of the focused monitor, newest nearest the corner.  Cards are
+// frosted glass: a light translucent tint, with Hyprland blurring what's
+// behind them (layer_rule on "qs-notifications").
 //   left click   run the default action (if any) and close
 //   middle click close
 //   right click  close all
@@ -75,11 +77,18 @@ Scope {
                     visible: index >= total - root.maxShown
                     width: stack.width
                     height: visible ? body.implicitHeight + 28 : 0
-                    radius: Theme.radius
-                    color: Theme.bg
+                    radius: Theme.frameRadius
+                    color: Theme.glassTint
                     border.width: 1
-                    border.color: critical ? Theme.red
-                        : n.urgency === NotificationUrgency.Low ? Theme.subtle : Theme.blue
+                    border.color: critical ? Theme.alpha(Theme.red, 0.7) : Theme.glassRim
+
+                    // Urgency accent: a short bar on the left edge.
+                    Rectangle {
+                        anchors { left: parent.left; leftMargin: 6; verticalCenter: parent.verticalCenter }
+                        width: 3; height: Math.min(parent.height - 24, 28); radius: 1.5
+                        color: card.critical ? Theme.red
+                             : card.n.urgency === NotificationUrgency.Low ? Theme.muted : Theme.accent
+                    }
 
                     // Slide in from the right.
                     x: shown ? 0 : width + 20
@@ -123,7 +132,7 @@ Scope {
                             visible: card.iconSource !== ""
                             anchors.verticalCenter: parent.verticalCenter
                             width: 48; height: 48
-                            radius: Theme.radius
+                            radius: 10
                             color: "transparent"
                             Image {
                                 anchors.fill: parent
@@ -151,7 +160,7 @@ Scope {
                                 Text {
                                     id: app
                                     text: card.n.appName
-                                    color: Theme.subtle
+                                    color: Theme.muted
                                     font { family: Theme.font; pixelSize: Theme.notifFontSize - 4 }
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -177,9 +186,9 @@ Scope {
                                 width: parent.width
                                 height: 8
                                 radius: 4
-                                color: Theme.surface
+                                color: Theme.glassFill
                                 border.width: 1
-                                border.color: Theme.overlay
+                                border.color: Theme.glassEdge
                                 Rectangle {
                                     width: parent.width * Math.max(0, Math.min(100, card.progress ?? 0)) / 100
                                     height: parent.height
@@ -199,13 +208,15 @@ Scope {
                                         required property var modelData
                                         width: label.implicitWidth + 18
                                         height: 26
-                                        radius: Theme.radius
-                                        color: btnMouse.containsMouse ? Theme.blue : Theme.surface
+                                        radius: 10
+                                        color: btnMouse.containsMouse ? Theme.glassFillStrong : Theme.glassFill
+                                        border.width: 1
+                                        border.color: Theme.glassEdge
                                         Text {
                                             id: label
                                             anchors.centerIn: parent
                                             text: parent.modelData.text
-                                            color: btnMouse.containsMouse ? Theme.bg : Theme.fg
+                                            color: Theme.fgBright
                                             font { family: Theme.font; pixelSize: Theme.notifFontSize - 3 }
                                         }
                                         MouseArea {

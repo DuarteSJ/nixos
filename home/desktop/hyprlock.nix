@@ -6,6 +6,14 @@
   colors = config.colorScheme.palette;
   inherit (config) vars;
 
+  # Same image the desktop uses, straight from its derivation.
+  wallpaper = pkgs.callPackage ./wallpaper-lagoon/package.nix {};
+
+  # Frosted-glass tokens (match the quickshell frame / notifications).
+  glass = "rgba(140, 173, 189, 0.20)";
+  rim = "rgba(255, 255, 255, 0.45)";
+  white = "rgba(255, 255, 255, 0.95)";
+
   spotifyScript = pkgs.writeShellScript "spotify-status" ''
     # Get metadata
     artist=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "No artist")
@@ -18,77 +26,120 @@
     fi
   '';
 in {
+  # Lock screen in the liquid-glass style: the lagoon wallpaper heavily
+  # blurred, a frosted card holding a big clock and the date, and a frosted
+  # pill for the password.
   programs.hyprlock = {
     enable = true;
     settings = {
-      # GENERAL
       general = {
-        hide_cursor = false;
+        hide_cursor = true;
+        ignore_empty_input = true;
       };
 
-      # BACKGROUND
+      animations = {
+        enabled = true;
+        bezier = ["glass, 0.16, 1, 0.3, 1"];
+        animation = [
+          "fadeIn, 1, 6, glass"
+          "fadeOut, 1, 5, glass"
+          "inputFieldDots, 1, 3, glass"
+        ];
+      };
+
       background = [
         {
           monitor = "";
-          path = "~/Pictures/lock-screen/minimal-mountain.png";
+          path = "${wallpaper}";
+          blur_passes = 3;
+          blur_size = 8;
+          noise = 0.015;
+          brightness = 0.85;
+          vibrancy = 0.25;
         }
       ];
 
-      # INPUT FIELD
-      input-field = [
+      # The glass card behind the clock.
+      shape = [
         {
           monitor = "";
-          size = "250, 60";
-          outline_thickness = 2;
-          dots_size = 0.2;
-          dots_spacing = 0.35;
-          dots_center = true;
-          outer_color = "rgba(0, 0, 0, 0)";
-          inner_color = "rgba(0, 0, 0, 0.2)";
-          font_color = "rgb(${colors.base05})";
-          fade_on_empty = false;
-          rounding = -1;
-          check_color = "rgb(${colors.base09})";
-          placeholder_text = "Input Password...";
-          hide_input = false;
-          position = "0, -400";
+          size = "560, 300";
+          color = glass;
+          rounding = 32;
+          border_size = 1;
+          border_color = rim;
+          shadow_passes = 2;
+          shadow_size = 14;
+          shadow_color = "rgba(0, 0, 0, 0.25)";
+          position = "0, 110";
           halign = "center";
           valign = "center";
         }
       ];
 
-      # LABELS
       label = [
-        # DATE
-        {
-          monitor = "";
-          text = "cmd[update:1000] date +\"%A, %d %B\" | sed 's/\\b\\(.\\)/\\U\\1/g'";
-          color = "rgb(${colors.base05})";
-          font_size = 22;
-          font_family = vars.font.name;
-          position = "0, -100";
-          halign = "center";
-          valign = "center";
-        }
         # TIME
         {
           monitor = "";
-          text = "cmd[update:1000] echo \"$(date +\"%H:%M\")\"";
-          color = "rgb(${colors.base05})";
-          font_size = 125;
-          font_family = "JetBrains Mono Extrabold";
-          position = "0, 50";
+          text = "cmd[update:1000] date +%H:%M";
+          color = white;
+          font_size = 120;
+          font_family = "${vars.font.name} ExtraBold";
+          shadow_passes = 2;
+          shadow_size = 6;
+          shadow_color = "rgba(0, 0, 0, 0.25)";
+          position = "0, 140";
           halign = "center";
           valign = "center";
         }
-        # SPOTIFY NOW PLAYING
+        # DATE
+        {
+          monitor = "";
+          text = "cmd[update:60000] date +'%A, %d %B'";
+          color = "rgb(${colors.base0C})";
+          font_size = 20;
+          font_family = vars.font.name;
+          position = "0, 25";
+          halign = "center";
+          valign = "center";
+        }
+        # NOW PLAYING
         {
           monitor = "";
           text = "cmd[update:2000] ${spotifyScript}";
-          color = "rgb(${colors.base05})";
-          font_size = 14;
+          color = "rgba(255, 255, 255, 0.7)";
+          font_size = 13;
           font_family = vars.font.name;
-          position = "0, -515";
+          position = "0, 40";
+          halign = "center";
+          valign = "bottom";
+        }
+      ];
+
+      input-field = [
+        {
+          monitor = "";
+          size = "340, 56";
+          rounding = -1;
+          outline_thickness = 1;
+          outer_color = rim;
+          inner_color = glass;
+          font_color = white;
+          font_family = vars.font.name;
+          check_color = "rgb(${colors.base0C})";
+          fail_color = "rgb(${colors.base08})";
+          capslock_color = "rgb(${colors.base0A})";
+          dots_size = 0.22;
+          dots_spacing = 0.4;
+          dots_center = true;
+          fade_on_empty = false;
+          placeholder_text = "<span foreground='##ffffffaa'>password</span>";
+          fail_text = "<i>$FAIL</i>";
+          hide_input = false;
+          shadow_passes = 2;
+          shadow_size = 10;
+          shadow_color = "rgba(0, 0, 0, 0.2)";
+          position = "0, -170";
           halign = "center";
           valign = "center";
         }

@@ -3,7 +3,6 @@
 {
   inline,
   rounding,
-  base02,
   windowBorderLua,
   gaps,
   monitorManager,
@@ -29,7 +28,7 @@ in {
           animations = { enabled = not on },
           general    = {
             col = on
-              and { active_border = "rgba(${base02}aa)", inactive_border = "rgba(${base02}aa)" }
+              and { active_border = "rgba(ffffff1f)", inactive_border = "rgba(ffffff1f)" }
               or  ${windowBorderLua},
           },
           decoration = {

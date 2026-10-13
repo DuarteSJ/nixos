@@ -8,14 +8,16 @@
   inherit (monitors) outputs profiles announceUnknown;
   inherit (config) vars;
   inherit (vars) rounding;
-  inherit (config.colorScheme.palette) base0D base0C base02;
+  inherit (config.colorScheme.palette) base0D base0C;
 
+  # Glass-style borders: a soft aqua->blue gradient on the focused window,
+  # a faint white hairline (like the frame's rim) on the rest.
   windowBorder = {
     active_border = {
-      colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
+      colors = ["rgba(${base0C}dd)" "rgba(${base0D}66)"];
       angle = 45;
     };
-    inactive_border = "rgba(${base02}aa)";
+    inactive_border = "rgba(ffffff1f)";
   };
   windowBorderLua = lib.generators.toLua {multiline = false;} windowBorder;
 
@@ -59,7 +61,7 @@
   };
 
   luaActions = import ./lua-actions.nix {
-    inherit inline rounding base02 windowBorderLua;
+    inherit inline rounding windowBorderLua;
     inherit gaps monitorManager wallpaper;
   };
 
@@ -254,6 +256,17 @@ in {
           _args = [
             {
               match = {namespace = "^qs-frame$";};
+              blur = true;
+              ignore_alpha = 0.04;
+              no_anim = true;
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              # Frosted notification cards and the volume/brightness pop-up.
+              match = {namespace = "^qs-(notifications|osd)$";};
               blur = true;
               ignore_alpha = 0.04;
               no_anim = true;
