@@ -45,11 +45,11 @@
         readonly property string font: "${vars.font.name}"
         readonly property string mono: "${vars.font.name}"
         readonly property int fontSize: 15
-        readonly property int barFontSize: 17
+        readonly property int barFontSize: 16
         readonly property int notifFontSize: 17
         readonly property string iconFont: "Material Symbols Rounded"
 
-        readonly property int barHeight: 32
+        readonly property int barHeight: 30
         readonly property int barRadius: ${toString vars.barRounding}
         readonly property int radius: ${toString vars.rounding}
 

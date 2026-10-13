@@ -29,7 +29,7 @@ Item {
             : `workspace ${id}`);
     }
 
-    readonly property int cellWidth: 28
+    readonly property int cellWidth: 26
 
     implicitWidth: row.implicitWidth
     implicitHeight: Theme.barHeight
