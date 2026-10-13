@@ -26,14 +26,14 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: root.glyph
             color: root.critical ? Theme.red : root.glyphColor
-            font { family: Theme.font; pixelSize: Theme.fontSize }
+            font { family: Theme.font; pixelSize: Theme.barFontSize }
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.label !== ""
             text: root.label
             color: root.critical ? Theme.red : (mouse.containsMouse ? Theme.fg : root.labelColor)
-            font { family: Theme.font; pixelSize: Theme.fontSize }
+            font { family: Theme.font; pixelSize: Theme.barFontSize }
             Behavior on color { ColorAnimation { duration: 140 } }
 
             SequentialAnimation on opacity {

@@ -9,7 +9,7 @@ Item {
     property bool roundRight: true
     default property alias content: row.data
 
-    implicitWidth: row.implicitWidth + 24
+    implicitWidth: row.implicitWidth + 28
     implicitHeight: Theme.barHeight
 
     // Body plus two square patches that cancel the rounding on top (and on

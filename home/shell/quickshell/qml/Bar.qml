@@ -39,7 +39,7 @@ PanelWindow {
             elide: Text.ElideRight
             text: here ? "|  " + win.title : ""
             color: Theme.muted
-            font { family: Theme.font; pixelSize: Theme.fontSize }
+            font { family: Theme.font; pixelSize: Theme.barFontSize }
         }
 
         Rectangle {
@@ -54,7 +54,7 @@ PanelWindow {
                 anchors.centerIn: parent
                 text: "■ REC"
                 color: Theme.bg
-                font { family: Theme.font; pixelSize: Theme.fontSize - 1; bold: true }
+                font { family: Theme.font; pixelSize: Theme.barFontSize - 1; bold: true }
             }
             SequentialAnimation on opacity {
                 running: Shell.recording

@@ -29,6 +29,8 @@ Item {
             : `workspace ${id}`);
     }
 
+    readonly property int cellWidth: 28
+
     implicitWidth: row.implicitWidth
     implicitHeight: Theme.barHeight
 
@@ -47,7 +49,7 @@ Item {
                 readonly property bool active: modelData === root.activeId
                 readonly property bool occupied: (ws?.toplevels?.values?.length ?? 0) > 0
 
-                width: 24
+                width: root.cellWidth
                 height: Theme.barHeight
 
                 Text {
@@ -57,7 +59,7 @@ Item {
                          : cell.active ? Theme.fgBright
                          : cell.occupied || mouse.containsMouse ? Theme.fg
                          : Theme.subtle
-                    font { family: Theme.font; pixelSize: Theme.fontSize; bold: cell.active }
+                    font { family: Theme.font; pixelSize: Theme.barFontSize; bold: cell.active }
                     Behavior on color { ColorAnimation { duration: 180 } }
                 }
 
@@ -77,8 +79,8 @@ Item {
         readonly property int idx: root.ids.indexOf(root.activeId)
         visible: idx >= 0
         y: Theme.barHeight - 5
-        x: idx * 26 + 6
-        width: 12
+        x: idx * (root.cellWidth + row.spacing) + (root.cellWidth - width) / 2
+        width: 14
         height: 2
         radius: 1
         color: Theme.accent

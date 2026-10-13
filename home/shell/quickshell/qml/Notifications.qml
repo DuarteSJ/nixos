@@ -39,7 +39,7 @@ Scope {
         visible: server.trackedNotifications.values.length > 0
         anchors { bottom: true; right: true }
         margins { bottom: 15; right: 15 }
-        implicitWidth: 400
+        implicitWidth: 440
         implicitHeight: Math.max(1, stack.implicitHeight)
         exclusiveZone: 0
         color: "transparent"
@@ -74,7 +74,7 @@ Scope {
 
                     visible: index >= total - root.maxShown
                     width: stack.width
-                    height: visible ? body.implicitHeight + 24 : 0
+                    height: visible ? body.implicitHeight + 28 : 0
                     radius: Theme.radius
                     color: Theme.bg
                     border.width: 1
@@ -115,20 +115,20 @@ Scope {
 
                     Row {
                         id: body
-                        anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12; leftMargin: 14; rightMargin: 14 }
+                        anchors { left: parent.left; right: parent.right; top: parent.top; margins: 14; leftMargin: 16; rightMargin: 16 }
                         spacing: 12
 
                         ClippingRectangle {
                             id: iconBox
                             visible: card.iconSource !== ""
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 40; height: 40
+                            width: 48; height: 48
                             radius: Theme.radius
                             color: "transparent"
                             Image {
                                 anchors.fill: parent
                                 source: card.iconSource
-                                sourceSize: Qt.size(80, 80)
+                                sourceSize: Qt.size(96, 96)
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                             }
@@ -146,13 +146,13 @@ Scope {
                                     text: card.n.summary
                                     elide: Text.ElideRight
                                     color: card.critical ? Theme.red : Theme.fgBright
-                                    font { family: Theme.font; pixelSize: Theme.fontSize - 1; bold: true }
+                                    font { family: Theme.font; pixelSize: Theme.notifFontSize - 1; bold: true }
                                 }
                                 Text {
                                     id: app
                                     text: card.n.appName
                                     color: Theme.subtle
-                                    font { family: Theme.font; pixelSize: Theme.fontSize - 4 }
+                                    font { family: Theme.font; pixelSize: Theme.notifFontSize - 4 }
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
@@ -167,7 +167,7 @@ Scope {
                                 elide: Text.ElideRight
                                 color: card.critical ? Theme.red : Theme.fg
                                 linkColor: Theme.blue
-                                font { family: Theme.font; pixelSize: Theme.fontSize - 2 }
+                                font { family: Theme.font; pixelSize: Theme.notifFontSize - 2 }
                                 onLinkActivated: link => Quickshell.execDetached(["xdg-open", link])
                             }
 
@@ -206,7 +206,7 @@ Scope {
                                             anchors.centerIn: parent
                                             text: parent.modelData.text
                                             color: btnMouse.containsMouse ? Theme.bg : Theme.fg
-                                            font { family: Theme.font; pixelSize: Theme.fontSize - 3 }
+                                            font { family: Theme.font; pixelSize: Theme.notifFontSize - 3 }
                                         }
                                         MouseArea {
                                             id: btnMouse
