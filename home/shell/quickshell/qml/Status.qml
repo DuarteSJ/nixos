@@ -2,9 +2,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Networking
+import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 
-// Right-hand modules: volume, network, memory, temperature, battery.
+// Right-hand modules: volume, network, bluetooth, memory, temperature, battery.
 // Hovering one reports it (hoverKey/hoverItem) so Frame.qml can open the
 // matching status drawer under it.
 Row {
@@ -108,6 +109,18 @@ Row {
     }
 
     // ── memory ──────────────────────────────────────────────────────────
+    // ── bluetooth ───────────────────────────────────────────────────────
+    Module {
+        id: btMod
+        onHoveredChanged: root.track("bluetooth", btMod, hovered)
+        readonly property var adapter: Bluetooth.defaultAdapter
+        readonly property bool on: adapter?.enabled ?? false
+        readonly property bool linked: (adapter?.devices?.values ?? []).some(d => d.connected)
+        glyph: !on ? "\u{f00b2}" : linked ? "\u{f00b1}" : "\u{f00af}"
+        glyphColor: !on ? Theme.subtle : linked ? Theme.teal : Theme.blue
+        onClicked: Quickshell.execDetached(["blueman-manager"])
+    }
+
     Module {
         id: memMod
         onHoveredChanged: root.track("system", memMod, hovered)

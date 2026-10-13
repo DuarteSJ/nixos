@@ -167,7 +167,7 @@ PanelWindow {
     }
 
     // Status drawer: one drawer shared by the status modules.  Hover sound,
-    // wifi, memory/temperature or battery and it hangs under that icon;
+    // wifi, bluetooth, memory/temperature or battery and it hangs under it;
     // move to the next icon and it slides along the bar, resizes, and the
     // new panel cascades in.
     property string statusKey: ""          // panel currently shown
@@ -182,6 +182,7 @@ PanelWindow {
         openWidth: 340
         openHeight: 28 + (frame.statusKey === "audio" ? audioPanel.wantedHeight
                         : frame.statusKey === "network" ? netPanel.wantedHeight
+                        : frame.statusKey === "bluetooth" ? btPanel.wantedHeight
                         : frame.statusKey === "system" ? sysPanel.wantedHeight
                         : batPanel.wantedHeight)
         open: statusHold || statusHover.hovered
@@ -199,6 +200,11 @@ PanelWindow {
                 id: netPanel; drawer: statusDrawer
                 x: 16; y: 14; width: parent.width - 32
                 visible: frame.statusKey === "network"
+            }
+            BluetoothPanel {
+                id: btPanel; drawer: statusDrawer
+                x: 16; y: 14; width: parent.width - 32
+                visible: frame.statusKey === "bluetooth"
             }
             SystemPanel {
                 id: sysPanel; drawer: statusDrawer; stats: status
