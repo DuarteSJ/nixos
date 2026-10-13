@@ -22,16 +22,12 @@
   windowBorderLua = lib.generators.toLua {multiline = false;} windowBorder;
 
   # Animation entries share enabled/speed/bezier; override per-leaf via attrs.
-  mkAnim = attrs: {
-    _args = [
-      ({
-          enabled = true;
-          speed = 1;
-          bezier = "snap";
-        }
-        // attrs)
-    ];
-  };
+  # One animation entry.  Pass either `bezier` or `spring` (a curve name).
+  mkAnim = attrs: {_args = [({enabled = true;} // attrs)];};
+
+  # Curves for the liquid-glass motion language (same feel as the quickshell
+  # drawers): springs for anything spatial, quick eases for fades.
+  mkCurve = name: spec: {_args = [name spec];};
   # Spotify reports its class as lowercase "spotify" (verified against a live
   # window via `hyprctl clients`).  The previous "^(Spotify)$" matched nothing,
   # so none of the four rules below ever fired -- the window tiled like any
@@ -156,39 +152,80 @@ in {
       # Bezier curves & animations
       # ---------------------------------------------------------------
       curve = [
-        {
-          _args = [
-            "snap"
-            {
-              type = "bezier";
-              points = [[0.1 0.9] [0.2 1.0]];
-            }
-          ];
-        }
+        # Lively: a touch of overshoot, for things appearing.
+        (mkCurve "liquid" {
+          type = "spring";
+          mass = 1;
+          stiffness = 70;
+          dampening = 12;
+        })
+        # Settling: no visible bounce, for moves / resizes / workspaces.
+        (mkCurve "settle" {
+          type = "spring";
+          mass = 1;
+          stiffness = 60;
+          dampening = 15;
+        })
+        (mkCurve "glassOut" {
+          type = "bezier";
+          points = [[0.16 1] [0.3 1]];
+        })
+        (mkCurve "glassIn" {
+          type = "bezier";
+          points = [[0.55 0] [0.75 0.4]];
+        })
       ];
 
       animation = [
+        # Windows bloom in from 82% and sink away to 88%.
         (mkAnim {
           leaf = "windowsIn";
-          style = "slide";
+          speed = 4;
+          spring = "liquid";
+          style = "popin 82%";
         })
         (mkAnim {
           leaf = "windowsOut";
-          style = "slide";
+          speed = 3;
+          bezier = "glassIn";
+          style = "popin 88%";
         })
         (mkAnim {
           leaf = "windowsMove";
-          style = "slide";
+          speed = 4;
+          spring = "settle";
+        })
+        (mkAnim {
+          leaf = "fadeIn";
+          speed = 2.6;
+          bezier = "glassOut";
+        })
+        (mkAnim {
+          leaf = "fadeOut";
+          speed = 2;
+          bezier = "glassIn";
+        })
+        (mkAnim {
+          leaf = "fadeSwitch";
+          speed = 4;
+          bezier = "glassOut";
         })
         (mkAnim {
           leaf = "border";
-          speed = 2;
+          speed = 6;
+          bezier = "glassOut";
         })
-        (mkAnim {leaf = "fade";})
-        (mkAnim {leaf = "workspaces";})
+        (mkAnim {
+          leaf = "workspaces";
+          speed = 5;
+          spring = "settle";
+          style = "slidefade 12%";
+        })
         (mkAnim {
           leaf = "specialWorkspace";
-          style = "slidefadevert 90%";
+          speed = 5;
+          spring = "liquid";
+          style = "slidefadevert 25%";
         })
       ];
 
