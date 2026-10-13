@@ -21,7 +21,7 @@ Item {
         return Hyprland.workspaces.values.find(w => w.id === id) ?? null;
     }
 
-    function focus(id) {
+    function goTo(id) {
         const ws = wsById(id);
         if (ws) ws.activate();
         else Hyprland.dispatch(Hyprland.usingLua
@@ -68,7 +68,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.focus(cell.modelData)
+                    onClicked: root.goTo(cell.modelData)
                 }
             }
         }
@@ -92,7 +92,7 @@ Item {
         onWheel: e => {
             const i = root.ids.indexOf(root.activeId);
             const next = root.ids[Math.max(0, Math.min(root.ids.length - 1, i + (e.angleDelta.y < 0 ? 1 : -1)))];
-            if (next !== undefined && next !== root.activeId) root.focus(next);
+            if (next !== undefined && next !== root.activeId) root.goTo(next);
         }
     }
 }
