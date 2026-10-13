@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 
 // Hover panels for the status modules (sound, wifi, bluetooth, system,
 // battery), attached to the bar's right group.
@@ -11,10 +12,12 @@ import Quickshell
 // with soft concave joins -- but only outside the group, which the bar
 // itself draws (icons included).
 //
-// The popup covers the top of the screen from y = 0 so the drawer can grow
-// out of the group; its input mask is just the card, so the bar under it
-// keeps working.
-PopupWindow {
+// A layer surface anchored to the screen's top-right corner (not an
+// xdg-popup: Hyprland places those a few px below the requested spot,
+// which left a gap between the group and the card).  It overlaps the bar
+// so the drawer can grow out of the group; its input mask is just the
+// card, so the bar under it keeps working.
+PanelWindow {
     id: popup
 
     required property var barWindow
@@ -45,13 +48,15 @@ PopupWindow {
                                   : key === "system" ? sysPanel.wantedHeight
                                   : batPanel.wantedHeight)
 
-    anchor.window: barWindow
-    anchor.rect.x: originX
-    anchor.rect.y: 0
+    screen: barWindow.screen
+    anchors { top: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.namespace: "qs-statuspanel"
+    WlrLayershell.layer: WlrLayer.Top
     implicitWidth: popupW
     implicitHeight: 620
     color: "transparent"
-    visible: drawer.active || drawer.rw > 17
+    visible: drawer.open || drawer.active || drawer.rw > 17
     mask: Region { item: drawer.hit }
 
     // ── hover logic: short delay to open, grace period to reach the card ─
