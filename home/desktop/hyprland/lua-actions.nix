@@ -51,7 +51,7 @@ in {
         else
           ${gaps.baselineGapsLua}
         end
-        hl.exec_cmd("qs -c shell ipc call bar " .. (on and "hide" or "show"))
+        hl.exec_cmd("qs -c shell ipc call bar " .. (on and "hide" or "reveal"))
       end
     end)()'';
 
