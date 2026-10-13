@@ -19,7 +19,7 @@ _: let
   }: {
     event = ["BufReadPost"];
     pattern = map (e: "*.${e}") exts;
-    command = "silent! execute '!${app} ' . shellescape(expand('%')) . ' &' | bd";
+    command = "silent! execute '!${app} ' . shellescape(expand('%'), 1) . ' &' | bd";
   };
 in {
   programs.nvf.settings.vim.autocmds =
