@@ -5,7 +5,7 @@ import Quickshell.Hyprland
 
 // Top bar: three groups hanging from the top edge.
 //   left   workspaces · window title · REC
-//   centre clock (click copies the date, hover for a calendar)
+//   centre clock (click copies the date, hover for a calendar drawer)
 //   right  volume · network · bluetooth · system · battery
 //          (hover any of them for its panel, see StatusPopup.qml)
 PanelWindow {
@@ -73,8 +73,15 @@ PanelWindow {
 
     // ── centre ──────────────────────────────────────────────────────────
     Group {
+        id: centerGroup
         anchors { horizontalCenter: parent.horizontalCenter; top: parent.top }
-        Clock { barWindow: bar }
+        Clock { id: clock }
+    }
+
+    CalendarPopup {
+        barWindow: bar
+        group: centerGroup
+        clock: clock
     }
 
     // ── right ───────────────────────────────────────────────────────────

@@ -237,13 +237,13 @@ in {
       # ---------------------------------------------------------------
       # Window rules
       # ---------------------------------------------------------------
-      # The quickshell status panel animates itself (it grows out of the
+      # Quickshell drawers attached to the bar animate themselves (they grow out of the
       # bar); Hyprland's own layer fade would fight it.
       layer_rule = [
         {
           _args = [
             {
-              match = {namespace = "^qs-statuspanel$";};
+              match = {namespace = "^qs-attached$";};
               no_anim = true;
             }
           ];
