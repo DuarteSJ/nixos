@@ -6,7 +6,8 @@ import Quickshell.Hyprland
 // Top bar: three groups hanging from the top edge.
 //   left   workspaces · window title · REC
 //   centre clock (click copies the date, hover for a calendar)
-//   right  volume · network · memory · temperature · battery
+//   right  volume · network · bluetooth · system · battery
+//          (hover any of them for its panel, see StatusPopup.qml)
 PanelWindow {
     id: bar
 
@@ -80,6 +81,11 @@ PanelWindow {
     Group {
         anchors { right: parent.right; top: parent.top }
         roundRight: false
-        Status {}
+        Status { id: status }
+    }
+
+    StatusPopup {
+        barWindow: bar
+        status: status
     }
 }

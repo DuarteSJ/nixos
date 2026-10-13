@@ -53,6 +53,11 @@
         readonly property int barRadius: ${toString vars.barRounding}
         readonly property int radius: ${toString vars.rounding}
 
+        // Surfaces inside panels: fields, chips, highlighted rows.
+        readonly property color glassFill: Qt.rgba(1, 1, 1, 0.06)
+        readonly property color glassFillStrong: Qt.rgba(1, 1, 1, 0.12)
+        readonly property color glassEdge: Qt.rgba(1, 1, 1, 0.10)
+
         readonly property string terminal: "${vars.terminal}"
         readonly property var persistentWorkspaces: ${builtins.toJSON config.monitors.workspaces}
 
