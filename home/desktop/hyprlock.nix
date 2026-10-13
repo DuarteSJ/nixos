@@ -9,10 +9,40 @@
   # Same image the desktop uses, straight from its derivation.
   wallpaper = pkgs.callPackage ./wallpaper-lagoon/package.nix {};
 
-  # Frosted-glass tokens (match the quickshell frame / notifications).
-  glass = "rgba(140, 173, 189, 0.20)";
-  rim = "rgba(255, 255, 255, 0.45)";
+  # Frosted-glass tokens -- the same values as the quickshell frame
+  # (Theme.glassTint / glassRim), so the lock screen reads as the desktop.
+  glass = "rgba(140, 173, 189, 0.26)";
+  glassStrong = "rgba(140, 173, 189, 0.38)";
+  rim = "rgba(255, 255, 255, 0.55)";
   white = "rgba(255, 255, 255, 0.95)";
+  dim = "rgba(255, 255, 255, 0.70)";
+  barH = 27; # matches the shell's barHeight
+
+  # Nerd Font glyphs (Nix strings have no \u escapes; JSON does).
+  glyph = cp: builtins.fromJSON "\"\\u${cp}\"";
+  lockGlyph = glyph "f023";
+  userGlyph = glyph "f007";
+  plugGlyph = glyph "f1e6";
+  # Surrogate pairs for the supplementary-plane battery icons.
+  batGlyph = builtins.fromJSON "\"\\udb80\\udc79\""; # nf-md-battery
+  chargeGlyph = builtins.fromJSON "\"\\udb80\\udc84\""; # nf-md-battery_charging
+  edge = 6; # matches Theme.frameEdge
+
+  batteryScript = pkgs.writeShellScript "lock-battery" ''
+    cap=$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null) || exit 0
+    st=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
+    case "$st" in Charging) icon="${chargeGlyph}" ;; Full|"Not charging") icon="${plugGlyph}" ;; *) icon="${batGlyph}" ;; esac
+    echo "$icon $cap%"
+  '';
+
+  # Screen-wide glass strip (the frame's bar / rims).
+  strip = size: position: valign: halign: {
+    monitor = "";
+    inherit size position valign halign;
+    color = glass;
+    rounding = 0;
+    border_size = 0;
+  };
 
   spotifyScript = pkgs.writeShellScript "spotify-status" ''
     # Get metadata
@@ -26,9 +56,9 @@
     fi
   '';
 in {
-  # Lock screen in the liquid-glass style: the lagoon wallpaper heavily
-  # blurred, a frosted card holding a big clock and the date, and a frosted
-  # pill for the password.
+  # Lock screen that looks like the desktop: blurred lagoon wallpaper, the
+  # glass frame (top bar + thin rims around a rounded hairline), and a
+  # frosted panel in the middle with avatar, name and password.
   programs.hyprlock = {
     enable = true;
     settings = {
@@ -52,65 +82,133 @@ in {
           monitor = "";
           path = "${wallpaper}";
           blur_passes = 3;
-          blur_size = 8;
+          blur_size = 7;
           noise = 0.015;
-          brightness = 0.85;
+          brightness = 0.9;
           vibrancy = 0.25;
         }
       ];
 
-      # The glass card behind the clock.
       shape = [
+        # ── frame ─────────────────────────────────────────────────────
+        (strip "1920, ${toString barH}" "0, 0" "top" "center")
+        (strip "${toString edge}, 1080" "0, 0" "center" "left")
+        (strip "${toString edge}, 1080" "0, 0" "center" "right")
+        (strip "1920, ${toString edge}" "0, 0" "bottom" "center")
+        # Rounded hairline around the "window area", like the shell's rim.
         {
           monitor = "";
-          size = "560, 300";
+          size = "${toString (1920 - 2 * edge)}, ${toString (1080 - barH - edge)}";
+          position = "0, ${toString ((edge - barH) / 2)}";
+          halign = "center";
+          valign = "center";
+          color = "rgba(0, 0, 0, 0)";
+          rounding = 16;
+          border_size = 1;
+          border_color = rim;
+        }
+
+        # ── centre panel ──────────────────────────────────────────────
+        {
+          monitor = "";
+          size = "380, 330";
+          position = "0, 0";
+          halign = "center";
+          valign = "center";
           color = glass;
-          rounding = 32;
+          rounding = 28;
           border_size = 1;
           border_color = rim;
           shadow_passes = 2;
-          shadow_size = 14;
-          shadow_color = "rgba(0, 0, 0, 0.25)";
-          position = "0, 110";
+          shadow_size = 16;
+          shadow_color = "rgba(0, 0, 0, 0.22)";
+        }
+        # Avatar circle.
+        {
+          monitor = "";
+          size = "92, 92";
+          position = "0, 80";
           halign = "center";
           valign = "center";
+          color = glassStrong;
+          rounding = -1;
+          border_size = 1;
+          border_color = rim;
         }
       ];
 
       label = [
-        # TIME
+        # ── bar ───────────────────────────────────────────────────────
         {
           monitor = "";
-          text = "cmd[update:1000] date +%H:%M";
+          text = "${lockGlyph}  locked";
+          color = dim;
+          font_size = 12;
+          font_family = vars.font.name;
+          position = "${toString (edge + 12)}, -5";
+          halign = "left";
+          valign = "top";
+        }
+        {
+          monitor = "";
+          text = "cmd[update:1000] date +'%H:%M   ·   %a %d %b'";
           color = white;
-          font_size = 120;
-          font_family = "${vars.font.name} ExtraBold";
-          shadow_passes = 2;
-          shadow_size = 6;
-          shadow_color = "rgba(0, 0, 0, 0.25)";
-          position = "0, 140";
+          font_size = 12;
+          font_family = vars.font.name;
+          position = "0, -5";
+          halign = "center";
+          valign = "top";
+        }
+        {
+          monitor = "";
+          text = "cmd[update:30000] ${batteryScript}";
+          color = dim;
+          font_size = 12;
+          font_family = vars.font.name;
+          position = "-${toString (edge + 12)}, -5";
+          halign = "right";
+          valign = "top";
+        }
+
+        # ── panel ─────────────────────────────────────────────────────
+        {
+          monitor = "";
+          text = userGlyph;
+          color = white;
+          font_size = 34;
+          font_family = vars.font.name;
+          position = "0, 80";
           halign = "center";
           valign = "center";
         }
-        # DATE
+        {
+          monitor = "";
+          text = "$USER";
+          color = white;
+          font_size = 17;
+          font_family = "${vars.font.name} Bold";
+          position = "0, 8";
+          halign = "center";
+          valign = "center";
+        }
         {
           monitor = "";
           text = "cmd[update:60000] date +'%A, %d %B'";
           color = "rgb(${colors.base0C})";
-          font_size = 20;
+          font_size = 11;
           font_family = vars.font.name;
-          position = "0, 25";
+          position = "0, -18";
           halign = "center";
           valign = "center";
         }
-        # NOW PLAYING
+        # Now playing, at the bottom of the screen.
         {
           monitor = "";
           text = "cmd[update:2000] ${spotifyScript}";
-          color = "rgba(255, 255, 255, 0.7)";
-          font_size = 13;
+          color = dim;
+          font_size = 12;
           font_family = vars.font.name;
-          position = "0, 40";
+          position = "0, 30";
           halign = "center";
           valign = "bottom";
         }
@@ -119,29 +217,26 @@ in {
       input-field = [
         {
           monitor = "";
-          size = "340, 56";
+          size = "300, 46";
+          position = "0, -80";
+          halign = "center";
+          valign = "center";
           rounding = -1;
           outline_thickness = 1;
           outer_color = rim;
-          inner_color = glass;
+          inner_color = glassStrong;
           font_color = white;
           font_family = vars.font.name;
           check_color = "rgb(${colors.base0C})";
           fail_color = "rgb(${colors.base08})";
           capslock_color = "rgb(${colors.base0A})";
-          dots_size = 0.22;
+          dots_size = 0.2;
           dots_spacing = 0.4;
           dots_center = true;
           fade_on_empty = false;
           placeholder_text = "<span foreground='##ffffffaa'>password</span>";
           fail_text = "<i>$FAIL</i>";
           hide_input = false;
-          shadow_passes = 2;
-          shadow_size = 10;
-          shadow_color = "rgba(0, 0, 0, 0.2)";
-          position = "0, -170";
-          halign = "center";
-          valign = "center";
         }
       ];
     };
