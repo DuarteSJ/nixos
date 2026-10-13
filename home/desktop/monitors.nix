@@ -250,7 +250,7 @@ in {
       type = types.listOf types.int;
       default = [1 2 3 4];
       description = ''
-        The workspace set shown as persistent buttons in waybar.  Profiles
+        The workspace set shown as persistent buttons in the bar.  Profiles
         normally pin exactly this set to whichever output is primary.
       '';
     };

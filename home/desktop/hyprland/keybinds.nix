@@ -5,9 +5,11 @@
   scripts,
   luaActions,
   vars,
+  pkgs,
 }: let
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
-  inherit (scripts) rofi-launcher rofi-powermenu toggleWaybar toggleMic;
+  inherit (scripts) rofi-launcher toggleMic;
+  qs = "${lib.getExe' pkgs.quickshell "qs"} -c shell ipc call";
   inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus;
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
@@ -136,9 +138,9 @@ in
   ++ mediaBinds # #4 generated media/volume/brightness binds
   ++ [
     # Misc execs
-    (kb (modKey "B") (exec "${lib.getExe toggleWaybar}"))
+    (kb (modKey "B") (exec "${qs} bar toggle"))
     (kb (modKey "N") (exec "${lib.getExe toggleMic}"))
-    (kb (modShiftKey "P") (exec "${lib.getExe rofi-powermenu}"))
+    (kb (modShiftKey "P") (exec "${qs} session toggle"))
     (kb (modShiftKey "N") (exec "switch-bg"))
     (kb (modKey "X") (exec "hyprshot -z -m region"))
     (kb (modShiftKey "X") (exec "screenrec"))

@@ -64,7 +64,7 @@
   };
 
   bind = import ./keybinds.nix {
-    inherit lib helpers scripts luaActions vars;
+    inherit lib helpers scripts luaActions vars pkgs;
   };
 in {
   wayland.windowManager.hyprland = {

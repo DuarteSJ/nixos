@@ -12,10 +12,17 @@
         pkgs.slurp
         pkgs.wf-recorder
         pkgs.pulseaudio
+        pkgs.quickshell
       ];
       text = ''
         VIDEOS_DIR="$HOME/Videos/screenrec"
         RECORDING_FLAG="/tmp/screenrec-recording"
+
+        # Drive the bar's REC chip.  Best effort: the shell may not be
+        # running, and recording must never hang on it.
+        bar_rec() {
+          timeout 2 qs -c shell ipc call rec "$1" >/dev/null 2>&1 || true
+        }
 
         mkdir -p "$VIDEOS_DIR"
 
@@ -23,8 +30,7 @@
         if pgrep -x wf-recorder >/dev/null; then
           pkill -x wf-recorder
           rm -f "$RECORDING_FLAG"
-          sleep 0.5
-          pkill -RTMIN+8 waybar
+          bar_rec stop
           exit 0
         fi
 
@@ -59,14 +65,14 @@
         pid=$!
 
         # Give wf-recorder a moment to fail before committing the flag that
-        # drives the waybar REC indicator. A backgrounded failure can't be
+        # drives the bar's REC chip. A backgrounded failure can't be
         # caught by errexit, so check explicitly: only raise the flag if the
-        # recorder is still alive, otherwise clean up so waybar isn't stuck
+        # recorder is still alive, otherwise clean up so the bar isn't stuck
         # showing REC forever.
         sleep 0.2
         if kill -0 "$pid" 2>/dev/null; then
           touch "$RECORDING_FLAG"
-          pkill -RTMIN+8 waybar
+          bar_rec start
         else
           rm -f "$RECORDING_FLAG"
           echo "screenrec: wf-recorder failed to start" >&2

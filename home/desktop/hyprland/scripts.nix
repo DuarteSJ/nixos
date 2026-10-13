@@ -11,51 +11,6 @@
     '';
   };
 
-  rofi-powermenu = pkgs.writeShellApplication {
-    name = "rofi-powermenu";
-    runtimeInputs = [pkgs.rofi pkgs.systemd pkgs.hyprlock pkgs.hyprland];
-    text = ''
-      shutdown="⏻ shutdown"
-      reboot=" reboot"
-      lock=" lock"
-      logout=" logout"
-      suspend=" suspend"
-
-      options="$lock\n$suspend\n$shutdown\n$reboot\n$logout"
-
-      chosen=$(echo -e "$options" | rofi -dmenu -p "Power Menu") || exit 0
-
-      case "$chosen" in
-          "$shutdown") systemctl poweroff ;;
-          "$reboot")   systemctl reboot ;;
-          "$lock")     hyprlock ;;
-          # Hyprland 0.55.x evaluates `hyprctl dispatch <arg>` as Lua
-          # (hl.dispatch(arg)), so it needs an hl.dsp.* descriptor, not the
-          # classic `exit` string.
-          "$logout")   hyprctl dispatch 'hl.dsp.exit()' ;;
-          "$suspend")  hyprlock & systemctl suspend ;;
-      esac
-    '';
-  };
-
-  # NOTE: the package name must NOT contain "waybar". Hyprland sets a
-  # keybind-launched process's `comm` to the script's basename, and `pgrep
-  # waybar` does a substring match — so a script named "toggle-waybar" matches
-  # itself, always takes the kill branch, and never spawns (toggle only ever
-  # disables). Naming it "bar-toggle" keeps `pgrep/pkill waybar` matching only
-  # the real waybar (whose wrapped comm `.waybar-wrapped` contains "waybar").
-  toggleWaybar = pkgs.writeShellApplication {
-    name = "bar-toggle";
-    runtimeInputs = [pkgs.procps pkgs.waybar];
-    text = ''
-      if pgrep waybar > /dev/null; then
-        pkill waybar
-      else
-        waybar &
-      fi
-    '';
-  };
-
   toggleMic = pkgs.writeShellApplication {
     name = "toggle-mic";
     runtimeInputs = [pkgs.wireplumber pkgs.gnugrep pkgs.dunst];

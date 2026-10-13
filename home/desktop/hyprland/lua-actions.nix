@@ -51,7 +51,7 @@ in {
         else
           ${gaps.baselineGapsLua}
         end
-        hl.exec_cmd(on and "pkill waybar" or "pgrep waybar >/dev/null || waybar")
+        hl.exec_cmd("qs -c shell ipc call bar " .. (on and "hide" or "show"))
       end
     end)()'';
 
@@ -149,8 +149,6 @@ in {
     -- long-lived handle in a global so it lives for the session.
     _G.__hlHandles = _G.__hlHandles or {}
     function hlKeep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
-
-    hl.exec_cmd("waybar")
 
     ${gaps.setup}
 
