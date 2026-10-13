@@ -10,7 +10,7 @@ Singleton {
     property bool sessionOpen: false
     property bool launcherOpen: false
     property bool recording: false
-    property bool dashboard: false       // calendar + every status panel open
+    property bool dashboard: false       // every status panel open (Super+W)
 
     // Pick up a recording already running when the shell (re)starts.
     Process {
