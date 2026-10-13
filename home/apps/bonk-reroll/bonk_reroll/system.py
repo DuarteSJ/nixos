@@ -70,7 +70,7 @@ def game_focused(pid):
 
 def notify(title, body=""):
     try:
-        subprocess.run(["dunstify", "-a", "bonk-reroll", "-r", NOTIFY_ID, title, body],
+        subprocess.run(["notify", "-a", "bonk-reroll", "-r", NOTIFY_ID, title, body],
                        capture_output=True, timeout=5, check=False)
     except (OSError, subprocess.SubprocessError):
         pass

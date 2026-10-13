@@ -1,9 +1,10 @@
-# Quickshell desktop shell: top bar + session menu (replaces waybar and the
-# rofi power menu).  QML lives in ./qml; only Theme.qml is generated, from
+# Quickshell desktop shell: top bar, session menu, app launcher and
+# notification daemon (replaces waybar, rofi and dunst).  QML lives in ./qml; only Theme.qml is generated, from
 # the palette and vars, so the shell never hardcodes a colour.
 #
 #   qs -c shell ipc call bar     toggle|show|hide
 #   qs -c shell ipc call session toggle|open
+#   qs -c shell ipc call launcher toggle
 #   qs -c shell ipc call rec     start|stop
 {
   config,
@@ -67,7 +68,7 @@ in {
 
   systemd.user.services.quickshell = {
     Unit = {
-      Description = "Quickshell desktop shell (bar, session menu)";
+      Description = "Quickshell desktop shell (bar, launcher, notifications, session menu)";
       PartOf = ["graphical-session.target"];
       After = ["graphical-session.target"];
       X-Restart-Triggers = ["${shellDir}"];
@@ -76,6 +77,9 @@ in {
       ExecStart = "${pkgs.quickshell}/bin/qs -c shell";
       Restart = "on-failure";
       RestartSec = 1;
+      # Apps started from the launcher are children of this service; don't
+      # take them down when the shell restarts (e.g. on a rebuild).
+      KillMode = "process";
       # Everything the shell runs, ahead of the session PATH.
       Environment = "PATH=${lib.makeBinPath [
         osConfig.programs.hyprland.package
@@ -90,6 +94,7 @@ in {
         pkgs.btop
         pkgs.systemd
         pkgs.wl-clipboard
+        pkgs.xdg-utils
       ]}:/run/wrappers/bin:/etc/profiles/per-user/${config.home.username}/bin:/run/current-system/sw/bin";
     };
     Install.WantedBy = ["graphical-session.target"];

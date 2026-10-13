@@ -6,14 +6,14 @@
   options.vars = {
     rounding = lib.mkOption {
       description = ''
-        Surface corner radius: hyprland windows, dunst notifications, the
-        rofi window.  Deliberately NOT hardcoded -- the
+        Surface corner radius: hyprland windows, notifications, the
+        launcher.  Deliberately NOT hardcoded -- the
         hyprland value alone is read from four places that must agree (the
         static decoration block plus prodToggle, incGaps and decGaps in
         lua-actions.nix).  If they drift, toggling focus mode or nudging gaps
         silently leaves windows at a different radius than you logged in with.
 
-        Anything nested INSIDE a surface (rofi's inner boxes, the bar's
+        Anything nested INSIDE a surface (the launcher's inner boxes, the bar's
         recording chip, the Spotify panel) is a local aesthetic choice and is
         hardcoded at its single use site instead.  The bar's module groups get
         their own knob, `barRounding` below.

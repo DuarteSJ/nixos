@@ -234,7 +234,7 @@
           -- shell arg; strip the only char that can break out.
           local safe = d:gsub("'", "")
           hl.exec_cmd(
-            "dunstify -u low -t 8000 'New display' '" .. safe .. "'")
+            "notify -u low -t 8000 'New display' '" .. safe .. "'")
         end
       end
     end
@@ -242,7 +242,7 @@
     -- Human-readable snapshot of what the manager decided and what the
     -- compositor is actually showing.  Read it from a keybind, or from a
     -- shell with:
-    --   hyprctl dispatch 'hl.dsp.exec_cmd("dunstify Monitors \"" ..
+    --   hyprctl dispatch 'hl.dsp.exec_cmd("notify Monitors \"" ..
     --                                      _G.hlMonitorStatus() .. "\"")'
     -- (`hyprctl dispatch` evaluates its argument as Lua in the compositor,
     -- so _G is reachable; it must still resolve to a dispatcher.)
@@ -270,7 +270,7 @@
     -- repeated presses update in place instead of stacking.
     function _G.hlMonitorStatusNotify()
       local safe = _G.hlMonitorStatus():gsub("'", "")
-      hl.exec_cmd("dunstify -r 7778 -t 6000 'Monitors' '" .. safe .. "'")
+      hl.exec_cmd("notify -r 7778 -t 6000 'Monitors' '" .. safe .. "'")
     end
 
     -- Recorded for the status keybind.  No change-detection toast: every

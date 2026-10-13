@@ -1,5 +1,5 @@
 _: {
-  # Hyprland screenshot tool. Mode chosen via rofi menu bound to $mainMod+X.
+  # Hyprland screenshot tool, bound to $mainMod+X (region).
   # Saves to HYPRSHOT_DIR and copies to clipboard.
   programs.hyprshot = {
     enable = true;

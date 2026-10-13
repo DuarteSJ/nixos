@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  # Steam games shown in rofi. Add one line per game: the app ID is in the
+  # Steam games shown in the launcher. Add one line per game: the app ID is in the
   # store URL, or `steamapps/appmanifest_<id>.acf`. Per-game launch options
   # (e.g. `nvidia-offload gamemoderun %command%`) are still set in Steam.
   games = {

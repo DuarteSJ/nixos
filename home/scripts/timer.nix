@@ -4,7 +4,7 @@
       name = "timer";
       runtimeInputs = [
         pkgs.coreutils
-        pkgs.dunst
+        (pkgs.callPackage ./notify-pkg.nix {})
       ];
       text = ''
         usage() {
@@ -31,10 +31,10 @@
         # Absolute deadline so we don't accumulate sleep/clock drift.
         end=$(( $(date +%s) + total ))
         while (( (remaining = end - $(date +%s)) > 0 )); do
-            $silent || dunstify -r "$id" "$title" "Time remaining: $(( remaining / 60 ))m $(( remaining % 60 ))s"
+            $silent || notify -r "timer-$id" "$title" "Time remaining: $(( remaining / 60 ))m $(( remaining % 60 ))s"
             sleep 1
         done
-        dunstify -u critical -r "$id" "$title" "Time's up!"
+        notify -u critical -r "timer-$id" "$title" "Time's up!"
       '';
     })
   ];

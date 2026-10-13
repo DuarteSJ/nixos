@@ -1,9 +1,7 @@
-# Desktop shell: bar + session menu (quickshell), launcher, notifications, cursor.
+# Desktop shell: quickshell (bar, launcher, notifications, session menu), cursor.
 {...}: {
   imports = [
     ./quickshell
-    ./rofi.nix
-    ./dunst.nix
     ./cursor.nix
   ];
 }

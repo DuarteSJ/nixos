@@ -8,7 +8,7 @@
   pkgs,
 }: let
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
-  inherit (scripts) rofi-launcher toggleMic;
+  inherit (scripts) toggleMic;
   qs = "${lib.getExe' pkgs.quickshell "qs"} -c shell ipc call";
   inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus;
 
@@ -121,7 +121,7 @@ in
     (kb (modKey "C") (inline "hl.dsp.window.close()"))
     (kb (modKey "P") (inline "hl.dsp.window.pin()"))
     (kb (modKey "V") cycleWindowMode) # tiled -> float -> fullscreen
-    (kb (modKey "E") (exec "${lib.getExe rofi-launcher}"))
+    (kb (modKey "E") (exec "${qs} launcher toggle"))
     (kb (modKey "R") (inline "hl.dsp.window.pseudo()"))
     (kb (modKey "T") (inline ''hl.dsp.layout("togglesplit")''))
     (kb (modKey "Tab") cycleLayout) # cycle workspace tiled layout

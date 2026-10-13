@@ -82,7 +82,7 @@
       makeShellWrapper ${python.interpreter} $out/bin/bonk-reroll \
         --run 'if [ -n "''${LD_LIBRARY_PATH+set}" ]; then export BONK_REROLL_ORIG_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"; unset LD_LIBRARY_PATH; fi' \
         --run 'if [ -n "''${LD_PRELOAD+set}" ]; then export BONK_REROLL_ORIG_LD_PRELOAD="$LD_PRELOAD"; unset LD_PRELOAD; fi' \
-        --prefix PATH : ${lib.makeBinPath [osConfig.programs.hyprland.package pkgs.dunst]} \
+        --prefix PATH : ${lib.makeBinPath [osConfig.programs.hyprland.package (pkgs.callPackage ../../scripts/notify-pkg.nix {})]} \
         --set PYTHONPATH $out/lib/bonk-reroll \
         --add-flags "-m bonk_reroll --config ${configFile}"
       runHook postInstall

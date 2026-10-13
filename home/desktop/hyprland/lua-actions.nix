@@ -109,7 +109,7 @@ in {
       end
       hl.workspace_rule({ workspace = workspace.name, layout = next_layout })
       -- -r reuses one notification slot so rapid toggles update in place.
-      hl.exec_cmd("dunstify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
+      hl.exec_cmd("notify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
     end'';
 
   # Cycle the active window: tiled -> floating -> fullscreen -> tiled.
@@ -159,7 +159,7 @@ in {
       -- of the quotes) and backslashes so a crafted class can't inject shell.
       local who = (win and win.class) or "A window"
       who = who:gsub("'", ""):gsub("''\\''\\", "")
-      hl.exec_cmd("dunstify -u low 'Attention' '" .. who .. " needs attention'")
+      hl.exec_cmd("notify -u low 'Attention' '" .. who .. " needs attention'")
     end))
   '';
 }

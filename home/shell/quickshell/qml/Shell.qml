@@ -8,6 +8,7 @@ import Quickshell.Io
 Singleton {
     property bool barVisible: true
     property bool sessionOpen: false
+    property bool launcherOpen: false
     property bool recording: false
 
     // Pick up a recording already running when the shell (re)starts.

@@ -10,7 +10,7 @@ in {
     (pkgs.writeShellApplication {
       name = "switch-bg";
       runtimeInputs = [
-        pkgs.dunst
+        (pkgs.callPackage ./notify-pkg.nix {})
         pkgs.hyprland
         pkgs.jq
         pkgs.findutils
@@ -25,7 +25,7 @@ in {
         STATE_FILE="$HOME/.cache/wallpaper-state"
 
         notify_error() {
-          dunstify -u critical "Background Error" "$1"
+          notify -u critical "Background Error" "$1"
           exit 1
         }
 
@@ -89,7 +89,7 @@ in {
         monitor_label="''${active_monitor%%-*}"
         total=''${#wallpapers[@]}
 
-        dunstify -t 3000 -i "$next_wallpaper" \
+        notify -t 3000 -i "$next_wallpaper" \
           "Wallpaper Changed" \
           "$wallpaper_name\n$((idx + 1))/$total • $monitor_label ($orientation)"
       '';

@@ -10,6 +10,8 @@ ShellRoot {
     }
 
     SessionMenu {}
+    Launcher {}
+    Notifications {}
 
     // qs -c shell ipc call <target> <function>
     IpcHandler {
@@ -22,6 +24,10 @@ ShellRoot {
         target: "session"
         function toggle(): void { Shell.sessionOpen = !Shell.sessionOpen; }
         function open(): void { Shell.sessionOpen = true; }
+    }
+    IpcHandler {
+        target: "launcher"
+        function toggle(): void { Shell.launcherOpen = !Shell.launcherOpen; }
     }
     IpcHandler {
         target: "rec"

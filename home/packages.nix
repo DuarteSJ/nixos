@@ -33,7 +33,6 @@
       blueman
       networkmanagerapplet
       cava
-      rofi
 
       # Fonts & themes
       nerd-fonts.jetbrains-mono
