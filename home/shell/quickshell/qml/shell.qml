@@ -28,7 +28,7 @@ ShellRoot {
     IpcHandler {
         target: "bar"
         function toggle(): void { Shell.barVisible = !Shell.barVisible; }
-        function show(): void { Shell.barVisible = true; }
+        function reveal(): void { Shell.barVisible = true; }
         function hide(): void { Shell.barVisible = false; }
     }
     IpcHandler {
