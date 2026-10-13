@@ -15,7 +15,7 @@ PanelWindow {
     readonly property var hyprMonitor: Hyprland.monitorFor(modelData)
 
     screen: modelData
-    visible: Shell.barVisible
+    visible: Shell.barShown
     anchors { top: true; left: true; right: true }
     implicitHeight: Theme.barHeight
     exclusiveZone: Theme.barHeight + 1

@@ -28,19 +28,30 @@ AttachedDrawer {
         }
     }
 
+    // Dashboard: only on the monitor that was focused when it was toggled.
     readonly property bool all: Shell.dashboard
+        && barWindow.hyprMonitor?.name === Shell.dashboardScreen
     function shows(k) { return all || key === k; }
     readonly property real wantedH: stack.implicitHeight + 32
 
+    winH: barWindow.screen.height         // the dashboard stack is tall
     drawer.anchorX: all ? winW : anchorX
     drawer.openWidth: panelW
     drawer.openHeight: wantedH
-    drawer.open: hold || hovered || all
+    // Outside the dashboard, never open with no panel picked (an empty card).
+    drawer.open: all || ((hold || hovered) && key !== "")
+
+    // Leaving the dashboard: hover was ignored while it was on, so restart
+    // the hover state from wherever the pointer is now.
+    onAllChanged: if (!all) {
+        key = status.hoverKey;
+        hold = key !== "";
+    }
 
     // ── hover logic: short delay to open, grace period to reach the card ─
     Timer { id: openDelay; interval: 150; onTriggered: if (popup.status.hoverKey !== "") { popup.key = popup.status.hoverKey; popup.hold = true; } }
     Timer { id: stay; interval: 250; onTriggered: if (popup.status.hoverKey === "") popup.hold = false }
-    Timer { id: swap; interval: 110; onTriggered: { popup.key = popup.status.hoverKey; popup.drawer.contentShown = true; } }
+    Timer { id: swap; interval: 110; onTriggered: { if (popup.status.hoverKey !== "") popup.key = popup.status.hoverKey; popup.drawer.contentShown = true; } }
     Connections {
         target: popup.status
         function onHoverKeyChanged() {

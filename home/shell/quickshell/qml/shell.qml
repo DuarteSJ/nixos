@@ -2,6 +2,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 ShellRoot {
     Variants {
@@ -20,6 +21,8 @@ ShellRoot {
         function toggle(): void { Shell.barVisible = !Shell.barVisible; }
         function reveal(): void { Shell.barVisible = true; }
         function hide(): void { Shell.barVisible = false; }
+        function focusOn(): void { Shell.focusMode = true; }
+        function focusOff(): void { Shell.focusMode = false; }
     }
     IpcHandler {
         target: "session"
@@ -36,7 +39,10 @@ ShellRoot {
     }
     IpcHandler {
         target: "dashboard"
-        function toggle(): void { Shell.dashboard = !Shell.dashboard; }
+        function toggle(): void {
+            Shell.dashboardScreen = Hyprland.focusedMonitor?.name ?? "";
+            Shell.dashboard = !Shell.dashboard;
+        }
     }
     IpcHandler {
         target: "rec"

@@ -7,7 +7,7 @@ import Quickshell.Services.Pipewire
 
 // Right-hand modules: volume, network, bluetooth, system (memory + temperature), battery.
 // Each shows its state through its icon alone; hover for the numbers.
-// Hovering one reports it (hoverKey/hoverItem) so Frame.qml can open the
+// Hovering one reports it (hoverKey/hoverItem) so StatusPopup.qml can open the
 // matching status drawer under it.
 Row {
     id: root
@@ -38,7 +38,7 @@ Row {
         id: poll
         command: ["sh", "-c",
             "awk '/^MemTotal/{t=$2} /^MemAvailable/{a=$2} END{print int((t-a)*100/t)}' /proc/meminfo;" +
-            "cat /sys/devices/platform/coretemp.0/hwmon/hwmon*/temp1_input 2>/dev/null | head -1 || echo 0;" +
+            "{ cat /sys/devices/platform/coretemp.0/hwmon/hwmon*/temp1_input 2>/dev/null || echo 0; } | head -1;" +
             "cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo -1;" +
             "cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo none;" +
             "head -1 /proc/stat"]

@@ -46,6 +46,15 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onPressed: m => s.setFromX(m.x - 4)
         onPositionChanged: m => { if (pressed) s.setFromX(m.x - 4); }
-        onWheel: w => s.moved(Math.max(0, Math.min(1, Math.round(s.value * 100 + (w.angleDelta.y > 0 ? 1 : -1)) / 100)))
+        // Capped at 1 going up only, like the bar's wheel: a value already
+        // past 1 (pavucontrol) steps down 1% instead of snapping to 1.
+        onWheel: w => {
+            const v = s.value;
+            if (w.angleDelta.y > 0) {
+                if (v < 1) s.moved(Math.min(1, Math.round(v * 100 + 1) / 100));
+            } else {
+                s.moved(Math.max(0, Math.round(v * 100 - 1) / 100));
+            }
+        }
     }
 }

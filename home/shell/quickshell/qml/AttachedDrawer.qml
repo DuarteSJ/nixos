@@ -40,11 +40,13 @@ PanelWindow {
     WlrLayershell.namespace: "qs-attached"
     WlrLayershell.layer: WlrLayer.Top
     implicitWidth: winW
-    // Full screen height (transparent; the input mask is the card only),
-    // so a tall drawer -- the dashboard's panel stack -- always fits.
-    implicitHeight: barWindow.screen.height
+    // Transparent; the input mask is the card only.  A drawer that can grow
+    // taller (the dashboard's panel stack) raises this to the screen height.
+    property int winH: 640
+    implicitHeight: winH
     color: "transparent"
-    visible: drawer.open || drawer.active || drawer.rw > 17
+    // Never without the bar it grows out of (Super+B, focus mode).
+    visible: Shell.barShown && (drawer.open || drawer.active || drawer.rw > 17)
     mask: Region { item: drawer.hit }
 
     ShaderEffect {
@@ -62,9 +64,7 @@ PanelWindow {
     Drawer {
         id: drawer
         attachY: Theme.barHeight
-        overlap: 0
         openRadius: 14
-        minX: 0
         // Right edge stops exactly at the window's (= screen's) right edge.
         maxX: win.winW
     }

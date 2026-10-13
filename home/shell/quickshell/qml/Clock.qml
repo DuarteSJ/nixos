@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 
 // "HH:MM   Mon DD".  Click copies the date; hovering opens the calendar
-// drawer (owned by Frame.qml, which watches `hovered`).
+// drawer (CalendarPopup.qml, which watches `hovered`).
 Item {
     id: root
 
