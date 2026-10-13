@@ -69,12 +69,12 @@ in {
           monitor = "";
           text = "cmd[update:1000] date +%H:%M";
           color = "rgba(236, 244, 247, 0.72)";
-          font_size = 130;
+          font_size = 190;
           font_family = "Quicksand Medium";
           shadow_passes = 1;
           shadow_size = 4;
           shadow_color = "rgba(0, 0, 0, 0.15)";
-          position = "0, 140";
+          position = "0, 175";
           halign = "center";
           valign = "center";
         }
@@ -88,7 +88,7 @@ in {
           shadow_passes = 1;
           shadow_size = 3;
           shadow_color = "rgba(0, 0, 0, 0.15)";
-          position = "0, 20";
+          position = "0, 25";
           halign = "center";
           valign = "center";
         }
