@@ -26,6 +26,11 @@
     fi
   '';
 in {
+  # The clock face (rounded, relaxed).  fontconfig so user-installed fonts
+  # are visible to hyprlock.
+  home.packages = [pkgs.quicksand];
+  fonts.fontconfig.enable = true;
+
   # Lock screen: the lagoon wallpaper blurred, a big clock straight on it,
   # and a single frosted pill for the password.
   programs.hyprlock = {
@@ -59,16 +64,16 @@ in {
       ];
 
       label = [
-        # TIME
+        # TIME -- rounded and soft, not a glowing slab.
         {
           monitor = "";
           text = "cmd[update:1000] date +%H:%M";
-          color = white;
-          font_size = 140;
-          font_family = "${vars.font.name} ExtraBold";
-          shadow_passes = 2;
-          shadow_size = 8;
-          shadow_color = "rgba(0, 0, 0, 0.25)";
+          color = "rgba(236, 244, 247, 0.72)";
+          font_size = 130;
+          font_family = "Quicksand Medium";
+          shadow_passes = 1;
+          shadow_size = 4;
+          shadow_color = "rgba(0, 0, 0, 0.15)";
           position = "0, 140";
           halign = "center";
           valign = "center";
@@ -77,12 +82,12 @@ in {
         {
           monitor = "";
           text = "cmd[update:60000] date +'%A, %d %B'";
-          color = "rgba(255, 255, 255, 0.8)";
-          font_size = 18;
-          font_family = vars.font.name;
-          shadow_passes = 2;
-          shadow_size = 6;
-          shadow_color = "rgba(0, 0, 0, 0.25)";
+          color = "rgba(236, 244, 247, 0.65)";
+          font_size = 17;
+          font_family = "Quicksand Medium";
+          shadow_passes = 1;
+          shadow_size = 3;
+          shadow_color = "rgba(0, 0, 0, 0.15)";
           position = "0, 20";
           halign = "center";
           valign = "center";
