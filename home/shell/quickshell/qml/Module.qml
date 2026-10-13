@@ -1,6 +1,11 @@
 import QtQuick
 
-// Coloured nerd-font glyph + muted label, optionally clickable.
+// A bar module: a nerd-font glyph (+ optional label), clickable, with a
+// few ways to show state without numbers:
+//   badge      small dot on the glyph's top-right (transparent = none)
+//   level      0..1 shown as a 2 px bar under the glyph while levelShown
+//   busy       gentle breathing (e.g. wifi connecting)
+//   critical   red + blinking
 Item {
     id: root
 
@@ -9,6 +14,10 @@ Item {
     property string label
     property color labelColor: Theme.muted
     property bool critical: false
+    property bool busy: false
+    property color badge: "transparent"
+    property real level: -1
+    property bool levelShown: false
     readonly property alias hovered: mouse.containsMouse
 
     signal clicked(var mouse)
@@ -22,11 +31,32 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 7
 
+        // Blinks when critical, breathes when busy.
+        SequentialAnimation on opacity {
+            running: root.critical || root.busy
+            loops: Animation.Infinite
+            onRunningChanged: if (!running) row.opacity = 1
+            NumberAnimation { to: root.critical ? 0.35 : 0.45; duration: root.critical ? 500 : 800; easing.type: Easing.InOutSine }
+            NumberAnimation { to: 1; duration: root.critical ? 500 : 800; easing.type: Easing.InOutSine }
+        }
+
         Text {
+            id: glyphText
             anchors.verticalCenter: parent.verticalCenter
             text: root.glyph
             color: root.critical ? Theme.red : root.glyphColor
             font { family: Theme.font; pixelSize: Theme.barFontSize }
+            Behavior on color { ColorAnimation { duration: 200 } }
+
+            Rectangle {
+                visible: root.badge.a > 0
+                width: 6; height: 6; radius: 3
+                color: root.badge
+                border.width: 1
+                border.color: Theme.bg
+                x: parent.width - 3
+                y: 2
+            }
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
@@ -35,14 +65,25 @@ Item {
             color: root.critical ? Theme.red : (mouse.containsMouse ? Theme.fg : root.labelColor)
             font { family: Theme.font; pixelSize: Theme.barFontSize }
             Behavior on color { ColorAnimation { duration: 140 } }
+        }
+    }
 
-            SequentialAnimation on opacity {
-                running: root.critical
-                loops: Animation.Infinite
-                onRunningChanged: if (!running) parent.opacity = 1
-                NumberAnimation { to: 0.35; duration: 500 }
-                NumberAnimation { to: 1; duration: 500 }
-            }
+    // Level bar under the glyph.
+    Rectangle {
+        x: glyphText.x
+        y: parent.height - 4
+        width: glyphText.width
+        height: 2
+        radius: 1
+        color: Theme.glassFillStrong
+        opacity: root.levelShown && root.level >= 0 ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: root.levelShown ? 120 : 400 } }
+        Rectangle {
+            width: parent.width * Math.max(0, Math.min(1, root.level))
+            height: parent.height
+            radius: 1
+            color: root.critical ? Theme.red : root.glyphColor
+            Behavior on width { NumberAnimation { duration: 90 } }
         }
     }
 

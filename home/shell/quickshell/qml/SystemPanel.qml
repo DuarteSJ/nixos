@@ -23,7 +23,7 @@ Column {
             model: [
                 { v: p.stats.cpuPct / 100, t: p.stats.cpuPct + "%", c: "CPU", col: Theme.accent },
                 { v: p.stats.memPct / 100, t: p.stats.memPct + "%", c: "MEMORY", col: Theme.blue },
-                { v: p.stats.tempC / 100, t: p.stats.tempC + "°", c: "TEMP", col: p.stats.tempC >= 80 ? Theme.red : Theme.yellow }
+                { v: p.stats.tempC / 100, t: p.stats.tempC + "°", c: "TEMP", col: p.stats.tempC >= 90 ? Theme.red : p.stats.tempC >= 80 ? Theme.yellow : Theme.teal }
             ]
             delegate: Ring {
                 required property var modelData
