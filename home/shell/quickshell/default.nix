@@ -65,10 +65,14 @@
     }
   '';
 
-  shellDir = pkgs.runCommand "quickshell-shell" {} ''
+  # Qt 6 ShaderEffects want precompiled .qsb shaders.
+  shellDir = pkgs.runCommand "quickshell-shell" {nativeBuildInputs = [pkgs.qt6.qtshadertools];} ''
     cp -r ${./qml} $out
-    chmod u+w $out
+    chmod -R u+w $out
     cp ${theme} $out/Theme.qml
+    for f in $out/shaders/*.frag; do
+      qsb --glsl "100es,120,150" --hlsl 50 --msl 12 -o "$f.qsb" "$f"
+    done
   '';
 in {
   home.packages = [pkgs.quickshell pkgs.material-symbols];

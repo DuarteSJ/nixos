@@ -79,6 +79,7 @@ PanelWindow {
 
     // ── right ───────────────────────────────────────────────────────────
     Group {
+        id: rightGroup
         anchors { right: parent.right; top: parent.top }
         roundRight: false
         Status { id: status }
@@ -87,5 +88,6 @@ PanelWindow {
     StatusPopup {
         barWindow: bar
         status: status
+        group: rightGroup
     }
 }
