@@ -1,10 +1,12 @@
-# Quickshell desktop shell: top bar, session menu, app launcher and
-# notification daemon (replaces waybar, rofi and dunst).  QML lives in ./qml; only Theme.qml is generated, from
+# Quickshell desktop shell: top bar, session menu, app launcher,
+# notification daemon and volume/brightness pop-up (replaces waybar, rofi
+# and dunst).  QML lives in ./qml; only Theme.qml is generated, from
 # the palette and vars, so the shell never hardcodes a colour.
 #
 #   qs -c shell ipc call bar     toggle|show|hide
 #   qs -c shell ipc call session toggle|open
 #   qs -c shell ipc call launcher toggle
+#   qs -c shell ipc call osd      brightness
 #   qs -c shell ipc call rec     start|stop
 {
   config,
@@ -85,6 +87,7 @@ in {
         osConfig.programs.hyprland.package
         pkgs.${vars.terminal}
         pkgs.bash
+        pkgs.brightnessctl
         pkgs.coreutils
         pkgs.gawk
         pkgs.hyprlock

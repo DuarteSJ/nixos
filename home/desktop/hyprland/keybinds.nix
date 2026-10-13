@@ -79,7 +79,7 @@
     }
     {
       key = "XF86MonBrightnessUp";
-      cmd = "brightnessctl s 4%+";
+      cmd = "brightnessctl -q s 4%+ && ${qs} osd brightness";
       opts = {
         locked = true;
         repeating = true;
@@ -87,7 +87,7 @@
     }
     {
       key = "XF86MonBrightnessDown";
-      cmd = "brightnessctl s 4%-";
+      cmd = "brightnessctl -q s 4%- && ${qs} osd brightness";
       opts = {
         locked = true;
         repeating = true;

@@ -12,6 +12,7 @@ ShellRoot {
     SessionMenu {}
     Launcher {}
     Notifications {}
+    Osd { id: osd }
 
     // qs -c shell ipc call <target> <function>
     IpcHandler {
@@ -28,6 +29,10 @@ ShellRoot {
     IpcHandler {
         target: "launcher"
         function toggle(): void { Shell.launcherOpen = !Shell.launcherOpen; }
+    }
+    IpcHandler {
+        target: "osd"
+        function brightness(): void { osd.showBrightness(); }
     }
     IpcHandler {
         target: "rec"
