@@ -18,6 +18,11 @@
   inherit (config) vars;
   c = config.colorScheme.palette;
 
+  # "2E3440" -> "0.180, 0.204, 0.251" for Qt.rgba().
+  rgbF = hex: let
+    ch = i: (lib.fromHexString (builtins.substring i 2 hex)) / 255.0;
+  in "${toString (ch 0)}, ${toString (ch 2)}, ${toString (ch 4)}";
+
   theme = pkgs.writeText "Theme.qml" ''
     pragma Singleton
 
@@ -50,6 +55,13 @@
         readonly property string iconFont: "Material Symbols Rounded"
 
         readonly property int barHeight: 27
+
+        // Liquid-glass frame (Frame.qml + shaders/frame.frag).
+        readonly property int frameEdge: 6          // left/right/bottom rim
+        readonly property int frameRadius: 16       // corners of the window area
+        readonly property real gooey: 30            // smooth-union width, px
+        readonly property color glassTint: Qt.rgba(${rgbF c.base00}, 0.40)
+        readonly property color glassRim: Qt.rgba(${rgbF c.base06}, 0.65)
         readonly property int barRadius: ${toString vars.barRounding}
         readonly property int radius: ${toString vars.rounding}
 
@@ -60,10 +72,14 @@
     }
   '';
 
-  shellDir = pkgs.runCommand "quickshell-shell" {} ''
+  # Qt 6 ShaderEffects want precompiled .qsb shaders.
+  shellDir = pkgs.runCommand "quickshell-shell" {nativeBuildInputs = [pkgs.qt6.qtshadertools];} ''
     cp -r ${./qml} $out
-    chmod u+w $out
+    chmod -R u+w $out
     cp ${theme} $out/Theme.qml
+    for f in $out/shaders/*.frag; do
+      qsb --glsl "100es,120,150" --hlsl 50 --msl 12 -o "$f.qsb" "$f"
+    done
   '';
 in {
   home.packages = [pkgs.quickshell pkgs.material-symbols];

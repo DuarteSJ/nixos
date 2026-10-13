@@ -2,15 +2,25 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 ShellRoot {
+    // Per monitor: the glass frame, plus invisible strips reserving its
+    // edges so tiled windows sit inside the hole.
     Variants {
         model: Quickshell.screens
-        delegate: Bar {}
+        delegate: Scope {
+            id: perScreen
+            required property var modelData
+            Frame { modelData: perScreen.modelData }
+            Reserve { modelData: perScreen.modelData; edge: "top"; size: Theme.barHeight; visible: Shell.barVisible }
+            Reserve { modelData: perScreen.modelData; edge: "left"; visible: Shell.barVisible }
+            Reserve { modelData: perScreen.modelData; edge: "right"; visible: Shell.barVisible }
+            Reserve { modelData: perScreen.modelData; edge: "bottom"; visible: Shell.barVisible }
+        }
     }
 
     SessionMenu {}
-    Launcher {}
     Notifications {}
     Osd { id: osd }
 
@@ -28,7 +38,10 @@ ShellRoot {
     }
     IpcHandler {
         target: "launcher"
-        function toggle(): void { Shell.launcherOpen = !Shell.launcherOpen; }
+        function toggle(): void {
+            if (!Shell.launcherOpen) Shell.launcherScreen = Hyprland.focusedMonitor?.name ?? "";
+            Shell.launcherOpen = !Shell.launcherOpen;
+        }
     }
     IpcHandler {
         target: "osd"

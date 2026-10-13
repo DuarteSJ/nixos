@@ -113,7 +113,16 @@ in {
               inherit rounding;
               inactive_opacity = 1;
               active_opacity = 1;
-              blur.enabled = false;
+              # Blur is on for the quickshell glass frame (see layer_rule
+              # below).  Windows are opaque, so nothing else pays for it.
+              blur = {
+                enabled = true;
+                size = 7;
+                passes = 3;
+                noise = 0.02;
+                vibrancy = 0.25;
+                new_optimizations = true;
+              };
               dim_inactive = false;
             };
             dwindle = {
@@ -237,6 +246,30 @@ in {
       # ---------------------------------------------------------------
       # Window rules
       # ---------------------------------------------------------------
+      # Quickshell glass frame: blur behind exactly what it paints
+      # (ignore_alpha skips the transparent middle), and no Hyprland layer
+      # animation -- the shell animates itself.
+      layer_rule = [
+        {
+          _args = [
+            {
+              match = {namespace = "^qs-frame$";};
+              blur = true;
+              ignore_alpha = 0.04;
+              no_anim = true;
+            }
+          ];
+        }
+        {
+          _args = [
+            {
+              match = {namespace = "^qs-reserve$";};
+              no_anim = true;
+            }
+          ];
+        }
+      ];
+
       window_rule = [
         {
           _args = [

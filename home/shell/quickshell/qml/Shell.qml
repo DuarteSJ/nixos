@@ -9,6 +9,7 @@ Singleton {
     property bool barVisible: true
     property bool sessionOpen: false
     property bool launcherOpen: false
+    property string launcherScreen: ""   // monitor the launcher opened on
     property bool recording: false
 
     // Pick up a recording already running when the shell (re)starts.
