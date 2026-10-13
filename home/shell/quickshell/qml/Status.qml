@@ -54,14 +54,21 @@ Row {
         readonly property bool muted: audio?.muted ?? false
         glyph: muted ? "" : vol < 34 ? "" : vol < 67 ? "" : ""
         glyphColor: muted ? Theme.subtle : Theme.red
-        label: muted ? "" : vol + "%"
         onClicked: m => {
             if (m.button === Qt.RightButton && audio) audio.muted = !audio.muted;
             else Quickshell.execDetached(["pavucontrol"]);
         }
+        // 1% per notch, capped at 100% going up.  Only this control (and the
+        // volume keys) cap: pavucontrol can still push past 100%, and
+        // scrolling up from there leaves it alone instead of pulling it back.
         onWheel: w => {
             if (!audio) return;
-            audio.volume = Math.max(0, Math.min(1, audio.volume + (w.angleDelta.y > 0 ? 0.05 : -0.05)));
+            const v = audio.volume;
+            if (w.angleDelta.y > 0) {
+                if (v < 1) audio.volume = Math.min(1, Math.round(v * 100 + 1) / 100);
+            } else {
+                audio.volume = Math.max(0, Math.round(v * 100 - 1) / 100);
+            }
         }
     }
 
@@ -70,10 +77,9 @@ Row {
         readonly property var devices: Networking.devices?.values ?? []
         readonly property var wired: devices.find(d => d.type === DeviceType.Wired && d.connected)
         readonly property var wifi: devices.find(d => d.type === DeviceType.Wifi && d.connected)
-        readonly property var wifiNet: wifi ? (wifi.networks?.values ?? []).find(n => n.connected) : null
         glyph: wired ? "\u{f0201}" : wifi ? "" : ""
         glyphColor: wired || wifi ? Theme.orange : Theme.red
-        label: wired ? "wired" : wifi ? Math.round((wifiNet?.signalStrength ?? 0) * 100) + "%" : "offline"
+        label: wired ? "wired" : wifi ? "" : "offline"
         onClicked: root.term(["nmtui"])
     }
 

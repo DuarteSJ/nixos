@@ -53,7 +53,7 @@
   mediaBinds = map (b: kbo (bareKey b.key) (exec b.cmd) b.opts) [
     {
       key = "XF86AudioRaiseVolume";
-      cmd = "wpctl set-volume @DEFAULT_SINK@ 0.05+";
+      cmd = "wpctl set-volume -l 1.0 @DEFAULT_SINK@ 1%+";
       opts = {
         locked = true;
         repeating = true;
@@ -61,7 +61,7 @@
     }
     {
       key = "XF86AudioLowerVolume";
-      cmd = "wpctl set-volume @DEFAULT_SINK@ 0.05-";
+      cmd = "wpctl set-volume @DEFAULT_SINK@ 1%-";
       opts = {
         locked = true;
         repeating = true;
