@@ -1,4 +1,4 @@
-# Inline Lua bind actions + startup handler body.
+# Inline Lua bind actions + top-level program.
 # Native hl.config / hl.get_config — no /tmp state, no hyprctl eval.
 {
   inline,
@@ -39,19 +39,16 @@ in {
           },
         })
         -- #6 Gaps: flat 0 in focus mode; otherwise restore the configured
-        -- baseline via the same writer reconcile() uses, so the two can't drift.
-        -- After a `hyprctl reload` the start handler (and _G.hlBaselineGaps) is
-        -- gone until relogin, but this keybind closure survives — so without a
-        -- fallback the restore branch silently no-ops and gaps stay pinned at 0.
-        -- Recompute the same baseline inline (shared nix source) in that case.
+        -- baseline (shared nix source with the static config block).
         if on then
           hl.config({ general = { gaps_in = 0, gaps_out = 0 } })
-        elseif _G.hlBaselineGaps then
-          _G.hlBaselineGaps()
         else
           ${gaps.baselineGapsLua}
         end
-        hl.exec_cmd("qs -c shell ipc call bar " .. (on and "hide" or "reveal"))
+        -- focusOn/focusOff, not hide/reveal: focus mode hides the bar on top of
+        -- Super+B rather than overwriting it.  A reload resets `on` to false
+        -- and the config to baseline; `topLevel` sends `focusOff` to match.
+        hl.exec_cmd("qs -c shell ipc call bar " .. (on and "focusOn" or "focusOff"))
       end
     end)()'';
 
@@ -139,21 +136,36 @@ in {
   # Monitor status: current profile + per-output workspace mapping.
   monitorStatus = inline monitorManager.statusAction;
 
-  # Startup handler body.  Order: prelude, then each subsystem's own init.
-  startupLua = ''
-    -- hl.on / hl.timer return GC-managed handles: if the Lua handle is
-    -- collected, Hyprland drops the subscription from m_activeHandles and the
-    -- callback silently stops firing.  Everything here runs inside the
-    -- hyprland.start callback, so an unreferenced handle becomes unreachable
-    -- the moment that callback returns and dies at the next GC.  Anchor every
-    -- long-lived handle in a global so it lives for the session.
-    _G.__hlHandles = _G.__hlHandles or {}
-    function hlKeep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
+  # Lid closed: lock, then suspend — unless another output is up (docked,
+  # clamshell).  logind's lid handling is off (system/default.nix) so this is
+  # the only suspend.  The sleep gives hyprlock time to cover the screen.
+  lidClose = inline ''
+    function()
+      for _, m in ipairs(hl.get_monitors()) do
+        if m.name ~= "${monitorManager.builtinName}" then return end
+      end
+      hl.exec_cmd("hyprlock & sleep 0.5; systemctl suspend")
+    end'';
 
-    ${gaps.setup}
+  # Top-level program, for `extraConfig`.  Runs on every config load, so it
+  # comes back after the `hyprctl reload` that monitor hotplug and
+  # nixos-rebuild switch perform (a hyprland.start handler would not).
+  topLevel = ''
+    -- hl.on / hl.timer return GC-managed handles: if the Lua handle is
+    -- collected, Hyprland drops the subscription and the callback silently
+    -- stops firing.  Anchor every long-lived handle in a global.
+    _G.__hlHandles = _G.__hlHandles or {}
+    local function keep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
+
+    -- A load resets prodToggle to off and the config to baseline; bring the
+    -- bar's focus-mode hide in line.  Deferred like the monitor manager's
+    -- first pass; harmless before Quickshell is up (focus mode starts off).
+    keep(hl.timer(function()
+      hl.exec_cmd("qs -c shell ipc call bar focusOff")
+    end, { timeout = 500, type = "oneshot" }))
 
     -- Event handler — notify when a window marks itself urgent.
-    hlKeep(hl.on("window.urgent", function(win)
+    keep(hl.on("window.urgent", function(win)
       -- win.class is app-controlled and is interpolated into the single-quoted
       -- shell arg below; strip single quotes (the only char that can break out
       -- of the quotes) and backslashes so a crafted class can't inject shell.

@@ -31,6 +31,15 @@
 
   services.printing.enable = true;
 
+  # The lid is Hyprland's job (lidClose in home/desktop/hyprland): it locks
+  # before suspending and stays awake when docked.  logind's own handling
+  # would race it with a second, unlocked suspend.
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+  };
+
   environment.systemPackages = [pkgs.openvpn pkgs.android-tools];
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 

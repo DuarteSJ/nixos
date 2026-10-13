@@ -10,7 +10,7 @@
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
   inherit (scripts) toggleMic;
   qs = "${lib.getExe' pkgs.quickshell "qs"} -c shell ipc call";
-  inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus;
+  inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus lidClose;
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
   numWsBinds = lib.flatten (lib.genList (i: let
@@ -177,7 +177,7 @@ in
     })
 
     # Lid (bindl = locked)
-    (kbo (bareKey "switch:on:Lid Switch") (exec "hyprlock & systemctl suspend") {locked = true;})
+    (kbo (bareKey "switch:on:Lid Switch") lidClose {locked = true;})
 
     # Mouse (bindm)
     (kbo (modKey "mouse:272") (inline "hl.dsp.window.drag()") {mouse = true;})

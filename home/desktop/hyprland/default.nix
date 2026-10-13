@@ -330,19 +330,6 @@ in {
       ];
 
       # ---------------------------------------------------------------
-      # Startup (exec-once equivalent)
-      # ---------------------------------------------------------------
-      on = {
-        _args = [
-          "hyprland.start"
-          (inline ''
-            function()
-            ${luaActions.startupLua}
-            end'')
-        ];
-      };
-
-      # ---------------------------------------------------------------
       # Keybindings (see ./keybinds.nix)
       # ---------------------------------------------------------------
       inherit bind;
@@ -355,6 +342,7 @@ in {
     extraConfig = lib.concatStringsSep "\n" [
       monitorManager.topLevel
       wallpaper.topLevel
+      luaActions.topLevel
     ];
   };
 }

@@ -280,6 +280,19 @@
       _G.hlMonitorProfile = name
     end
 
+    -- Topology fingerprint: the external outputs that are up, minus any the
+    -- active profile disables itself, so our own disable never reads as a
+    -- change.  The builtin is left out for the same reason.
+    local reconciledSkip, reconciledSig = {}, nil
+    local function topologySig(snap, skip)
+      local names = {}
+      for _, m in ipairs(snap.externals) do
+        if not skip[m.name] then names[#names + 1] = m.name end
+      end
+      table.sort(names)
+      return table.concat(names, ",")
+    end
+
     function _G.hlMonitorReconcile()
       local snap = snapshot()
       local p = pick(snap)
@@ -287,6 +300,19 @@
       apply(snap, p)
       trackProfile(p.name)
       announce(snap)
+      reconciledSkip = {}
+      for _, sel in ipairs(p.disable) do
+        local out = resolve(snap, sel)
+        if out then reconciledSkip[out] = true end
+      end
+      reconciledSig = topologySig(snap, reconciledSkip)
+    end
+
+    -- Has a real hotplug landed since the last reconcile?  Checked when the
+    -- settling window closes, since events inside it are swallowed.
+    function _G.hlMonitorTopologyChanged()
+      if reconciledSig == nil then return false end
+      return topologySig(snapshot(), reconciledSkip) ~= reconciledSig
     end
   '';
 
@@ -321,10 +347,17 @@
 
     -- Settling window: our own disable makes Hyprland emit monitor.removed,
     -- which would otherwise trigger a reload, which would disable again...
-    -- Swallow topology events until the first match has landed.
+    -- Swallow topology events until the first match has landed.  A real
+    -- hotplug inside the window is swallowed too, so when it closes compare
+    -- against what was reconciled and reload if the outputs moved meanwhile.
     _G.__hlSettling = true
-    keep(hl.timer(function() _G.__hlSettling = false end,
-                  { timeout = 1500, type = "oneshot" }))
+    keep(hl.timer(function()
+      if _G.hlMonitorTopologyChanged() then
+        hl.exec_cmd("hyprctl reload")
+      else
+        _G.__hlSettling = false
+      end
+    end, { timeout = 1500, type = "oneshot" }))
 
     -- A real topology change just reloads.  The reload re-runs this file from
     -- the baseline and re-matches — that IS the reconcile.  Nothing to
@@ -342,5 +375,5 @@
   # Bindable action: notify with the current profile + live monitor mapping.
   statusAction = "function() _G.hlMonitorStatusNotify() end";
 in {
-  inherit setup topLevel statusAction;
+  inherit setup topLevel statusAction builtinName;
 }
