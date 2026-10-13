@@ -27,6 +27,10 @@ Row {
     property var cpuPrev: [0, 0]          // idle, total from the last poll
     property int memPct: 0
     property int tempC: 0
+    // Running average for the icon: the package temperature spikes past
+    // 90 C for a moment on short bursts, and a single sample would flash
+    // the chip red.  ~15 s to settle at a 3 s poll.
+    property real tempSmooth: 0
     property int batPct: -1
     property string batStatus: ""
 
@@ -43,6 +47,8 @@ Row {
                 const l = text.trim().split("\n");
                 root.memPct = parseInt(l[0]) || 0;
                 root.tempC = Math.round((parseInt(l[1]) || 0) / 1000);
+                root.tempSmooth = root.tempSmooth === 0 ? root.tempC
+                                : root.tempSmooth * 0.75 + root.tempC * 0.25;
                 root.batPct = parseInt(l[2]);
                 root.batStatus = l[3] ?? "";
                 const f = (l[4] ?? "").trim().split(/\s+/).slice(1).map(Number);
@@ -67,8 +73,8 @@ Row {
         Quickshell.execDetached([Theme.terminal, "-e"].concat(cmd));
     }
 
-    // Icons carry the state; colour only when something needs attention
-    // (calm = plain foreground).  Numbers live in the hover panels.
+    // Icons carry the state (numbers live in the hover panels).  Each module
+    // keeps its own colour; warnings shift it, and red means act now.
 
     // ── volume: glyph by level; a thin level bar while it changes ────────
     PwObjectTracker { objects: [Pipewire.defaultAudioSink] }
@@ -80,7 +86,7 @@ Row {
         readonly property int vol: Math.round((audio?.volume ?? 0) * 100)
         readonly property bool muted: audio?.muted ?? false
         glyph: muted ? "" : vol < 34 ? "" : vol < 67 ? "" : ""
-        glyphColor: muted ? Theme.subtle : Theme.fg
+        glyphColor: muted ? Theme.subtle : Theme.red
         level: muted ? 0 : (audio?.volume ?? 0)
         levelShown: volShow.running
 
@@ -124,8 +130,8 @@ Row {
              : connecting ? "\u{f092f}"
              : !Networking.wifiEnabled ? "\u{f092e}"
              : "\u{f092b}"
-        glyphColor: wired || net ? (net && sig < 0.25 ? Theme.yellow : Theme.fg)
-                  : connecting ? Theme.fg
+        glyphColor: wired || net ? Theme.orange
+                  : connecting ? Theme.orange
                   : !Networking.wifiEnabled ? Theme.subtle
                   : Theme.red
         busy: connecting
@@ -142,7 +148,7 @@ Row {
         readonly property real lowest: linked.filter(d => d.batteryAvailable)
                                              .reduce((m, d) => Math.min(m, d.battery), 1)
         glyph: !on ? "\u{f00b2}" : linked.length ? "\u{f00b1}" : "\u{f00af}"
-        glyphColor: !on ? Theme.subtle : linked.length ? Theme.fg : Theme.muted
+        glyphColor: !on ? Theme.subtle : linked.length ? Theme.teal : Theme.blue
         badge: lowest < 0.15 ? Theme.red : lowest < 0.3 ? Theme.yellow : "transparent"
         onClicked: Quickshell.execDetached(["blueman-manager"])
     }
@@ -152,10 +158,10 @@ Row {
     Module {
         id: sysMod
         onHoveredChanged: root.track("system", sysMod, hovered)
-        readonly property bool hot: root.memPct >= 90 || root.tempC >= 90
-        readonly property bool warm: root.memPct >= 75 || root.tempC >= 80
+        readonly property bool hot: root.memPct >= 90 || root.tempSmooth >= 90
+        readonly property bool warm: root.memPct >= 75 || root.tempSmooth >= 80
         glyph: ""
-        glyphColor: warm ? Theme.yellow : Theme.fg
+        glyphColor: warm ? Theme.orange : Theme.yellow
         critical: hot
         onClicked: root.term(["btop"])
     }
@@ -174,9 +180,9 @@ Row {
         readonly property int step: Math.max(0, Math.min(10, Math.round(root.batPct / 10)))
         visible: root.batPct >= 0
         glyph: plugged ? "" : charging ? chargingLevels[step] : levels[step]
-        glyphColor: charging || plugged ? Theme.fg
+        glyphColor: charging || plugged ? Theme.blue
                   : root.batPct < 15 ? Theme.red
-                  : root.batPct < 30 ? Theme.yellow : Theme.fg
+                  : root.batPct < 30 ? Theme.yellow : Theme.green
         critical: root.batPct < 15 && !charging && !plugged
     }
 }
