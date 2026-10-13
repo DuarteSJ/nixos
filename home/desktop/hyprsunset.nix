@@ -12,8 +12,8 @@ _: {
           identity = true;
         }
         {
-          # Night: warmer colour, dimmer screen.
-          time = "21:30";
+          # Night (from 23:30): warmer colour, dimmer screen.
+          time = "23:30";
           temperature = 4000;
           gamma = 0.7;
         }

@@ -19,6 +19,28 @@
         transparent = true;
       }
       // config.colorScheme.nvf;
+    # Transparent background so the glass terminal (alacritty at 72% +
+    # Hyprland blur) shows through.  The base16 theme ignores
+    # theme.transparent, so clear the backgrounds after it has loaded, and
+    # again whenever a colorscheme is (re)applied.
+    luaConfigPost = ''
+      local function glass()
+        for _, group in ipairs({
+          "Normal", "NormalNC", "NormalFloat", "FloatBorder", "SignColumn",
+          "LineNr", "CursorLineNr", "EndOfBuffer", "FoldColumn", "WinSeparator",
+          "VertSplit", "MsgArea", "StatusLine", "StatusLineNC", "TabLineFill",
+          "TelescopeNormal", "TelescopeBorder", "WhichKeyFloat",
+        }) do
+          local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
+          hl.bg = nil
+          hl.ctermbg = nil
+          vim.api.nvim_set_hl(0, group, hl)
+        end
+      end
+      glass()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = glass })
+    '';
+
     telescope.enable = true;
     statusline.lualine.enable = true;
     tabline.nvimBufferline.enable = true;
