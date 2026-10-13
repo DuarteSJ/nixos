@@ -14,25 +14,14 @@
   glassStrong = "rgba(140, 173, 189, 0.38)";
   rim = "rgba(255, 255, 255, 0.55)";
   white = "rgba(255, 255, 255, 0.95)";
-
-  spotifyScript = pkgs.writeShellScript "spotify-status" ''
-    artist=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "No artist")
-    title=$(${pkgs.playerctl}/bin/playerctl metadata title 2>/dev/null || echo "No track")
-    status=$(${pkgs.playerctl}/bin/playerctl status 2>/dev/null || echo "Stopped")
-
-    # Display only if music is playing
-    if [ "$status" != "Stopped" ]; then
-      echo "♫ ''${artist}    ''${title} ♫"
-    fi
-  '';
 in {
   # The clock face (rounded, relaxed).  fontconfig so user-installed fonts
   # are visible to hyprlock.
   home.packages = [pkgs.quicksand];
   fonts.fontconfig.enable = true;
 
-  # Lock screen: the lagoon wallpaper blurred, a big clock straight on it,
-  # and a single frosted pill for the password.
+  # Lock screen: the lagoon wallpaper blurred, a big clock and the date
+  # straight on it, and a single frosted pill for the password.
   programs.hyprlock = {
     enable = true;
     settings = {
@@ -91,17 +80,6 @@ in {
           position = "0, 25";
           halign = "center";
           valign = "center";
-        }
-        # NOW PLAYING
-        {
-          monitor = "";
-          text = "cmd[update:2000] ${spotifyScript}";
-          color = "rgba(255, 255, 255, 0.7)";
-          font_size = 12;
-          font_family = vars.font.name;
-          position = "0, 30";
-          halign = "center";
-          valign = "bottom";
         }
       ];
 
