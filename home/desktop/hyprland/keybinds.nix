@@ -176,7 +176,7 @@ in
     })
 
     # Lid (bindl = locked)
-    (kbo (bareKey "switch:on:Lid Switch") (exec "hyprlock & systemctl suspend") {locked = true;})
+    (kbo (bareKey "switch:on:Lid Switch") (exec "${qs} lock lock; sleep 0.8; systemctl suspend") {locked = true;})
 
     # Mouse (bindm)
     (kbo (modKey "mouse:272") (inline "hl.dsp.window.drag()") {mouse = true;})

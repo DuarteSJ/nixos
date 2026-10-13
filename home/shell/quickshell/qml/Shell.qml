@@ -11,6 +11,8 @@ Singleton {
     property bool launcherOpen: false
     property string launcherScreen: ""   // monitor the launcher opened on
     property bool recording: false
+    property bool locked: false          // real session lock (LockScreen.qml)
+    property bool lockPreview: false     // same screen, no lock
 
     // Pick up a recording already running when the shell (re)starts.
     Process {

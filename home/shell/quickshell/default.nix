@@ -18,6 +18,13 @@
   inherit (config) vars;
   c = config.colorScheme.palette;
 
+  wallpaper = pkgs.callPackage ../../desktop/wallpaper-lagoon/package.nix {};
+  # The lock screen's background: blurred and slightly darkened once, at
+  # build time, instead of a runtime blur (smoother, and costs nothing).
+  wallpaperBlurred = pkgs.runCommand "lagoon-wallpaper-blurred.png" {nativeBuildInputs = [pkgs.imagemagick];} ''
+    magick ${wallpaper} -resize 50% -blur 0x18 -resize 200% -modulate 94,108 $out
+  '';
+
   # "2E3440" -> "0.180, 0.204, 0.251" for Qt.rgba().
   rgbF = hex: let
     ch = i: (lib.fromHexString (builtins.substring i 2 hex)) / 255.0;
@@ -71,6 +78,8 @@
         readonly property int radius: ${toString vars.rounding}
 
         readonly property string terminal: "${vars.terminal}"
+        readonly property string wallpaper: "file://${wallpaper}"
+        readonly property string wallpaperBlurred: "file://${wallpaperBlurred}"
         readonly property var persistentWorkspaces: ${builtins.toJSON config.monitors.workspaces}
 
         function alpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a); }
@@ -87,7 +96,10 @@
     done
   '';
 in {
-  home.packages = [pkgs.quickshell pkgs.material-symbols];
+  # Quicksand: the lock screen's clock face.  fontconfig so user-installed
+  # fonts are visible to the shell.
+  home.packages = [pkgs.quickshell pkgs.material-symbols pkgs.quicksand];
+  fonts.fontconfig.enable = true;
 
   xdg.configFile."quickshell/shell".source = shellDir;
 
@@ -113,7 +125,6 @@ in {
         pkgs.brightnessctl
         pkgs.coreutils
         pkgs.gawk
-        pkgs.hyprlock
         pkgs.libnotify
         pkgs.networkmanager
         pkgs.pavucontrol

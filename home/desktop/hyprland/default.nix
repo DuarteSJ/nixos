@@ -134,6 +134,10 @@ in {
               disable_hyprland_logo = true;
               disable_splash_rendering = true;
               force_default_wallpaper = 0;
+              # The lock screen is quickshell's (LockScreen.qml): if the shell
+              # dies while locked, let its restarted instance take the lock
+              # back instead of leaving the "lock client died" screen.
+              allow_session_lock_restore = true;
             };
             input = {
               repeat_delay = 200;

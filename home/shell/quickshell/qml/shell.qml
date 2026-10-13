@@ -23,6 +23,7 @@ ShellRoot {
     SessionMenu {}
     Notifications {}
     Osd { id: osd }
+    LockScreen {}
 
     // qs -c shell ipc call <target> <function>
     IpcHandler {
@@ -46,6 +47,11 @@ ShellRoot {
     IpcHandler {
         target: "osd"
         function brightness(): void { osd.showBrightness(); }
+    }
+    IpcHandler {
+        target: "lock"
+        function lock(): void { Shell.locked = true; }
+        function preview(): void { Shell.lockPreview = !Shell.lockPreview; }
     }
     IpcHandler {
         target: "rec"

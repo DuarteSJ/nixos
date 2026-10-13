@@ -8,11 +8,12 @@ import Quickshell.Hyprland
 PanelWindow {
     id: menu
 
-    // Lock and suspend both go through hyprlock (suspend locks first), and
-    // logout uses the Lua dispatcher Hyprland 0.55 expects.
+    // Lock is the shell's own lock screen (LockScreen.qml); sleep locks
+    // first so the machine wakes up locked.  Logout uses the Lua dispatcher
+    // Hyprland 0.55 expects.
     readonly property var actions: [
-        { icon: "lock",               label: "lock",      cmd: ["hyprlock"] },
-        { icon: "bedtime",            label: "sleep",     cmd: ["sh", "-c", "hyprlock & sleep 0.5; systemctl suspend"] },
+        { icon: "lock",               label: "lock",      lock: true },
+        { icon: "bedtime",            label: "sleep",     lock: true, cmd: ["sh", "-c", "sleep 0.8; systemctl suspend"] },
         { icon: "logout",             label: "log out",   cmd: ["hyprctl", "dispatch", "hl.dsp.exit()"] },
         { icon: "restart_alt",        label: "restart",   cmd: ["systemctl", "reboot"] },
         { icon: "power_settings_new", label: "shut down", cmd: ["systemctl", "poweroff"] },
@@ -21,7 +22,8 @@ PanelWindow {
 
     function run(i) {
         Shell.sessionOpen = false;
-        Quickshell.execDetached(actions[i].cmd);
+        if (actions[i].lock) Shell.locked = true;
+        if (actions[i].cmd) Quickshell.execDetached(actions[i].cmd);
     }
 
     screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
