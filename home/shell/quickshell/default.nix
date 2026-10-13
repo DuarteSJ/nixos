@@ -49,7 +49,7 @@
         readonly property int notifFontSize: 17
         readonly property string iconFont: "Material Symbols Rounded"
 
-        readonly property int barHeight: 30
+        readonly property int barHeight: 27
         readonly property int barRadius: ${toString vars.barRounding}
         readonly property int radius: ${toString vars.rounding}
 
