@@ -9,7 +9,7 @@ from pathlib import Path
 GAME_CONFIG = Path.home() / ".config/unity3d/Ved/Megabonk/Saves/LocalDir/config.json"
 DEFAULT_RESET_TIME = 1.0
 HOLD_MARGIN = 0.05
-NOTIFY_ID = "7778"  # one notification slot, replaced in place
+NOTIFY_ID = "bonk-reroll"  # own notification slot, replaced in place
 
 
 def _find_key(obj, key):
