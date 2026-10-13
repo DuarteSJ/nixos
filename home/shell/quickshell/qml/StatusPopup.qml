@@ -83,7 +83,6 @@ PopupWindow {
         property real cardR: drawer.rr
         property real k: 16
         property color color: Theme.bg
-        property color rim: Theme.overlay
 
         fragmentShader: Qt.resolvedUrl("shaders/attach.frag.qsb")
     }
@@ -95,7 +94,10 @@ PopupWindow {
         attachY: Theme.barHeight
         overlap: 0
         minX: 6
-        maxX: popup.popupW - 6
+        // Allowed past the screen's right edge, so a card under the
+        // (right-flush) group is flush too and reads as the group
+        // extending downwards rather than a box next to it.
+        maxX: popup.popupW + 30
         openWidth: popup.panelW
         openHeight: popup.wantedH
         openRadius: 14

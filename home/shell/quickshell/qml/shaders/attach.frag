@@ -20,7 +20,6 @@ layout(std140, binding = 0) uniform buf {
     float cardR;
     float k;        // smooth-union width (px)
     vec4 color;     // fill (straight alpha)
-    vec4 rim;       // 1px outline on the part outside the group
 };
 
 float sdRect(vec2 p, vec4 r, float rad) {
@@ -45,10 +44,5 @@ void main() {
     float covUnion = clamp(0.5 - du, 0.0, 1.0);
     float covGroup = clamp(0.5 - dg, 0.0, 1.0);
     float a = max(covUnion - covGroup, 0.0) * color.a * qt_Opacity;
-
-    // Outline: a band just inside the union's edge, faded out near the
-    // group so it doesn't draw a seam across the join.
-    float band = (1.0 - smoothstep(0.0, 1.3, -du)) * smoothstep(1.0, 6.0, dg);
-    vec3 rgb = mix(color.rgb, rim.rgb, band * rim.a);
-    fragColor = vec4(rgb * a, a);
+    fragColor = vec4(color.rgb * a, a);
 }
