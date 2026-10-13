@@ -10,42 +10,12 @@
   wallpaper = pkgs.callPackage ./wallpaper-lagoon/package.nix {};
 
   # Frosted-glass tokens -- the same values as the quickshell frame
-  # (Theme.glassTint / glassRim), so the lock screen reads as the desktop.
-  glass = "rgba(140, 173, 189, 0.26)";
+  # (Theme.glassTint / glassRim).
   glassStrong = "rgba(140, 173, 189, 0.38)";
   rim = "rgba(255, 255, 255, 0.55)";
   white = "rgba(255, 255, 255, 0.95)";
-  dim = "rgba(255, 255, 255, 0.70)";
-  barH = 27; # matches the shell's barHeight
-
-  # Nerd Font glyphs (Nix strings have no \u escapes; JSON does).
-  glyph = cp: builtins.fromJSON "\"\\u${cp}\"";
-  lockGlyph = glyph "f023";
-  userGlyph = glyph "f007";
-  plugGlyph = glyph "f1e6";
-  # Surrogate pairs for the supplementary-plane battery icons.
-  batGlyph = builtins.fromJSON "\"\\udb80\\udc79\""; # nf-md-battery
-  chargeGlyph = builtins.fromJSON "\"\\udb80\\udc84\""; # nf-md-battery_charging
-  edge = 6; # matches Theme.frameEdge
-
-  batteryScript = pkgs.writeShellScript "lock-battery" ''
-    cap=$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null) || exit 0
-    st=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
-    case "$st" in Charging) icon="${chargeGlyph}" ;; Full|"Not charging") icon="${plugGlyph}" ;; *) icon="${batGlyph}" ;; esac
-    echo "$icon $cap%"
-  '';
-
-  # Screen-wide glass strip (the frame's bar / rims).
-  strip = size: position: valign: halign: {
-    monitor = "";
-    inherit size position valign halign;
-    color = glass;
-    rounding = 0;
-    border_size = 0;
-  };
 
   spotifyScript = pkgs.writeShellScript "spotify-status" ''
-    # Get metadata
     artist=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "No artist")
     title=$(${pkgs.playerctl}/bin/playerctl metadata title 2>/dev/null || echo "No track")
     status=$(${pkgs.playerctl}/bin/playerctl status 2>/dev/null || echo "Stopped")
@@ -56,9 +26,8 @@
     fi
   '';
 in {
-  # Lock screen that looks like the desktop: blurred lagoon wallpaper, the
-  # glass frame (top bar + thin rims around a rounded hairline), and a
-  # frosted panel in the middle with avatar, name and password.
+  # Lock screen: the lagoon wallpaper blurred, a big clock straight on it,
+  # and a single frosted pill for the password.
   programs.hyprlock = {
     enable = true;
     settings = {
@@ -89,123 +58,40 @@ in {
         }
       ];
 
-      shape = [
-        # ── frame ─────────────────────────────────────────────────────
-        (strip "1920, ${toString barH}" "0, 0" "top" "center")
-        (strip "${toString edge}, 1080" "0, 0" "center" "left")
-        (strip "${toString edge}, 1080" "0, 0" "center" "right")
-        (strip "1920, ${toString edge}" "0, 0" "bottom" "center")
-        # Rounded hairline around the "window area", like the shell's rim.
-        {
-          monitor = "";
-          size = "${toString (1920 - 2 * edge)}, ${toString (1080 - barH - edge)}";
-          position = "0, ${toString ((edge - barH) / 2)}";
-          halign = "center";
-          valign = "center";
-          color = "rgba(0, 0, 0, 0)";
-          rounding = 16;
-          border_size = 1;
-          border_color = rim;
-        }
-
-        # ── centre panel ──────────────────────────────────────────────
-        {
-          monitor = "";
-          size = "380, 330";
-          position = "0, 0";
-          halign = "center";
-          valign = "center";
-          color = glass;
-          rounding = 28;
-          border_size = 1;
-          border_color = rim;
-          shadow_passes = 2;
-          shadow_size = 16;
-          shadow_color = "rgba(0, 0, 0, 0.22)";
-        }
-        # Avatar circle.
-        {
-          monitor = "";
-          size = "92, 92";
-          position = "0, 80";
-          halign = "center";
-          valign = "center";
-          color = glassStrong;
-          rounding = -1;
-          border_size = 1;
-          border_color = rim;
-        }
-      ];
-
       label = [
-        # ── bar ───────────────────────────────────────────────────────
+        # TIME
         {
           monitor = "";
-          text = "${lockGlyph}  locked";
-          color = dim;
-          font_size = 12;
-          font_family = vars.font.name;
-          position = "${toString (edge + 12)}, -5";
-          halign = "left";
-          valign = "top";
-        }
-        {
-          monitor = "";
-          text = "cmd[update:1000] date +'%H:%M   ·   %a %d %b'";
+          text = "cmd[update:1000] date +%H:%M";
           color = white;
-          font_size = 12;
-          font_family = vars.font.name;
-          position = "0, -5";
-          halign = "center";
-          valign = "top";
-        }
-        {
-          monitor = "";
-          text = "cmd[update:30000] ${batteryScript}";
-          color = dim;
-          font_size = 12;
-          font_family = vars.font.name;
-          position = "-${toString (edge + 12)}, -5";
-          halign = "right";
-          valign = "top";
-        }
-
-        # ── panel ─────────────────────────────────────────────────────
-        {
-          monitor = "";
-          text = userGlyph;
-          color = white;
-          font_size = 34;
-          font_family = vars.font.name;
-          position = "0, 80";
+          font_size = 140;
+          font_family = "${vars.font.name} ExtraBold";
+          shadow_passes = 2;
+          shadow_size = 8;
+          shadow_color = "rgba(0, 0, 0, 0.25)";
+          position = "0, 140";
           halign = "center";
           valign = "center";
         }
-        {
-          monitor = "";
-          text = "$USER";
-          color = white;
-          font_size = 17;
-          font_family = "${vars.font.name} Bold";
-          position = "0, 8";
-          halign = "center";
-          valign = "center";
-        }
+        # DATE
         {
           monitor = "";
           text = "cmd[update:60000] date +'%A, %d %B'";
-          color = "rgb(${colors.base0C})";
-          font_size = 11;
+          color = "rgba(255, 255, 255, 0.8)";
+          font_size = 18;
           font_family = vars.font.name;
-          position = "0, -18";
+          shadow_passes = 2;
+          shadow_size = 6;
+          shadow_color = "rgba(0, 0, 0, 0.25)";
+          position = "0, 20";
           halign = "center";
           valign = "center";
         }
-        # Now playing, at the bottom of the screen.
+        # NOW PLAYING
         {
           monitor = "";
           text = "cmd[update:2000] ${spotifyScript}";
-          color = dim;
+          color = "rgba(255, 255, 255, 0.7)";
           font_size = 12;
           font_family = vars.font.name;
           position = "0, 30";
@@ -217,8 +103,8 @@ in {
       input-field = [
         {
           monitor = "";
-          size = "300, 46";
-          position = "0, -80";
+          size = "320, 50";
+          position = "0, -120";
           halign = "center";
           valign = "center";
           rounding = -1;
@@ -237,6 +123,9 @@ in {
           placeholder_text = "<span foreground='##ffffffaa'>password</span>";
           fail_text = "<i>$FAIL</i>";
           hide_input = false;
+          shadow_passes = 2;
+          shadow_size = 10;
+          shadow_color = "rgba(0, 0, 0, 0.2)";
         }
       ];
     };
