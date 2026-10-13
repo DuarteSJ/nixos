@@ -120,18 +120,16 @@ Row {
         onClicked: Quickshell.execDetached(["blueman-manager"])
     }
 
-    // ── system: memory + CPU temperature (one module, one hover panel) ──
+    // ── system: one chip icon for memory + CPU temperature; the numbers
+    // live in its hover panel (CPU / memory / temperature rings).
     Module {
         id: sysMod
         onHoveredChanged: root.track("system", sysMod, hovered)
+        readonly property bool hot: root.memPct >= 90 || root.tempC >= 80
+        readonly property bool warm: root.memPct >= 70 || root.tempC >= 70
         glyph: "\uf2db"
-        glyphColor: root.memPct >= 70 ? Theme.orange : Theme.yellow
-        label: root.memPct + "%"
-        critical: root.memPct >= 90
-        glyph2: root.tempC >= 80 ? "\uf2c7" : root.tempC >= 60 ? "\uf2c9" : "\uf2ca"
-        glyph2Color: Theme.teal
-        label2: root.tempC + "°C"
-        critical2: root.tempC >= 80
+        glyphColor: warm ? Theme.orange : Theme.yellow
+        critical: hot
         onClicked: root.term(["btop"])
     }
 
