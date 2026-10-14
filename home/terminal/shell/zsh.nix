@@ -9,15 +9,13 @@
       size = shellShared.history.size;
       save = shellShared.history.size;
       path = "${config.xdg.dataHome}/.histfile";
-      ignoreAllDups = shellShared.history.ignoreAllDups;
+      ignoreAllDups = true;
       ignorePatterns = shellShared.history.ignore;
       ignoreSpace = true;
       share = true;
     };
-    defaultKeymap =
-      if shellShared.keymap == "vi"
-      then "viins"
-      else "emacs";
+    # zsh picks viins when $EDITOR/$VISUAL mention vi, so pin emacs.
+    defaultKeymap = "emacs";
     setOptions = [
       "hist_verify"
       "auto_cd"
@@ -29,7 +27,6 @@
       bindkey '^@' autosuggest-accept
     '';
     autosuggestion.enable = true;
-    enableCompletion = true;
     syntaxHighlighting.enable = true;
   };
 }

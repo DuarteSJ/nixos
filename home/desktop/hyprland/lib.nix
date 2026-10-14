@@ -1,8 +1,15 @@
 # Pure Lua/config helper functions shared across the hyprland modules.
 {lib}: let
   inline = lib.generators.mkLuaInline;
+
+  # A configured output's static geometry, as an HL.MonitorSpec fragment
+  # (no `output` key).  Shared by the static `monitor` rules below and the
+  # runtime profile layer (monitor-manager), so both build the same spec.
+  specOf = o:
+    {inherit (o) mode position scale;}
+    // lib.optionalAttrs (o.transform != 0) {inherit (o) transform;};
 in {
-  inherit inline;
+  inherit inline specOf;
 
   # Configured output -> hl monitor _args table.  Static geometry only; the
   # runtime profile layer (monitor-manager) overrides this where it needs to.
@@ -14,9 +21,8 @@ in {
             if m.description != null
             then "desc:${m.description}"
             else m.name;
-          inherit (m) mode position scale;
         }
-        // lib.optionalAttrs ((m.transform or 0) != 0) {inherit (m) transform;}
+        // specOf m
       )
     ];
   };

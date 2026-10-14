@@ -10,8 +10,8 @@ Column {
     spacing: 10
     readonly property real wantedHeight: implicitHeight + 32
 
-    readonly property var adapter: Bluetooth.defaultAdapter
-    readonly property bool on: adapter?.enabled ?? false
+    readonly property var adapter: Stats.btAdapter
+    readonly property bool on: Stats.btOn
     readonly property var devices: (adapter?.devices?.values ?? [])
         .filter(d => d.name || d.deviceName)
         .sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired)
@@ -52,70 +52,42 @@ Column {
         }
     }
 
-    Text {
+    SectionLabel {
         visible: p.on && p.devices.length > 0
         opacity: p.drawer.stagger(1)
         text: "DEVICES"
-        color: Theme.subtle
-        font { family: Theme.font; pixelSize: 11; bold: true; letterSpacing: 1.5 }
     }
 
     Repeater {
         model: p.on ? p.devices : []
-        delegate: Rectangle {
-            id: dev
+        delegate: ListRow {
             required property var modelData
             required property int index
             readonly property bool busy: modelData.pairing || modelData.state === BluetoothDeviceState.Connecting
                                       || modelData.state === BluetoothDeviceState.Disconnecting
-            width: p.width; height: 38; radius: 12
+            width: p.width; height: 38
             opacity: p.drawer.stagger(2 + index)
-            color: modelData.connected ? Theme.glassFillStrong : devMouse.containsMouse ? Theme.glassFill : "transparent"
-
-            Icon {
-                id: devIcon
-                anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                icon: p.iconFor(dev.modelData)
-                size: 18
-                color: dev.modelData.connected ? Theme.accent : Theme.fg
-            }
-            Text {
-                anchors { left: devIcon.right; leftMargin: 10; right: tag.left; rightMargin: 8; verticalCenter: parent.verticalCenter }
-                text: dev.modelData.name || dev.modelData.deviceName
-                elide: Text.ElideRight
-                color: dev.modelData.connected ? Theme.fgBright : Theme.fg
-                font { family: Theme.font; pixelSize: 13; bold: dev.modelData.connected }
-            }
-            Text {
-                id: tag
-                anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
-                text: dev.busy ? "…"
-                    : dev.modelData.connected
-                        ? (dev.modelData.batteryAvailable ? Math.round(dev.modelData.battery * 100) + "%" : "connected")
-                    : dev.modelData.paired ? "paired" : ""
-                color: dev.modelData.connected ? Theme.accent : Theme.subtle
-                font { family: Theme.font; pixelSize: 11 }
-            }
-            MouseArea {
-                id: devMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    const d = dev.modelData;
-                    if (d.connected) d.disconnect();
-                    else if (d.paired) d.connect();
-                    else d.pair();
-                }
+            selected: modelData.connected
+            icon: p.iconFor(modelData)
+            iconSize: 18
+            text: modelData.name || modelData.deviceName
+            bold: modelData.connected
+            tag: busy ? "…"
+                : modelData.connected
+                    ? (modelData.batteryAvailable ? Math.round(modelData.battery * 100) + "%" : "connected")
+                : modelData.paired ? "paired" : ""
+            onClicked: {
+                const d = modelData;
+                if (d.connected) d.disconnect();
+                else if (d.paired) d.connect();
+                else d.pair();
             }
         }
     }
 
-    Text {
+    PanelLink {
         opacity: p.drawer.stagger(8) * 0.8
         text: "Bluetooth settings  ›"
-        color: Theme.accent
-        font { family: Theme.font; pixelSize: 12 }
-        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached(["blueman-manager"]) }
+        command: ["blueman-manager"]
     }
 }

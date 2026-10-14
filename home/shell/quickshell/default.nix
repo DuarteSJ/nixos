@@ -44,7 +44,6 @@
         readonly property color accent: "#${c.base0C}"
 
         readonly property string font: "${vars.font.name}"
-        readonly property string mono: "${vars.font.name}"
         readonly property int fontSize: 15
         readonly property int barFontSize: 16
         readonly property int notifFontSize: 17
@@ -63,6 +62,8 @@
         readonly property var persistentWorkspaces: ${builtins.toJSON config.monitors.workspaces}
 
         function alpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a); }
+        // Run a command (argv list or a single string) in a new terminal.
+        function term(cmd) { Quickshell.execDetached([terminal, "-e"].concat(cmd)); }
     }
   '';
 
@@ -101,11 +102,11 @@ in {
         pkgs.bash
         pkgs.brightnessctl
         pkgs.coreutils
-        pkgs.gawk
         pkgs.hyprlock
         pkgs.libnotify
         pkgs.networkmanager
         pkgs.pavucontrol
+        pkgs.procps
         pkgs.btop
         pkgs.systemd
         pkgs.wl-clipboard

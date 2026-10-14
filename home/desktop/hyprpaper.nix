@@ -1,13 +1,10 @@
 _: {
-  # Wallpapers are set (and updated on hotplug) by the monitor-manager
-  # script under hyprland/, which uses hyprpaper IPC.  This file just
-  # enables the daemon with IPC on; no static preload/wallpaper entries
-  # are needed here.
+  # Just the daemon.  Wallpapers are pushed over hyprpaper's IPC (on by
+  # default) by the `wallpaper` script in hyprland/wallpaper.nix, run on
+  # every Hyprland config load and from Super+Shift+N, so there are no
+  # static preload/wallpaper entries here.
   services.hyprpaper = {
     enable = true;
-    settings = {
-      ipc = "on";
-      splash = false;
-    };
+    settings.splash = false;
   };
 }

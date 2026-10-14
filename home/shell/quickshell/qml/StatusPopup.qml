@@ -31,7 +31,10 @@ AttachedDrawer {
     // Dashboard: only on the monitor that was focused when it was toggled.
     readonly property bool all: Shell.dashboard
         && barWindow.hyprMonitor?.name === Shell.dashboardScreen
-    function shows(k) { return all || key === k; }
+    // The stack stays shown while the dashboard's card closes, so it shrinks
+    // from its full height instead of snapping to an empty card first.
+    property bool showAll: false
+    function shows(k) { return showAll || key === k; }
     readonly property real wantedH: stack.implicitHeight + 32
 
     winH: barWindow.screen.height         // the dashboard stack is tall
@@ -41,11 +44,31 @@ AttachedDrawer {
     // Outside the dashboard, never open with no panel picked (an empty card).
     drawer.open: all || ((hold || hovered) && key !== "")
 
-    // Leaving the dashboard: hover was ignored while it was on, so restart
-    // the hover state from wherever the pointer is now.
-    onAllChanged: if (!all) {
+    onAllChanged: {
+        if (all) { showAll = true; return; }
+        // Leaving the dashboard: hover was ignored while it was on, so
+        // restart the hover state from wherever the pointer is now.
         key = status.hoverKey;
         hold = key !== "";
+        if (hold) showAll = false;      // straight to the hovered panel
+    }
+    // A panel picked by hover (incl. during the dashboard's close) wins.
+    onKeyChanged: if (key !== "" && !all) showAll = false
+    Connections {
+        target: popup.drawer
+        function onActiveChanged() { if (!popup.drawer.active) popup.showAll = popup.all; }
+    }
+
+    // A hidden bar (Super+B, focus mode) gets no pointer-leave: drop the
+    // hover state so the panel doesn't come back open with the bar.
+    Connections {
+        target: Shell
+        function onBarShownChanged() {
+            if (Shell.barShown) return;
+            openDelay.stop(); stay.stop(); swap.stop();
+            popup.hold = false;
+            popup.key = "";
+        }
     }
 
     // ── hover logic: short delay to open, grace period to reach the card ─
@@ -70,27 +93,27 @@ AttachedDrawer {
         width: popup.panelW - 32
         spacing: 22
         AudioPanel {
-            id: audioPanel; drawer: popup.drawer
+            drawer: popup.drawer
             width: parent.width
             visible: popup.shows("audio")
         }
         NetworkPanel {
-            id: netPanel; drawer: popup.drawer
+            drawer: popup.drawer
             width: parent.width
             visible: popup.shows("network")
         }
         BluetoothPanel {
-            id: btPanel; drawer: popup.drawer
+            drawer: popup.drawer
             width: parent.width
             visible: popup.shows("bluetooth")
         }
         SystemPanel {
-            id: sysPanel; drawer: popup.drawer; stats: popup.status
+            drawer: popup.drawer
             width: parent.width
             visible: popup.shows("system")
         }
         BatteryPanel {
-            id: batPanel; drawer: popup.drawer; stats: popup.status
+            drawer: popup.drawer
             width: parent.width
             visible: popup.shows("battery")
         }

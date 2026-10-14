@@ -3,7 +3,6 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
-import Quickshell.Hyprland
 
 // App launcher (replaces `rofi -show drun`).  Fuzzy search over name,
 // generic name, keywords and comment; apps you launch often float up.
@@ -64,7 +63,7 @@ PanelWindow {
         counts = c;
         store.setText(JSON.stringify(c));
         if (entry.runInTerminal)
-            Quickshell.execDetached([Theme.terminal, "-e"].concat(entry.command));
+            Theme.term(entry.command);
         else
             entry.execute();
     }
@@ -77,7 +76,7 @@ PanelWindow {
         onLoaded: { try { launcher.counts = JSON.parse(text()); } catch (e) {} }
     }
 
-    screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
+    screen: Shell.focusedScreen
     visible: Shell.launcherOpen
     onVisibleChanged: if (visible) { query = ""; input.text = ""; selected = 0; input.forceActiveFocus(); }
     anchors { top: true; bottom: true; left: true; right: true }

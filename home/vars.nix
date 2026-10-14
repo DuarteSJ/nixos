@@ -7,11 +7,9 @@
     rounding = lib.mkOption {
       description = ''
         Surface corner radius: hyprland windows, notifications, the
-        launcher.  Deliberately NOT hardcoded -- the
-        hyprland value alone is read from four places that must agree (the
-        static decoration block plus prodToggle, incGaps and decGaps in
-        lua-actions.nix).  If they drift, toggling focus mode or nudging gaps
-        silently leaves windows at a different radius than you logged in with.
+        launcher.  On the Hyprland side it enters through the single
+        `baseline` table in home/desktop/hyprland/default.nix, which feeds
+        the static config, focus mode's restore and the gap keys alike.
 
         Anything nested INSIDE a surface (the launcher's inner boxes, the bar's
         recording chip, the Spotify panel) is a local aesthetic choice and is
@@ -39,13 +37,20 @@
     };
 
     gapsOuter = lib.mkOption {
-      description = "Outer gap. Matches the bar's margin so windows and the bar sit the same distance from the screen edge.";
+      description = ''
+        Hyprland outer gap (windows to screen edge).  Hyprland only: the
+        bar does not read it.
+      '';
       type = lib.types.int;
       default = 8;
     };
 
     gapsInner = lib.mkOption {
-      description = "Inner gap. Derived as half the outer gap; single source for the gaps/2 relationship reused across hyprland and the bar.";
+      description = ''
+        Hyprland inner gap (between tiled windows).  Defaults to half of
+        `gapsOuter`; any value works.  The gap +/- keys keep the
+        gapsInner:gapsOuter ratio as they step the outer gap.
+      '';
       type = lib.types.int;
       default = config.vars.gapsOuter / 2;
     };
@@ -61,10 +66,6 @@
           size = lib.mkOption {
             type = lib.types.float;
             default = 12.5;
-          };
-          sizeStr = lib.mkOption {
-            type = lib.types.str;
-            default = "12.5";
           };
         };
       };

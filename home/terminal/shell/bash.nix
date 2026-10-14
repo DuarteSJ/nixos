@@ -1,40 +1,15 @@
-{
-  config,
-  shellShared,
-  ...
-}: {
+{shellShared, ...}: {
   programs.bash = {
     enable = true;
+    # historyFile, shellOptions (HM default + checkwinsize, on by default since
+    # bash 5) and emacs line editing are all defaults.
     historySize = shellShared.history.size;
     historyFileSize = shellShared.history.size;
-    historyFile = "${config.home.homeDirectory}/.bash_history";
-    historyControl =
-      (
-        if shellShared.history.ignoreAllDups
-        then ["erasedups"]
-        else ["ignoredups"]
-      )
-      ++ ["ignorespace"];
+    historyControl = ["erasedups" "ignorespace"];
     historyIgnore = shellShared.history.ignore;
-
-    shellOptions = [
-      "histappend"
-      "checkwinsize"
-      "extglob"
-      "globstar"
-      "checkjobs"
-    ];
 
     shellAliases = shellShared.aliases;
 
-    initExtra = ''
-      ${
-        if shellShared.keymap == "vi"
-        then "set -o vi"
-        else "set -o emacs"
-      }
-
-      ${shellShared.functions}
-    '';
+    initExtra = shellShared.functions;
   };
 }

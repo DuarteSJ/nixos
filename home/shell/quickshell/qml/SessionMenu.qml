@@ -1,18 +1,17 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 // Full-screen dimmed overlay with lock / suspend / logout / reboot / off.
 // h/l or arrows to move, Enter to pick, Esc or a click outside to leave.
 PanelWindow {
     id: menu
 
-    // Lock and suspend both go through hyprlock (suspend locks first), and
-    // logout uses the Lua dispatcher Hyprland 0.55 expects.
+    // Suspend locks on its own (hypridle locks before every sleep, see
+    // hyprlock.nix), and logout uses the Lua dispatcher Hyprland 0.55 expects.
     readonly property var actions: [
         { icon: "lock",               label: "lock",      cmd: ["hyprlock"] },
-        { icon: "bedtime",            label: "sleep",     cmd: ["sh", "-c", "hyprlock & sleep 0.5; systemctl suspend"] },
+        { icon: "bedtime",            label: "sleep",     cmd: ["systemctl", "suspend"] },
         { icon: "logout",             label: "log out",   cmd: ["hyprctl", "dispatch", "hl.dsp.exit()"] },
         { icon: "restart_alt",        label: "restart",   cmd: ["systemctl", "reboot"] },
         { icon: "power_settings_new", label: "shut down", cmd: ["systemctl", "poweroff"] },
@@ -24,7 +23,7 @@ PanelWindow {
         Quickshell.execDetached(actions[i].cmd);
     }
 
-    screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
+    screen: Shell.focusedScreen
     visible: Shell.sessionOpen
     onVisibleChanged: if (visible) { selected = 0; keys.forceActiveFocus(); }
     anchors { top: true; bottom: true; left: true; right: true }
@@ -81,13 +80,13 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Qt.formatDateTime(clock.date, "HH:mm")
                 color: Theme.fgBright
-                font { family: Theme.mono; pixelSize: 72; weight: Font.Light }
+                font { family: Theme.font; pixelSize: 72; weight: Font.Light }
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Qt.formatDateTime(clock.date, "dddd, d MMMM").toLowerCase()
                 color: Theme.accent
-                font { family: Theme.mono; pixelSize: 15; letterSpacing: 1 }
+                font { family: Theme.font; pixelSize: 15; letterSpacing: 1 }
             }
         }
 
@@ -136,7 +135,7 @@ PanelWindow {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: btn.modelData.label
                         color: btn.active ? Theme.fgBright : Theme.muted
-                        font { family: Theme.mono; pixelSize: 12; letterSpacing: 0.5 }
+                        font { family: Theme.font; pixelSize: 12; letterSpacing: 0.5 }
                     }
                 }
             }

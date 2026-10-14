@@ -1,23 +1,40 @@
 {
   config,
+  osConfig,
   pkgs,
   lib,
+  notifyPkg,
   ...
 }: let
   inherit (config) monitors;
   inherit (monitors) outputs profiles announceUnknown;
   inherit (config) vars;
-  inherit (vars) rounding;
   inherit (config.colorScheme.palette) base0D base0C base02;
 
-  windowBorder = {
-    active_border = {
-      colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
-      angle = 45;
+  toLua = lib.generators.toLua {multiline = false;};
+
+  # The look a config load starts from, and what focus mode (prodToggle in
+  # lua-actions.nix) restores when switched off.  Rendered into the static
+  # `config` block below AND handed to lua-actions as a Lua table, so the two
+  # can't drift.  Everything focus mode or the gap keys touch must be here.
+  baseline = {
+    animations.enabled = true;
+    general = {
+      gaps_in = vars.gapsInner;
+      gaps_out = vars.gapsOuter;
+      col = {
+        active_border = {
+          colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
+          angle = 45;
+        };
+        inactive_border = "rgba(${base02}aa)";
+      };
     };
-    inactive_border = "rgba(${base02}aa)";
+    decoration = {
+      inherit (vars) rounding;
+      dim_inactive = false;
+    };
   };
-  windowBorderLua = lib.generators.toLua {multiline = false;} windowBorder;
 
   # Animation entries share enabled/speed/bezier; override per-leaf via attrs.
   mkAnim = attrs: {
@@ -30,42 +47,93 @@
         // attrs)
     ];
   };
-  # Spotify reports its class as lowercase "spotify" (verified against a live
-  # window via `hyprctl clients`).  The previous "^(Spotify)$" matched nothing,
-  # so none of the four rules below ever fired -- the window tiled like any
-  # other.  Bracket the first letter in case a future build capitalises it.
-  spotifyMatch = {class = "^[Ss]potify$";};
 
   # ------------------------------------------------------------------
   # Sub-modules
   # ------------------------------------------------------------------
   helpers = import ./lib.nix {inherit lib;};
-  inherit (helpers) inline mkMonitor;
+  inherit (helpers) inline mkMonitor specOf;
 
-  scripts = import ./scripts.nix {inherit pkgs;};
+  scripts = import ./scripts.nix {inherit pkgs notifyPkg;};
 
   monitorManager = import ./monitor-manager.nix {
-    inherit lib outputs profiles announceUnknown;
-  };
-
-  gaps = import ./gaps.nix {
-    inherit (vars) gapsOuter gapsInner;
+    inherit lib specOf outputs profiles announceUnknown;
   };
 
   wallpaper = import ./wallpaper.nix {
-    inherit pkgs;
+    inherit pkgs notifyPkg;
+    hyprland = osConfig.programs.hyprland.package;
     themeName = config.colorScheme.slug;
     wallpapersPath = vars.paths.wallpapers;
   };
 
+  # Quickshell IPC prefix, absolute so it doesn't depend on Hyprland's PATH.
+  qsIpc = "${lib.getExe' pkgs.quickshell "qs"} -c shell ipc call";
+
   luaActions = import ./lua-actions.nix {
-    inherit inline rounding base02 windowBorderLua;
-    inherit gaps monitorManager wallpaper;
+    inherit lib inline baseline base02 monitorManager qsIpc;
   };
 
   bind = import ./keybinds.nix {
-    inherit lib helpers scripts luaActions vars pkgs;
+    inherit lib helpers scripts luaActions vars pkgs qsIpc;
+    wallpaperPkg = wallpaper.package;
   };
+
+  # Shared head of `extraConfig`.
+  #
+  # keep(): hl.on / hl.timer return GC-managed handles; if the Lua handle is
+  # collected, Hyprland drops the subscription and the callback silently
+  # stops firing.  keep() anchors one in a global.  Local: every topLevel
+  # below is in the same chunk, so they all see it.
+  #
+  # shq() / notify(): GLOBALS, because bind actions are rendered into
+  # `settings`, i.e. before this prelude, and can only reach them at call
+  # time through _G.  hl.exec_cmd runs its string through `sh -c`, so any
+  # text that isn't a literal must go through shq(): POSIX single quoting,
+  # which passes every byte through unchanged.  (The `'''` below is Nix's
+  # escape for two quote characters: the Lua reads "'\\''".)
+  #   notify({ r = "layout", t = 1500, u = "low" }, title, body)
+  # Each opts key becomes the `notify` flag of the same letter.
+  handlesPrelude = ''
+    _G.__hlHandles = _G.__hlHandles or {}
+    local function keep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
+
+    function _G.shq(s)
+      return "'" .. (tostring(s):gsub("'", "'\\'''")) .. "'"
+    end
+
+    function _G.notify(opts, title, body)
+      local cmd, keys = { ${toLua (lib.getExe notifyPkg)} }, {}
+      for k in pairs(opts or {}) do keys[#keys + 1] = k end
+      table.sort(keys)
+      for _, k in ipairs(keys) do
+        cmd[#cmd + 1] = "-" .. k .. " " .. shq(opts[k])
+      end
+      -- `--`: a title/body starting with "-" (e.g. an app-controlled window
+      -- class) must not be read as a notify-send option.
+      cmd[#cmd + 1] = "--"
+      cmd[#cmd + 1] = shq(title)
+      if body ~= nil then cmd[#cmd + 1] = shq(body) end
+      hl.exec_cmd(table.concat(cmd, " "))
+    end
+  '';
+
+  # Runs once per config load, after every topLevel has defined its pieces.
+  # Monitors are not up yet while the config is first parsed, hence the
+  # delay.  ONE timer, so the order is the order of the lines, not a race
+  # between timeouts:
+  #   1. monitor profile match (geometry/workspaces/disables; also arms the
+  #      monitor manager's settling-window close),
+  #   2. wallpapers for whatever is live after that,
+  #   3. a load reset prodToggle and the config to baseline; bring the bar's
+  #      focus-mode hide in line (harmless before Quickshell is up).
+  startup = ''
+    keep(hl.timer(function()
+      _G.hlMonitorFirstPass()
+      _G.hlWallpapers()
+      hl.exec_cmd("${qsIpc} bar focusOff")
+    end, { timeout = 500, type = "oneshot" }))
+  '';
 in {
   wayland.windowManager.hyprland = {
     enable = true;
@@ -95,31 +163,18 @@ in {
         ];
 
       # ---------------------------------------------------------------
-      # Bulk config: general / decoration / dwindle / master / misc / input / animations.enabled
+      # Bulk config: general / decoration / dwindle / binds / misc / input.
+      # Hyprland defaults are left implicit (a reload resets to them anyway).
+      # Gaps, borders, rounding, dim and animations come from `baseline`.
       # ---------------------------------------------------------------
       config = {
         _args = [
-          {
-            general = {
-              gaps_in = vars.gapsInner;
-              gaps_out = vars.gapsOuter;
-              border_size = 1;
-              col = windowBorder;
-              resize_on_border = true;
-              allow_tearing = false;
-              layout = "dwindle";
-            };
-            decoration = {
-              inherit rounding;
-              inactive_opacity = 1;
-              active_opacity = 1;
-              blur.enabled = false;
-              dim_inactive = false;
-            };
+          (lib.recursiveUpdate baseline {
+            general.resize_on_border = true;
+            decoration.blur.enabled = false;
             dwindle = {
               preserve_split = true;
             };
-            master = {new_status = "slave";};
             # 0 = no scroll debounce, so every SUPER+scroll notch fires (and is
             # consumed by) the zoom bind instead of leaking to the focused app.
             binds = {scroll_event_delay = 0;};
@@ -131,13 +186,10 @@ in {
             input = {
               repeat_delay = 200;
               repeat_rate = 50;
-              follow_mouse = 1;
-              sensitivity = 0;
               kb_layout = "uspt";
               touchpad.natural_scroll = true;
             };
-            animations = {enabled = true;};
-          }
+          })
         ];
       };
 
@@ -179,13 +231,6 @@ in {
           leaf = "specialWorkspace";
           style = "slidefadevert 90%";
         })
-      ];
-
-      # ---------------------------------------------------------------
-      # Env
-      # ---------------------------------------------------------------
-      # Cursor env (HYPRCURSOR_THEME/SIZE) set by home.pointerCursor (see vars.nix).
-      env = [
       ];
 
       # ---------------------------------------------------------------
@@ -251,34 +296,17 @@ in {
       ];
 
       window_rule = [
+        # Spotify reports its class as lowercase "spotify" (verified against
+        # a live window via `hyprctl clients`); the first letter is bracketed
+        # in case a future build capitalises it.  One rule, several effects.
         {
           _args = [
             {
-              match = spotifyMatch;
+              name = "spotify-panel";
+              match = {class = "^[Ss]potify$";};
               float = true;
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              match = spotifyMatch;
               size = "55% 65%";
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              match = spotifyMatch;
               center = true;
-            }
-          ];
-        }
-        {
-          _args = [
-            {
-              match = spotifyMatch;
               # Deliberately heavy, unlike vars.rounding: this is a floating
               # media panel, not a tiled surface.  One site, so no token.
               rounding = 20;
@@ -340,9 +368,11 @@ in {
     # rebuild and Hyprland re-executes it on every reload, which is what makes
     # profile matching here self-healing.
     extraConfig = lib.concatStringsSep "\n" [
+      handlesPrelude
       monitorManager.topLevel
-      wallpaper.topLevel
+      wallpaper.setup
       luaActions.topLevel
+      startup
     ];
   };
 }

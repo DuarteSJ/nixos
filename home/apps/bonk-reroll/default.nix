@@ -9,26 +9,12 @@
   lib,
   pkgs,
   osConfig,
+  notifyPkg,
   ...
 }: let
-  # Keep in sync with LABELS/DERIVED in bonk_reroll/rules.py.
-  counters = [
-    "moais"
-    "shady"
-    "shady_moais"
-    "microwaves"
-    "boss_curses"
-    "pots"
-    "chests"
-    "challenges"
-    "charge_shrines"
-    "greed_shrines"
-    "magnet_shrines"
-    "bald_heads"
-  ];
-
   # Cycled in this order by Mod+Shift+F5. A map matches when every count is
-  # >= its number.
+  # >= its number. Counter names: COUNTERS in bonk_reroll/rules.py (checked
+  # against this config in installCheckPhase).
   modes = [
     {
       name = "perfect";
@@ -48,13 +34,8 @@
     }
   ];
 
-  checkMode = mode:
-    lib.throwIfNot (lib.all (k: lib.elem k counters) (lib.attrNames mode.min))
-    "bonk-reroll: mode ${mode.name} uses an unknown counter"
-    mode;
-
   configFile = pkgs.writeText "bonk-reroll.json" (builtins.toJSON {
-    modes = map checkMode modes;
+    inherit modes;
     reset_key = "KEY_Q"; # Megabonk's QuickReset binding
     pause_key = "KEY_ESC";
   });
@@ -75,6 +56,8 @@
 
     # Steam sets LD_LIBRARY_PATH (runtime libs) and LD_PRELOAD (overlay) for
     # the launch command: stash them for the game, keep them out of our Python.
+    # `-P`: no cwd on sys.path, so a stray bonk_reroll/ (or any module name
+    # we import) in the directory Steam launches from cannot shadow ours.
     installPhase = ''
       runHook preInstall
       mkdir -p $out/lib/bonk-reroll $out/bin
@@ -82,9 +65,9 @@
       makeShellWrapper ${python.interpreter} $out/bin/bonk-reroll \
         --run 'if [ -n "''${LD_LIBRARY_PATH+set}" ]; then export BONK_REROLL_ORIG_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"; unset LD_LIBRARY_PATH; fi' \
         --run 'if [ -n "''${LD_PRELOAD+set}" ]; then export BONK_REROLL_ORIG_LD_PRELOAD="$LD_PRELOAD"; unset LD_PRELOAD; fi' \
-        --prefix PATH : ${lib.makeBinPath [osConfig.programs.hyprland.package (pkgs.callPackage ../../scripts/notify-pkg.nix {})]} \
+        --prefix PATH : ${lib.makeBinPath [osConfig.programs.hyprland.package notifyPkg]} \
         --set PYTHONPATH $out/lib/bonk-reroll \
-        --add-flags "-m bonk_reroll --config ${configFile}"
+        --add-flags "-P -m bonk_reroll --config ${configFile}"
       runHook postInstall
     '';
 
@@ -94,6 +77,11 @@
       mkdir -p "$TMPDIR/check"
       cp -r tests "$TMPDIR/check/"
       cd "$TMPDIR/check"
+      # The generated modes must only use counters rules.py knows; matches()
+      # would read an unknown (typo) key as 0 and never match.
+      PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$out/lib/bonk-reroll ${python.interpreter} -P -c \
+        'import json, sys; from bonk_reroll import rules; rules.validate(json.load(open(sys.argv[1]))["modes"])' \
+        ${configFile}
       PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$out/lib/bonk-reroll \
         ${python.interpreter} -m unittest discover -s tests -t . -v
       runHook postInstallCheck

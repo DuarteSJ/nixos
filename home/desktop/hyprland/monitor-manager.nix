@@ -12,11 +12,14 @@
 # carries no `disabled`), silently undoing a disable issued earlier.  This
 # used to be a comment you had to remember; now it's the structure.
 #
-# Exports `setup` (definitions; safe to evaluate anywhere) and `init` (event
-# subscriptions + first pass), so the caller decides when subscriptions are
-# established.  See the note on `init` re: surviving `hyprctl reload`.
+# Exports `setup` (definitions; needs the prelude's notify(), see
+# default.nix) and `topLevel` (setup + settling window + event subscriptions,
+# for `extraConfig`).  The first pass itself, `_G.hlMonitorFirstPass()`, is
+# run by the deferred startup sequence in default.nix.  See the note on
+# `topLevel` re: surviving `hyprctl reload`.
 {
   lib,
+  specOf,
   outputs,
   profiles,
   announceUnknown,
@@ -28,16 +31,6 @@
     lib.head (lib.attrNames (lib.filterAttrs (_: o: o.builtin) outputs));
   builtinName = outputs.${builtinNick}.name;
 
-  # Static geometry for an output, as an HL.MonitorSpec fragment.
-  specOf = o:
-    stripNull {
-      inherit (o) mode position scale;
-      transform =
-        if o.transform != 0
-        then o.transform
-        else null;
-    };
-
   # A selector's base geometry, where it is knowable at eval time.
   # "@primaryExternal" resolves to a display we may never have seen, so it
   # has no base — only whatever the profile states explicitly.
@@ -48,24 +41,17 @@
     then specOf outputs.${sel}
     else {};
 
-  # attrsOf -> sorted array, so generated Lua is deterministic.
-  sortedPairs = attrs:
-    map (k: {
-      key = k;
-      value = attrs.${k};
-    }) (lib.sort (a: b: a < b) (lib.attrNames attrs));
+  # attrsOf -> array sorted by name (mapAttrsToList walks keys in order), so
+  # generated Lua is deterministic.
+  sortedPairs = lib.mapAttrsToList (key: value: {inherit key value;});
 
-  mkEnable = e: let
-    ov = stripNull (builtins.removeAttrs e.value ["mirror"]);
-  in
-    {
-      sel = e.key;
-      spec = baseSpecOf e.key // ov;
-    }
-    // lib.optionalAttrs (e.value.mirror != null) {mirror_sel = e.value.mirror;};
+  mkEnable = e: {
+    sel = e.key;
+    spec = baseSpecOf e.key // stripNull e.value;
+  };
 
   mkProfile = p: {
-    inherit (p) name requires disable overflow;
+    inherit (p) name requires disable;
     enable = map mkEnable (sortedPairs p.enable);
     workspaces = map (w: {
       sel = w.key;
@@ -171,10 +157,6 @@
         if out then
           local spec = { output = out, disabled = false }
           for k, v in pairs(e.spec) do spec[k] = v end
-          if e.mirror_sel then
-            local target = resolve(snap, e.mirror_sel)
-            if target then spec.mirror = target end
-          end
           hl.monitor(spec)
         end
       end
@@ -182,12 +164,10 @@
       -- 2. Workspace pinning.  The rule is set unconditionally (so it takes
       --    effect whenever the output appears); the move only runs when the
       --    target is actually connected.
-      local claimed = {}
       for _, w in ipairs(p.workspaces) do
         local out, connected = resolve(snap, w.sel)
         if out then
           for _, ws in ipairs(w.ws) do
-            claimed[ws] = true
             hl.workspace_rule({ workspace = ws, monitor = out })
             if connected then
               local live = hl.get_workspace(ws)
@@ -199,19 +179,7 @@
         end
       end
 
-      -- 3. Overflow: give unrecognised active displays something to hold, so
-      --    a monitor you've never configured comes up usable rather than lit
-      --    and empty.  Round-robin over however many there are.
-      if #p.overflow > 0 and #snap.unknown > 0 then
-        for i, ws in ipairs(p.overflow) do
-          if not claimed[ws] then
-            local m = snap.unknown[((i - 1) % #snap.unknown) + 1]
-            hl.workspace_rule({ workspace = ws, monitor = m.name })
-          end
-        end
-      end
-
-      -- 4. Disable LAST — see header.  Runs even for outputs that aren't in
+      -- 3. Disable LAST — see header.  Runs even for outputs that aren't in
       --    get_monitors() (a panel we already disabled), which is what keeps
       --    the disable sticky across repeated reconciles.
       for _, sel in ipairs(p.disable) do
@@ -230,11 +198,8 @@
         local d = m.description or m.name
         if not seenUnknown[d] then
           seenUnknown[d] = true
-          -- EDID strings are device-controlled and land in a single-quoted
-          -- shell arg; strip the only char that can break out.
-          local safe = d:gsub("'", "")
-          hl.exec_cmd(
-            "notify -u low -t 8000 'New display' '" .. safe .. "'")
+          -- EDID strings are device-controlled; notify() shell-quotes them.
+          notify({ u = "low", t = 8000 }, "New display", d)
         end
       end
     end
@@ -242,8 +207,8 @@
     -- Human-readable snapshot of what the manager decided and what the
     -- compositor is actually showing.  Read it from a keybind, or from a
     -- shell with:
-    --   hyprctl dispatch 'hl.dsp.exec_cmd("notify Monitors \"" ..
-    --                                      _G.hlMonitorStatus() .. "\"")'
+    --   hyprctl dispatch '(function() _G.hlMonitorStatusNotify()
+    --                      return hl.dsp.exec_cmd("true") end)()'
     -- (`hyprctl dispatch` evaluates its argument as Lua in the compositor,
     -- so _G is reachable; it must still resolve to a dispatcher.)
     function _G.hlMonitorStatus()
@@ -269,15 +234,7 @@
     -- Bindable: show the status as a notification.  -r reuses one slot so
     -- repeated presses update in place instead of stacking.
     function _G.hlMonitorStatusNotify()
-      local safe = _G.hlMonitorStatus():gsub("'", "")
-      hl.exec_cmd("notify -r 7778 -t 6000 'Monitors' '" .. safe .. "'")
-    end
-
-    -- Recorded for the status keybind.  No change-detection toast: every
-    -- topology change now goes through a reload, which wipes _G, so there is
-    -- never a previous value to compare against.
-    local function trackProfile(name)
-      _G.hlMonitorProfile = name
+      notify({ r = "monitors", t = 6000 }, "Monitors", _G.hlMonitorStatus())
     end
 
     -- Topology fingerprint: the external outputs that are up, minus any the
@@ -298,7 +255,10 @@
       local p = pick(snap)
       if not p then return end
       apply(snap, p)
-      trackProfile(p.name)
+      -- For the status keybind.  No change-detection toast: every topology
+      -- change goes through a reload, which wipes _G, so there is never a
+      -- previous value to compare against.
+      _G.hlMonitorProfile = p.name
       announce(snap)
       reconciledSkip = {}
       for _, sel in ipairs(p.disable) do
@@ -308,11 +268,15 @@
       reconciledSig = topologySig(snap, reconciledSkip)
     end
 
-    -- Has a real hotplug landed since the last reconcile?  Checked when the
-    -- settling window closes, since events inside it are swallowed.
-    function _G.hlMonitorTopologyChanged()
-      if reconciledSig == nil then return false end
-      return topologySig(snapshot(), reconciledSkip) ~= reconciledSig
+    -- Has a real hotplug landed since the last reconcile?  Returns the live
+    -- fingerprint when it differs from the reconciled one, else nil (also nil
+    -- before the first reconcile).  Checked when the settling window closes,
+    -- since events inside it are swallowed.
+    function _G.hlMonitorTopologyDrift()
+      if reconciledSig == nil then return nil end
+      local sig = topologySig(snapshot(), reconciledSkip)
+      if sig ~= reconciledSig then return sig end
+      return nil
     end
   '';
 
@@ -336,36 +300,66 @@
   topLevel = ''
     ${setup}
 
-    _G.__hlHandles = _G.__hlHandles or {}
-    local function keep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
-
-    -- Monitors are not up yet while the config is first parsed, so the first
-    -- match is deferred briefly.  The same delay covers the reload case,
-    -- where they already exist.
-    keep(hl.timer(function() _G.hlMonitorReconcile() end,
-                  { timeout = 500, type = "oneshot" }))
-
     -- Settling window: our own disable makes Hyprland emit monitor.removed,
     -- which would otherwise trigger a reload, which would disable again...
-    -- Swallow topology events until the first match has landed.  A real
-    -- hotplug inside the window is swallowed too, so when it closes compare
-    -- against what was reconciled and reload if the outputs moved meanwhile.
+    -- Swallow topology events from load until the window closes, a while
+    -- after the first match (see hlMonitorFirstPass).  A real hotplug inside
+    -- the window is swallowed too, so the close compares against what was
+    -- reconciled and reloads if the outputs moved meanwhile.
     _G.__hlSettling = true
-    keep(hl.timer(function()
-      if _G.hlMonitorTopologyChanged() then
-        hl.exec_cmd("hyprctl reload")
-      else
-        _G.__hlSettling = false
-      end
-    end, { timeout = 1500, type = "oneshot" }))
+
+    -- Re-match from the baseline.  A successful reload wipes this VM, timers
+    -- included, so the failsafe only fires if the reload did NOT happen
+    -- (hyprctl failed, ...).  Without it __hlSettling would stay true and
+    -- every later hotplug would be dropped for the rest of the session.  It
+    -- reconciles in place (best effort: it cannot un-disable an output) and
+    -- reopens the settling window, rather than retrying the reload blindly.
+    local closeSettling
+    local function reloadFromBaseline()
+      _G.__hlSettling = true
+      hl.exec_cmd("hyprctl reload")
+      keep(hl.timer(function()
+        _G.hlMonitorReconcile()
+        keep(hl.timer(closeSettling, { timeout = 1000, type = "oneshot" }))
+      end, { timeout = 5000, type = "oneshot" }))
+    end
+
+    -- Close the window, conservatively.  An output relinking after apply()
+    -- set its mode can be absent for a moment, and a single sample would
+    -- read that as a hotplug and reload -- which applies the mode again, and
+    -- so on forever.  So a drift only counts if the SAME changed fingerprint
+    -- is still there on a second sample 500 ms later; one that vanished was
+    -- a blip, one that changed again is still moving and gets re-sampled.
+    function closeSettling()
+      local drift = _G.hlMonitorTopologyDrift()
+      if not drift then _G.__hlSettling = false; return end
+      keep(hl.timer(function()
+        local again = _G.hlMonitorTopologyDrift()
+        if not again then
+          _G.__hlSettling = false
+        elseif again == drift then
+          reloadFromBaseline()
+        else
+          closeSettling()
+        end
+      end, { timeout = 500, type = "oneshot" }))
+    end
+
+    -- First match + arm the window close.  Called from the deferred startup
+    -- sequence in default.nix (monitors are not up yet while the config is
+    -- first parsed), so the window is timed from the match itself rather
+    -- than from a second timer racing it.
+    function _G.hlMonitorFirstPass()
+      _G.hlMonitorReconcile()
+      keep(hl.timer(closeSettling, { timeout = 1000, type = "oneshot" }))
+    end
 
     -- A real topology change just reloads.  The reload re-runs this file from
     -- the baseline and re-matches — that IS the reconcile.  Nothing to
     -- re-derive at runtime, nothing to undo.
     local function onTopologyChange()
       if _G.__hlSettling then return end
-      _G.__hlSettling = true
-      hl.exec_cmd("hyprctl reload")
+      reloadFromBaseline()
     end
 
     keep(hl.on("monitor.added",   onTopologyChange))
@@ -375,5 +369,5 @@
   # Bindable action: notify with the current profile + live monitor mapping.
   statusAction = "function() _G.hlMonitorStatusNotify() end";
 in {
-  inherit setup topLevel statusAction builtinName;
+  inherit setup topLevel statusAction;
 }

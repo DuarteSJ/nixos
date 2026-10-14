@@ -1,13 +1,18 @@
 import QtQuick
-import Quickshell
 
-// CPU / memory / temperature rings (numbers come from Status.qml's poll).
+// CPU / memory / temperature rings (numbers from Stats.qml).  Fixed rings
+// bound to the stats, so a poll animates them instead of rebuilding them.
 Column {
     id: p
     required property var drawer
-    required property var stats
     spacing: 14
     readonly property real wantedHeight: implicitHeight + 32
+
+    component StatRing: Ring {
+        required property int order
+        opacity: p.drawer.stagger(1 + order)
+        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Theme.term(["btop"]) }
+    }
 
     PanelHeader {
         width: parent.width
@@ -19,19 +24,18 @@ Column {
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 16
-        Repeater {
-            model: [
-                { v: p.stats.cpuPct / 100, t: p.stats.cpuPct + "%", c: "CPU", col: Theme.accent },
-                { v: p.stats.memPct / 100, t: p.stats.memPct + "%", c: "MEMORY", col: Theme.blue },
-                { v: p.stats.tempC / 100, t: p.stats.tempC + "°", c: "TEMP", col: p.stats.tempC >= 90 ? Theme.red : p.stats.tempC >= 80 ? Theme.yellow : Theme.teal }
-            ]
-            delegate: Ring {
-                required property var modelData
-                required property int index
-                opacity: p.drawer.stagger(1 + index)
-                value: modelData.v; text: modelData.t; caption: modelData.c; color: modelData.col
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Quickshell.execDetached([Theme.terminal, "-e", "btop"]) }
-            }
+        StatRing {
+            order: 0
+            value: Stats.cpuPct / 100; text: Stats.cpuPct + "%"; caption: "CPU"; color: Theme.accent
+        }
+        StatRing {
+            order: 1
+            value: Stats.memPct / 100; text: Stats.memPct + "%"; caption: "MEMORY"; color: Theme.blue
+        }
+        StatRing {
+            order: 2
+            value: Stats.tempC / 100; text: Stats.tempC + "°"; caption: "TEMP"
+            color: Stats.tempC >= 90 ? Theme.red : Stats.tempC >= 80 ? Theme.yellow : Theme.teal
         }
     }
 }

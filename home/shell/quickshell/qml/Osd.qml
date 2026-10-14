@@ -1,8 +1,6 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 
 // Volume / brightness pop-up that slides up from the bottom edge.  Volume
@@ -22,9 +20,20 @@ PanelWindow {
         hide.restart();
     }
 
-    function showBrightness() { brightness.running = true; }
+    // The brightness keys ping this after changing it; Stats reads it back.
+    property bool brightnessPending: false
+    function showBrightness() { brightnessPending = true; Stats.refreshBrightness(); }
+    Connections {
+        target: Stats
+        function onBrightnessRead(v) {
+            // Also follow later reads while it is up (keys held down).
+            if (!osd.brightnessPending && !(osd.shown && osd.icon.startsWith("brightness"))) return;
+            osd.brightnessPending = false;
+            osd.flash(v < 0.5 ? "brightness_5" : "brightness_7", v);
+        }
+    }
 
-    screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
+    screen: Shell.focusedScreen
     anchors.bottom: true
     margins.bottom: 72
     implicitWidth: 280
@@ -54,18 +63,6 @@ PanelWindow {
         if (!a || !armed) return;
         flash(a.muted ? "volume_off" : a.volume < 0.34 ? "volume_mute" : a.volume < 0.67 ? "volume_down" : "volume_up",
               a.muted ? 0 : a.volume);
-    }
-
-    Process {
-        id: brightness
-        command: ["brightnessctl", "-m"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                // name,class,current,percent%,max
-                const pct = parseInt(text.split(",")[3]) / 100;
-                if (!isNaN(pct)) osd.flash(pct < 0.5 ? "brightness_5" : "brightness_7", pct);
-            }
-        }
     }
 
     Rectangle {

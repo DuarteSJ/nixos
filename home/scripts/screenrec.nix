@@ -16,20 +16,21 @@
       ];
       text = ''
         VIDEOS_DIR="$HOME/Videos/screenrec"
-        RECORDING_FLAG="/tmp/screenrec-recording"
 
         # Drive the bar's REC chip.  Best effort: the shell may not be
-        # running, and recording must never hang on it.
+        # running, and recording must never hang on it.  (A restarted shell
+        # asks pgrep whether wf-recorder is running; no state file.)
         bar_rec() {
           timeout 2 qs -c shell ipc call rec "$1" >/dev/null 2>&1 || true
         }
 
         mkdir -p "$VIDEOS_DIR"
 
-        # If wf-recorder is already running, stop it
+        # If wf-recorder is already running, stop it.  The run that started
+        # it is waiting on it and clears the chip; do it here too in case
+        # that one is gone.
         if pgrep -x wf-recorder >/dev/null; then
           pkill -x wf-recorder
-          rm -f "$RECORDING_FLAG"
           bar_rec stop
           exit 0
         fi
@@ -64,20 +65,27 @@
           -f "$outfile" &
         pid=$!
 
-        # Give wf-recorder a moment to fail before committing the flag that
-        # drives the bar's REC chip. A backgrounded failure can't be
-        # caught by errexit, so check explicitly: only raise the flag if the
-        # recorder is still alive, otherwise clean up so the bar isn't stuck
-        # showing REC forever.
+        # However this ends -- toggled off, wf-recorder crashing or its
+        # output going away, a failed start -- clear the REC chip.  If this
+        # script is killed, stop the recorder too (SIGTERM, like the toggle;
+        # wf-recorder finalizes the file) rather than leave it running unseen.
+        trap 'bar_rec stop' EXIT
+        trap 'kill -TERM "$pid" 2>/dev/null || true' INT TERM HUP
+
+        # Give wf-recorder a moment to fail before lighting the chip (a
+        # backgrounded failure can't be caught by errexit).
         sleep 0.2
-        if kill -0 "$pid" 2>/dev/null; then
-          touch "$RECORDING_FLAG"
-          bar_rec start
-        else
-          rm -f "$RECORDING_FLAG"
+        if ! kill -0 "$pid" 2>/dev/null; then
           echo "screenrec: wf-recorder failed to start" >&2
           exit 1
         fi
+        bar_rec start
+
+        # Stay until the recorder exits (wait returns early on a trapped
+        # signal, hence the loop).
+        while kill -0 "$pid" 2>/dev/null; do
+          wait "$pid" || true
+        done
       '';
     })
   ];

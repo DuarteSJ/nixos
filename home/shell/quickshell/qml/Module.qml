@@ -18,7 +18,14 @@ Item {
     property color badge: "transparent"
     property real level: -1
     property bool levelShown: false
-    readonly property alias hovered: mouse.containsMouse
+    // The pointer is on it.  Not just containsMouse: a hidden bar gets no
+    // pointer-leave, so that would stay stale (and reopen panels) when the
+    // bar comes back.  Reset on hide; re-armed by real pointer motion.
+    property bool hovered: false
+    Connections {
+        target: Shell
+        function onBarShownChanged() { if (!Shell.barShown) root.hovered = false; }
+    }
 
     signal clicked(var mouse)
     signal wheel(var wheel)
@@ -62,7 +69,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.label !== ""
             text: root.label
-            color: root.critical ? Theme.red : (mouse.containsMouse ? Theme.fg : root.labelColor)
+            color: root.critical ? Theme.red : (root.hovered ? Theme.fg : root.labelColor)
             font { family: Theme.font; pixelSize: Theme.barFontSize }
             Behavior on color { ColorAnimation { duration: 140 } }
         }
@@ -93,6 +100,9 @@ Item {
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         cursorShape: Qt.PointingHandCursor
+        onEntered: root.hovered = true
+        onExited: root.hovered = false
+        onPositionChanged: root.hovered = true
         onClicked: m => root.clicked(m)
         onWheel: w => root.wheel(w)
     }

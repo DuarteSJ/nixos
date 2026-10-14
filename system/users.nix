@@ -4,10 +4,14 @@
     description = "Duarte S. Jose";
     shell = pkgs.zsh;
     extraGroups = ["wheel" "networkmanager" "gamemode" "uinput"];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKaUcoEtcYjJQVwOE8hjF9JJ+HMAe4/PsjIJv5M6u1HN ddduarte@sapo.pt"
-    ];
   };
 
-  programs.zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    # Home Manager runs compinit in ~/.zshrc; a second pass here cost ~28 ms
+    # per shell.
+    enableGlobalCompInit = false;
+    # Default runs `promptinit && prompt suse`, which starship overwrites.
+    promptInit = "";
+  };
 }

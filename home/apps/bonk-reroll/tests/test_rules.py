@@ -1,6 +1,6 @@
 import unittest
 
-from bonk_reroll.rules import COUNTERS, counters_from_labels, describe, matches
+from bonk_reroll.rules import COUNTERS, counters_from_labels, describe, matches, validate
 
 PERFECT = {"microwaves": 2, "boss_curses": 2, "shady_moais": 9}
 
@@ -45,3 +45,23 @@ class Describe(unittest.TestCase):
             describe({"shady_moais": 9, "microwaves": 2}, {"shady_moais": 8, "microwaves": 2}),
             "shady_moais 8/9 · microwaves 2/2",
         )
+
+
+class Validate(unittest.TestCase):
+    def test_known_counters_pass(self):
+        validate([{"name": "perfect", "min": PERFECT}, {"name": "any", "min": {}}])
+
+    def test_unknown_counter_raises(self):
+        with self.assertRaisesRegex(ValueError, r"mode typo: unknown counter\(s\) shady_moai"):
+            validate([{"name": "typo", "min": {"shady_moai": 9}}])
+
+    def test_every_counter_is_accepted(self):
+        validate([{"name": "all", "min": {key: 1 for key in COUNTERS}}])
+
+    def test_no_modes_raises(self):
+        with self.assertRaisesRegex(ValueError, "no modes"):
+            validate([])
+
+    def test_non_integer_minimum_raises(self):
+        with self.assertRaisesRegex(ValueError, "integer"):
+            validate([{"name": "x", "min": {"pots": "2"}}])

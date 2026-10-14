@@ -8,7 +8,7 @@ Item {
 
     readonly property alias hovered: mod.hovered
 
-    SystemClock { id: clock; precision: SystemClock.Seconds }
+    SystemClock { id: clock; precision: SystemClock.Minutes }  // label shows HH:mm
 
     implicitWidth: mod.implicitWidth
     implicitHeight: Theme.barHeight

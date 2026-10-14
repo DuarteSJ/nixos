@@ -10,27 +10,12 @@ in {
     enable = true;
     settings = {
       terminal.shell.program = "${pkgs.zsh}/bin/zsh";
+      # Bold/italic fall back to the normal family with their default styles.
       font = {
         inherit (vars.font) size;
-        normal = {
-          family = vars.font.name;
-          style = "Regular";
-        };
-        bold = {
-          family = vars.font.name;
-          style = "Bold";
-        };
-        bold_italic = {
-          family = vars.font.name;
-          style = "Bold Italic";
-        };
-        italic = {
-          family = vars.font.name;
-          style = "Italic";
-        };
+        normal.family = vars.font.name;
       };
       window = {
-        opacity = 1;
         padding = {
           x = 15;
           y = 15;

@@ -8,6 +8,7 @@
 import argparse
 import json
 import os
+import signal
 import socket
 import subprocess
 import sys
@@ -15,7 +16,7 @@ import threading
 import time
 from pathlib import Path
 
-from . import system
+from . import rules, system
 from .game import BUILD, Game, NotReady, OffsetsOutdated
 from .memory import ProcessMemory, ReadError, find_pid, module_base
 from .scanner import Scanner, Stop
@@ -25,9 +26,15 @@ CLIENT_COMMANDS = ("toggle", "next-mode")
 # and unsets them so our Nix Python runs clean; run() restores them for CMD.
 STASHED = ("LD_LIBRARY_PATH", "LD_PRELOAD")
 STASH_PREFIX = "BONK_REROLL_ORIG_"
-# Let go of Mod+F5 before the first reset: Hyprland merges modifiers across
-# keyboards, so a virtual Q pressed while Super is still held is Mod+Q.
-START_DELAY = 0.5
+# Hyprland merges modifiers across keyboards, so a virtual Q pressed while
+# Super is still held from a Mod+F5 / Mod+Shift+F5 hotkey is Mod+Q (opens a
+# terminal).  The physical keyboard state is unreadable here (that needs the
+# `input` group, i.e. a keylogger), so every hotkey counts as "Super down" and
+# no virtual key is pressed until this long after the last one.
+HOTKEY_QUIET = 0.5
+# Forwarded to the game: Steam stopping the game may signal only us, the top
+# of the launch command, and dying alone would orphan the game.
+FORWARDED_SIGNALS = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
 
 
 def socket_path():
@@ -56,6 +63,7 @@ def send(command):
 
 class Daemon:
     def __init__(self, config):
+        rules.validate(config["modes"])
         self.modes = config["modes"]
         self.reset_key = config["reset_key"]
         self.pause_key = config["pause_key"]
@@ -65,6 +73,9 @@ class Daemon:
         self.lock = threading.Lock()
         self.cancel = threading.Event()
         self.worker = None
+        self.restart_pending = False  # toggled on while a stopped worker winds down
+        self.stopping = False
+        self.last_hotkey = float("-inf")
 
     def current_mode(self):
         with self.lock:
@@ -72,10 +83,21 @@ class Daemon:
         return mode["name"], mode["min"]
 
     def handle(self, command):
+        with self.lock:
+            self.last_hotkey = time.monotonic()
         if command == "toggle":
             self.toggle()
         elif command == "next-mode":
             self.next_mode()
+
+    def wait_keys_free(self, cancel):
+        """Block until HOTKEY_QUIET has passed since the last hotkey (or cancel)."""
+        while not cancel.is_set():
+            with self.lock:
+                left = self.last_hotkey + HOTKEY_QUIET - time.monotonic()
+            if left <= 0:
+                return
+            time.sleep(min(left, 0.05))
 
     def next_mode(self):
         with self.lock:
@@ -85,17 +107,40 @@ class Daemon:
         system.notify(f"Mode: {mode['name']}", " · ".join(f"{k} ≥ {v}" for k, v in mode["min"].items()))
 
     def toggle(self):
-        if self.worker and self.worker.is_alive():
-            self.cancel.set()
-            return
+        with self.lock:
+            if self.worker and self.worker.is_alive():
+                if self.cancel.is_set():
+                    # Stop already requested and the worker is still winding
+                    # down (e.g. releasing a held key): queue the restart
+                    # instead of dropping it; another toggle un-queues it.
+                    self.restart_pending = not self.restart_pending
+                else:
+                    self.cancel.set()
+                return
+            self._start_locked()
+
+    def _start_locked(self):
+        self.restart_pending = False
         self.cancel = threading.Event()
-        self.worker = threading.Thread(target=self._scan, args=(self.cancel,), daemon=True)
+        self.worker = threading.Thread(target=self._work, args=(self.cancel,), daemon=True)
         self.worker.start()
 
+    def _work(self, cancel):
+        try:
+            self._scan(cancel)
+        finally:
+            with self.lock:
+                if self.restart_pending and not self.stopping:
+                    self._start_locked()
+
     def stop(self):
-        self.cancel.set()
-        if self.worker:
-            self.worker.join(timeout=2)  # let a held key be released first
+        with self.lock:
+            self.stopping = True
+            self.restart_pending = False
+            self.cancel.set()
+            worker = self.worker
+        if worker:
+            worker.join(timeout=2)  # let a held key be released first
 
     def _scan(self, cancel):
         try:
@@ -109,7 +154,6 @@ class Daemon:
                 raise NotReady("not in a run")
             hold = system.reset_hold_seconds()
             system.notify(f"Rerolling · {self.current_mode()[0]}", "Mod+F5 to stop")
-            time.sleep(START_DELAY)
             Scanner(
                 game,
                 reset=lambda: self.keyboard.hold(self.reset_key, hold),
@@ -118,6 +162,7 @@ class Daemon:
                 notify=system.notify,
                 current_mode=self.current_mode,
                 cancelled=cancel.is_set,
+                keys_free=lambda: self.wait_keys_free(cancel),
             ).run()
         except Stop as e:
             system.notify("Rerolling stopped", str(e))
@@ -170,8 +215,21 @@ def exit_code(returncode):
     return 128 - returncode if returncode < 0 else returncode
 
 
+def forward_signals(child):
+    """Relay FORWARDED_SIGNALS to `child`; we keep serving until it exits.
+
+    Returns a function that restores the previous handlers.
+    """
+    def relay(signum, _frame):
+        child.send_signal(signum)  # no-op once the child has been reaped
+
+    previous = {sig: signal.signal(sig, relay) for sig in FORWARDED_SIGNALS}
+    return lambda: [signal.signal(sig, handler) for sig, handler in previous.items()]
+
+
 def run(config_path, cmd):
     child = subprocess.Popen(cmd, env=child_env())
+    restore = forward_signals(child)
     # Nothing below may keep the game from running or its exit code from Steam.
     try:
         daemon = Daemon(json.loads(Path(config_path).read_text()))
@@ -179,6 +237,8 @@ def run(config_path, cmd):
     except Exception as e:
         system.notify("bonk-reroll disabled", str(e))
         return exit_code(child.wait())
+    finally:
+        restore()
 
 
 def probe():

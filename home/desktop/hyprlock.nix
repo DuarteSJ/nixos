@@ -1,35 +1,45 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
   colors = config.colorScheme.palette;
   inherit (config) vars;
 
+  # One playerctl call per tick (this runs every 2 s while locked).  Title
+  # last, so a "|" in it survives the split.  No player at all -> empty
+  # status, treated like Stopped: print nothing.
   spotifyScript = pkgs.writeShellScript "spotify-status" ''
-    # Get metadata
-    artist=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "No artist")
-    title=$(${pkgs.playerctl}/bin/playerctl metadata title 2>/dev/null || echo "No track")
-    status=$(${pkgs.playerctl}/bin/playerctl status 2>/dev/null || echo "Stopped")
+    IFS='|' read -r status artist title < <(
+      ${pkgs.playerctl}/bin/playerctl metadata \
+        --format '{{status}}|{{artist}}|{{title}}' 2>/dev/null
+    )
 
-    # Display only if music is playing
-    if [ "$status" != "Stopped" ]; then
-      echo "♫ ''${artist}    ''${title} ♫"
+    if [ -n "$status" ] && [ "$status" != "Stopped" ]; then
+      echo "♫ ''${artist:-No artist}    ''${title:-No track} ♫"
     fi
   '';
 in {
+  # Lock before every suspend (lid, session menu, `systemctl suspend`):
+  # hypridle holds logind's sleep inhibitor and, with inhibit_sleep = 3,
+  # releases it only once hyprlock has actually locked the session.
+  services.hypridle = {
+    enable = true;
+    settings.general = {
+      lock_cmd = "pidof hyprlock || ${lib.getExe config.programs.hyprlock.package}";
+      before_sleep_cmd = "loginctl lock-session";
+      inhibit_sleep = 3;
+    };
+  };
+
   programs.hyprlock = {
     enable = true;
+    # Only non-defaults: widgets default to every monitor, centred.
     settings = {
-      # GENERAL
-      general = {
-        hide_cursor = false;
-      };
-
       # BACKGROUND
       background = [
         {
-          monitor = "";
           path = "~/Pictures/lock-screen/minimal-mountain.png";
         }
       ];
@@ -37,23 +47,17 @@ in {
       # INPUT FIELD
       input-field = [
         {
-          monitor = "";
           size = "250, 60";
           outline_thickness = 2;
           dots_size = 0.2;
           dots_spacing = 0.35;
-          dots_center = true;
           outer_color = "rgba(0, 0, 0, 0)";
           inner_color = "rgba(0, 0, 0, 0.2)";
           font_color = "rgb(${colors.base05})";
           fade_on_empty = false;
-          rounding = -1;
           check_color = "rgb(${colors.base09})";
           placeholder_text = "Input Password...";
-          hide_input = false;
           position = "0, -400";
-          halign = "center";
-          valign = "center";
         }
       ];
 
@@ -61,36 +65,27 @@ in {
       label = [
         # DATE
         {
-          monitor = "";
           text = "cmd[update:1000] date +\"%A, %d %B\" | sed 's/\\b\\(.\\)/\\U\\1/g'";
           color = "rgb(${colors.base05})";
           font_size = 22;
           font_family = vars.font.name;
           position = "0, -100";
-          halign = "center";
-          valign = "center";
         }
         # TIME
         {
-          monitor = "";
-          text = "cmd[update:1000] echo \"$(date +\"%H:%M\")\"";
+          text = "$TIME"; # built-in 24h HH:MM, no fork
           color = "rgb(${colors.base05})";
           font_size = 125;
           font_family = "JetBrains Mono Extrabold";
           position = "0, 50";
-          halign = "center";
-          valign = "center";
         }
         # SPOTIFY NOW PLAYING
         {
-          monitor = "";
           text = "cmd[update:2000] ${spotifyScript}";
           color = "rgb(${colors.base05})";
           font_size = 14;
           font_family = vars.font.name;
           position = "0, -515";
-          halign = "center";
-          valign = "center";
         }
       ];
     };

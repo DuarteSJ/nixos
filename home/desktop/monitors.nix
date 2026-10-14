@@ -95,11 +95,6 @@
         type = types.nullOr types.int;
         default = null;
       };
-      mirror = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Output nickname or selector to mirror.";
-      };
     };
   };
 
@@ -151,17 +146,6 @@
           Workspace pinning: output nickname or selector -> workspace ids.
           Sets a workspace_rule (future) and moves the workspace if it is
           currently live elsewhere (present).
-        '';
-      };
-
-      overflow = mkOption {
-        type = types.listOf types.int;
-        default = [];
-        description = ''
-          Workspaces handed round-robin to active monitors that no
-          `workspaces` key named — i.e. displays with no profile entry.
-          Lets an unrecognised monitor receive windows by default instead
-          of coming up lit but empty.
         '';
       };
     };
@@ -270,8 +254,6 @@ in {
   # This machine
   # ------------------------------------------------------------------
   config.monitors = {
-    workspaces = [1 2 3 4];
-
     outputs = {
       panel = {
         name = "eDP-1";

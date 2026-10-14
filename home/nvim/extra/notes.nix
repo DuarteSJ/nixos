@@ -5,6 +5,24 @@
 }: let
   inherit (lib.generators) mkLuaInline;
   inherit (config.vars.paths) notes;
+
+  dateFormat = "%d-%m-%Y";
+
+  # Template dates relative to the daily note being created (its id is the
+  # date), not "now": `:Obsidian tomorrow` must head with tomorrow and link
+  # back to today. Non-daily notes fall back to now. Noon avoids DST edges when
+  # stepping whole days. `suffix` is the optional `{{date:FORMAT}}` format.
+  noteDay = days:
+    mkLuaInline ''
+      function(ctx, suffix)
+        local id = ctx.partial_note and ctx.partial_note.id
+        local d, m, y = tostring(id or ""):match("^(%d%d)%-(%d%d)%-(%d%d%d%d)$")
+        local base = d
+            and os.time({ year = tonumber(y), month = tonumber(m), day = tonumber(d), hour = 12 })
+          or os.time()
+        return require("obsidian.util").format_date(base + ${toString days} * 86400, suffix or "${dateFormat}")
+      end
+    '';
 in {
   programs.nvf.settings.vim = {
     notes.obsidian = {
@@ -16,31 +34,20 @@ in {
             path = notes;
           }
         ];
-        completion = {
-          nvim_cmp = true;
-          min_chars = 2;
-        };
         daily_notes = {
           folder = "daily";
-          date_format = "%d-%m-%Y";
+          date_format = dateFormat;
           alias_format = "%B %-d, %Y";
           template = "daily.md";
         };
         templates = {
-          subdir = "templates";
-          date_format = "%d-%m-%Y";
+          folder = "templates";
+          date_format = dateFormat;
           time_format = "%H:%M";
           substitutions = {
-            yesterday = mkLuaInline ''
-              function()
-                return os.date("%d-%m-%Y", os.time() - 86400)
-              end
-            '';
-            tomorrow = mkLuaInline ''
-              function()
-                return os.date("%d-%m-%Y", os.time() + 86400)
-              end
-            '';
+            date = noteDay 0;
+            yesterday = noteDay (-1);
+            tomorrow = noteDay 1;
           };
         };
         frontmatter.func = mkLuaInline ''
@@ -48,7 +55,7 @@ in {
             local out = {
               aliases = note.aliases,
               tags = note.tags,
-              created = os.date("%d-%m-%Y %H:%M"),
+              created = os.date("${dateFormat} %H:%M"),
             }
             if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
               for k, v in pairs(note.metadata) do
@@ -61,21 +68,23 @@ in {
         legacy_commands = false;
         notes_subdir = "zettelkasten";
         checkbox.order = [" " "d" "f"];
+        # Glyphs for the custom states. obsidian.nvim still renders
+        # `ui.checkboxes`, but warns on every startup if it is passed to setup
+        # (ordering moved to `checkbox.order`), so inject it right after setup;
+        # `_opts` too so a workspace re-switch keeps it.
+        callbacks.post_setup = mkLuaInline ''
+          function()
+            local boxes = {
+              [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
+              d = { char = "", hl_group = "ObsidianDone" },
+              f = { char = "", hl_group = "ObsidianTilde" },
+            }
+            for _, opts in ipairs({ Obsidian._opts, Obsidian.opts }) do
+              opts.ui.checkboxes = vim.tbl_extend("force", opts.ui.checkboxes or {}, boxes)
+            end
+          end
+        '';
         ui = {
-          checkboxes = {
-            " " = {
-              char = "󰄱";
-              hl_group = "ObsidianTodo";
-            };
-            "d" = {
-              char = "";
-              hl_group = "ObsidianDone";
-            };
-            "f" = {
-              char = "";
-              hl_group = "ObsidianTilde";
-            };
-          };
           external_link_icon = {
             char = "";
             hl_group = "ObsidianExtLinkIcon";

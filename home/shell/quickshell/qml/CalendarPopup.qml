@@ -18,6 +18,14 @@ AttachedDrawer {
 
     Timer { id: openDelay; interval: 150; onTriggered: if (cal.clock.hovered) cal.hold = true }
     Timer { id: stay; interval: 250; onTriggered: if (!cal.clock.hovered) cal.hold = false }
+    // A hidden bar gets no pointer-leave: drop the hold with it, so the
+    // calendar doesn't come back open with the bar.
+    Connections {
+        target: Shell
+        function onBarShownChanged() {
+            if (!Shell.barShown) { openDelay.stop(); stay.stop(); cal.hold = false; }
+        }
+    }
     Connections {
         target: cal.clock
         function onHoveredChanged() {

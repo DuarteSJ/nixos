@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   programs.nvf.settings.vim = {
     # texlab LSP + latex/bibtex treesitter grammars. Formatting (tex-fmt) rides
     # on `languages.enableFormat`, which is off, so no formatter is pulled in.
@@ -19,6 +23,11 @@
         -- Treesitter owns highlighting; vimtex's own syntax engine would
         -- double up and fight the latex grammar.
         vim.g.vimtex_syntax_enabled = 0
+        -- Zathura inverse search runs `<progpath> --headless`. v:progpath is the
+        -- unwrapped binary (no nvf config, so no vimtex); use the wrapper from the
+        -- profile. (The nvf package itself can't be referenced here: this init
+        -- is part of it.)
+        vim.g.vimtex_callback_progpath = "${config.home.profileDirectory}/bin/nvim"
       '';
     };
   };

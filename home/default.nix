@@ -17,11 +17,6 @@
     ./scripts
   ];
 
-  home = {
-    username = "duartesj";
-    homeDirectory = "/home/duartesj";
-    stateVersion = "26.05";
-  };
-
-  programs.home-manager.enable = true;
+  # username/homeDirectory come from users.users via the NixOS module.
+  home.stateVersion = "26.05";
 }

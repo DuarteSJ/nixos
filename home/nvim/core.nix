@@ -4,7 +4,6 @@
       tabstop = 4;
       shiftwidth = 4;
       expandtab = true;
-      conceallevel = 2;
       scrolloff = 9;
       foldlevel = 99;
     };
@@ -48,17 +47,22 @@
     };
     assistant.copilot = {
       enable = true;
-      cmp.enable = false;
       setupOpts = {
-        suggestion = {
-          enabled = true;
-          auto_trigger = true;
-        };
+        suggestion.auto_trigger = true;
+        panel.enabled = false;
+      };
+      mappings = {
+        suggestion.accept = "<C-l>";
+        # Panel is off, but nvf still binds its keys globally (<CR>, ]], [[,
+        # gr, <M-CR>) unless they are nulled.
         panel = {
-          enabled = false;
+          accept = null;
+          jumpNext = null;
+          jumpPrev = null;
+          refresh = null;
+          open = null;
         };
       };
-      mappings.suggestion.accept = "<C-l>";
     };
   };
 }

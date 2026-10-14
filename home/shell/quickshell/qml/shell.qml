@@ -39,9 +39,17 @@ ShellRoot {
     }
     IpcHandler {
         target: "dashboard"
+        // Open on the focused monitor; again there closes it; from another
+        // monitor it moves there.  No focused monitor: the first screen, so
+        // it never turns on where no bar shows it.
         function toggle(): void {
-            Shell.dashboardScreen = Hyprland.focusedMonitor?.name ?? "";
-            Shell.dashboard = !Shell.dashboard;
+            const mon = Hyprland.focusedMonitor?.name ?? Quickshell.screens[0]?.name ?? "";
+            if (Shell.dashboard && Shell.dashboardScreen === mon) {
+                Shell.dashboard = false;
+            } else {
+                Shell.dashboardScreen = mon;
+                Shell.dashboard = true;
+            }
         }
     }
     IpcHandler {

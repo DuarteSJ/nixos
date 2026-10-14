@@ -23,19 +23,18 @@
     history = {
       size = 1000;
       ignore = ["ls" "cd" "exit"];
-      ignoreAllDups = true;
     };
-
-    keymap = "emacs";
 
     functions = ''
         # Tree with depth
         ltl() {
           if [[ -z "$1" ]]; then
-            echo -e "\033[1;33mUsage:\033[0m ltl <depth_level>"
+            echo -e "\033[1;33mUsage:\033[0m ltl <depth_level> [path...]"
             return 1
           fi
-          eza --color=always --tree --level="$1"
+          local depth="$1"
+          shift
+          eza --color=always --tree --level="$depth" "$@"
         }
 
         # Copy file content to clipboard
@@ -180,7 +179,9 @@
         # Copy into a sibling temp file first; only swap in the real copy once
         # cp has succeeded, so a failed copy leaves the original symlink intact.
         tmp="$1.unnix.$$"
-        if cp --no-preserve=mode,ownership "$target" "$tmp"; then
+        # Plain cp keeps the source mode (minus umask), so executables stay
+        # executable; then add the owner write bit the store strips.
+        if cp -- "$target" "$tmp" && chmod u+w -- "$tmp"; then
           rm "$1"
           mv "$tmp" "$1"
           echo -e "\033[1;32m✓ Success:\033[0m '$1' is now a regular writable file."

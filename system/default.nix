@@ -14,10 +14,7 @@
   system.stateVersion = "26.05";
 
   programs = {
-    hyprland = {
-      enable = true;
-      xwayland.enable = true;
-    };
+    hyprland.enable = true;
     steam.enable = true;
     # Only active while a `gamemoderun`-wrapped process runs (set per game in
     # Steam launch options).
@@ -31,16 +28,8 @@
 
   services.printing.enable = true;
 
-  # The lid is Hyprland's job (lidClose in home/desktop/hyprland): it locks
-  # before suspending and stays awake when docked.  logind's own handling
-  # would race it with a second, unlocked suspend.
-  services.logind.settings.Login = {
-    HandleLidSwitch = "ignore";
-    HandleLidSwitchExternalPower = "ignore";
-    HandleLidSwitchDocked = "ignore";
-  };
-
-  environment.systemPackages = [pkgs.openvpn pkgs.android-tools];
+  # (OpenVPN comes via the NetworkManager plugin in network.nix.)
+  environment.systemPackages = [pkgs.android-tools];
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   home-manager.users.duartesj = import ../home;

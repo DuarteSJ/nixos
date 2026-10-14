@@ -1,14 +1,13 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Networking
-import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 
 // Right-hand modules: volume, network, bluetooth, system (memory + temperature), battery.
 // Each shows its state through its icon alone; hover for the numbers.
 // Hovering one reports it (hoverKey/hoverItem) so StatusPopup.qml can open the
-// matching status drawer under it.
+// matching status drawer under it.  The numbers come from Stats.qml (one poll
+// shared by every screen's bar).
 Row {
     id: root
 
@@ -21,56 +20,12 @@ Row {
         if (on) { hoverKey = key; hoverItem = item; }
         else if (hoverItem === item) { hoverKey = ""; }
     }
-
-    // ── sysfs / procfs poll (CPU %, memory %, CPU temp, battery) ────────
-    property int cpuPct: 0
-    property var cpuPrev: [0, 0]          // idle, total from the last poll
-    property int memPct: 0
-    property int tempC: 0
-    // Running average for the icon: the package temperature spikes past
-    // 90 C for a moment on short bursts, and a single sample would flash
-    // the chip red.  ~15 s to settle at a 3 s poll.
-    property real tempSmooth: 0
-    property int batPct: -1
-    property string batStatus: ""
-
-    Process {
-        id: poll
-        command: ["sh", "-c",
-            "awk '/^MemTotal/{t=$2} /^MemAvailable/{a=$2} END{print int((t-a)*100/t)}' /proc/meminfo;" +
-            "{ cat /sys/devices/platform/coretemp.0/hwmon/hwmon*/temp1_input 2>/dev/null || echo 0; } | head -1;" +
-            "cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo -1;" +
-            "cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo none;" +
-            "head -1 /proc/stat"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const l = text.trim().split("\n");
-                root.memPct = parseInt(l[0]) || 0;
-                root.tempC = Math.round((parseInt(l[1]) || 0) / 1000);
-                root.tempSmooth = root.tempSmooth === 0 ? root.tempC
-                                : root.tempSmooth * 0.75 + root.tempC * 0.25;
-                root.batPct = parseInt(l[2]);
-                root.batStatus = l[3] ?? "";
-                const f = (l[4] ?? "").trim().split(/\s+/).slice(1).map(Number);
-                if (f.length >= 4) {
-                    const idle = f[3] + (f[4] || 0), total = f.reduce((a, b) => a + b, 0);
-                    const dt = total - root.cpuPrev[1], di = idle - root.cpuPrev[0];
-                    if (root.cpuPrev[1] > 0 && dt > 0) root.cpuPct = Math.round(100 * (1 - di / dt));
-                    root.cpuPrev = [idle, total];
-                }
-            }
+    // A hidden bar gets no pointer-leave: forget the hover with it.
+    Connections {
+        target: Shell
+        function onBarShownChanged() {
+            if (!Shell.barShown) { root.hoverKey = ""; root.hoverItem = null; }
         }
-    }
-    Timer {
-        interval: 3000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: poll.running = true
-    }
-
-    function term(cmd) {
-        Quickshell.execDetached([Theme.terminal, "-e"].concat(cmd));
     }
 
     // Icons carry the state (numbers live in the hover panels).  Each module
@@ -119,9 +74,8 @@ Row {
     Module {
         id: netMod
         onHoveredChanged: root.track("network", netMod, hovered)
-        readonly property var devices: Networking.devices?.values ?? []
-        readonly property var wired: devices.find(d => d.type === DeviceType.Wired && d.connected) ?? null
-        readonly property var wifiDev: devices.find(d => d.type === DeviceType.Wifi) ?? null
+        readonly property var wired: Stats.wired
+        readonly property var wifiDev: Stats.wifi
         readonly property bool connecting: wifiDev?.state === ConnectionState.Connecting
         readonly property var net: wifiDev?.connected ? (wifiDev.networks?.values ?? []).find(n => n.connected) : null
         readonly property real sig: net?.signalStrength ?? 0
@@ -135,15 +89,15 @@ Row {
                   : !Networking.wifiEnabled ? Theme.subtle
                   : Theme.red
         busy: connecting
-        onClicked: root.term(["nmtui"])
+        onClicked: Theme.term(["nmtui"])
     }
 
     // ── bluetooth: off / on / connected; dot = a device's battery is low ─
     Module {
         id: btMod
         onHoveredChanged: root.track("bluetooth", btMod, hovered)
-        readonly property var adapter: Bluetooth.defaultAdapter
-        readonly property bool on: adapter?.enabled ?? false
+        readonly property var adapter: Stats.btAdapter
+        readonly property bool on: Stats.btOn
         readonly property var linked: (adapter?.devices?.values ?? []).filter(d => d.connected)
         readonly property real lowest: linked.filter(d => d.batteryAvailable)
                                              .reduce((m, d) => Math.min(m, d.battery), 1)
@@ -158,31 +112,31 @@ Row {
     Module {
         id: sysMod
         onHoveredChanged: root.track("system", sysMod, hovered)
-        readonly property bool hot: root.memPct >= 90 || root.tempSmooth >= 90
-        readonly property bool warm: root.memPct >= 75 || root.tempSmooth >= 80
+        readonly property bool hot: Stats.memPct >= 90 || Stats.tempSmooth >= 90
+        readonly property bool warm: Stats.memPct >= 75 || Stats.tempSmooth >= 80
         glyph: ""
         glyphColor: warm ? Theme.orange : Theme.yellow
         critical: hot
-        onClicked: root.term(["btop"])
+        onClicked: Theme.term(["btop"])
     }
 
     // ── battery: the glyph fills in 10 steps; bolt while charging ───────
     Module {
         id: batMod
         onHoveredChanged: root.track("battery", batMod, hovered)
-        readonly property bool charging: root.batStatus === "Charging"
-        readonly property bool plugged: root.batStatus === "Full" || root.batStatus === "Not charging"
+        readonly property bool charging: Stats.charging
+        readonly property bool plugged: Stats.plugged
         // empty, 10..90, full
         readonly property var levels: ["\u{f008e}", "\u{f007a}", "\u{f007b}", "\u{f007c}", "\u{f007d}", "\u{f007e}",
                                        "\u{f007f}", "\u{f0080}", "\u{f0081}", "\u{f0082}", "\u{f0079}"]
         readonly property var chargingLevels: ["\u{f089c}", "\u{f089c}", "\u{f0086}", "\u{f0087}", "\u{f0088}", "\u{f089d}",
                                                "\u{f0089}", "\u{f089e}", "\u{f008a}", "\u{f008b}", "\u{f0085}"]
-        readonly property int step: Math.max(0, Math.min(10, Math.round(root.batPct / 10)))
-        visible: root.batPct >= 0
+        readonly property int step: Math.max(0, Math.min(10, Math.round(Stats.batPct / 10)))
+        visible: Stats.batPct >= 0
         glyph: plugged ? "" : charging ? chargingLevels[step] : levels[step]
         glyphColor: charging || plugged ? Theme.blue
-                  : root.batPct < 15 ? Theme.red
-                  : root.batPct < 30 ? Theme.yellow : Theme.green
-        critical: root.batPct < 15 && !charging && !plugged
+                  : Stats.batPct < 15 ? Theme.red
+                  : Stats.batPct < 30 ? Theme.yellow : Theme.green
+        critical: Stats.batPct < 15 && !charging && !plugged
     }
 }

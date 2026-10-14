@@ -1,14 +1,19 @@
 # Inline Lua bind actions + top-level program.
 # Native hl.config / hl.get_config — no /tmp state, no hyprctl eval.
+#
+# Bind actions are rendered into `settings`, i.e. BEFORE the extraConfig
+# prelude in default.nix, so they reach its helpers (notify, shq) as globals
+# at call time, not as upvalues.
 {
+  lib,
   inline,
-  rounding,
+  baseline,
   base02,
-  windowBorderLua,
-  gaps,
   monitorManager,
-  wallpaper,
+  qsIpc,
 }: let
+  toLua = lib.generators.toLua {multiline = false;};
+
   # general.gaps_out comes back as CCssGapData (a {top,right,bottom,left}
   # table), not a number — pull a single edge before doing arithmetic.
   gapsOutNum = ''
@@ -17,59 +22,79 @@
       if type(g) == "table" then return g.top or g.left or 0 end
       return g or 0
     end)()'';
+
+  # Inner gap as a fraction of the outer one, from the configured pair, so
+  # stepping the gaps keeps a custom vars.gapsInner in proportion (and lands
+  # exactly on it again at the configured outer gap).  Half when the outer
+  # gap is 0 and there is no ratio to keep.
+  innerRatio = let
+    inherit (baseline.general) gaps_in gaps_out;
+  in
+    if gaps_out == 0
+    then 0.5
+    else gaps_in / (gaps_out * 1.0);
+
+  # Focus mode: everything the baseline sets, flattened.  Same keys as the
+  # baseline (plus dim_strength, inert once dim_inactive is off again), so
+  # hl.config(BASELINE) undoes it completely.
+  focus = {
+    animations.enabled = false;
+    general = {
+      gaps_in = 0;
+      gaps_out = 0;
+      col = {
+        active_border = "rgba(${base02}aa)";
+        inactive_border = "rgba(${base02}aa)";
+      };
+    };
+    decoration = {
+      rounding = 0;
+      dim_inactive = true;
+      dim_strength = 0.15;
+    };
+  };
 in {
   # Productivity toggle: persistent state lives in the closure upvalue, config
   # applied natively via hl.config — no /tmp, no subprocess, no hyprctl eval.
+  # Off re-applies BASELINE, the same table the static config block in
+  # default.nix is built from.
   prodToggle = inline ''
     (function()
+      local BASELINE = ${toLua baseline}
+      local FOCUS    = ${toLua focus}
       local on = false
       return function()
         on = not on
-        hl.config({
-          animations = { enabled = not on },
-          general    = {
-            col = on
-              and { active_border = "rgba(${base02}aa)", inactive_border = "rgba(${base02}aa)" }
-              or  ${windowBorderLua},
-          },
-          decoration = {
-            rounding     = on and 0 or ${toString rounding},
-            dim_inactive = on,
-            dim_strength = on and 0.15 or 0.0,
-          },
-        })
-        -- #6 Gaps: flat 0 in focus mode; otherwise restore the configured
-        -- baseline (shared nix source with the static config block).
-        if on then
-          hl.config({ general = { gaps_in = 0, gaps_out = 0 } })
-        else
-          ${gaps.baselineGapsLua}
-        end
+        hl.config(on and FOCUS or BASELINE)
         -- focusOn/focusOff, not hide/reveal: focus mode hides the bar on top of
         -- Super+B rather than overwriting it.  A reload resets `on` to false
-        -- and the config to baseline; `topLevel` sends `focusOff` to match.
-        hl.exec_cmd("qs -c shell ipc call bar " .. (on and "focusOn" or "focusOff"))
+        -- and the config to baseline; the startup sequence in default.nix
+        -- sends `focusOff` to match.
+        hl.exec_cmd("${qsIpc} bar " .. (on and "focusOn" or "focusOff"))
       end
     end)()'';
 
-  # Gap +/- : read live value, clamp, write back.
-  incGaps = inline ''
-    function()
-      local out = ${gapsOutNum} + 2
-      hl.config({
-        general    = { gaps_out = out, gaps_in = math.floor(out / 2) },
-        decoration = { rounding = ${toString rounding} },
-      })
-    end'';
-  decGaps = inline ''
-    function()
-      local out = ${gapsOutNum} - 2
-      if out < 0 then out = 0 end
-      hl.config({
-        general    = { gaps_out = out, gaps_in = math.floor(out / 2) },
-        decoration = { rounding = out > 0 and ${toString rounding} or 0 },
-      })
-    end'';
+  # Gap +/- : read live value, step, clamp at 0, write back.  The inner gap
+  # follows at the configured inner:outer ratio; rounding drops to 0 with the
+  # gaps, so flush windows get square corners.
+  inherit
+    (let
+      mk = delta:
+        inline ''
+          function()
+            local out = math.max(0, ${gapsOutNum} + ${toString delta})
+            hl.config({
+              general    = { gaps_out = out, gaps_in = math.floor(out * ${toLua innerRatio} + 0.5) },
+              decoration = { rounding = out > 0 and ${toString baseline.decoration.rounding} or 0 },
+            })
+          end'';
+    in {
+      incGaps = mk 2;
+      decGaps = mk (-2);
+    })
+    incGaps
+    decGaps
+    ;
 
   # Cursor magnifier (native cursor:zoom_factor): step by `offset`, clamp 1..3.
   cursorZoom = let
@@ -106,7 +131,7 @@ in {
       end
       hl.workspace_rule({ workspace = workspace.name, layout = next_layout })
       -- -r reuses one notification slot so rapid toggles update in place.
-      hl.exec_cmd("notify -r 7777 -t 1500 'Layout' '" .. next_layout .. "'")
+      notify({ r = "layout", t = 1500 }, "Layout", next_layout)
     end'';
 
   # Cycle the active window: tiled -> floating -> fullscreen -> tiled.
@@ -136,42 +161,17 @@ in {
   # Monitor status: current profile + per-output workspace mapping.
   monitorStatus = inline monitorManager.statusAction;
 
-  # Lid closed: lock, then suspend — unless another output is up (docked,
-  # clamshell).  logind's lid handling is off (system/default.nix) so this is
-  # the only suspend.  The sleep gives hyprlock time to cover the screen.
-  lidClose = inline ''
-    function()
-      for _, m in ipairs(hl.get_monitors()) do
-        if m.name ~= "${monitorManager.builtinName}" then return end
-      end
-      hl.exec_cmd("hyprlock & sleep 0.5; systemctl suspend")
-    end'';
-
-  # Top-level program, for `extraConfig`.  Runs on every config load, so it
-  # comes back after the `hyprctl reload` that monitor hotplug and
-  # nixos-rebuild switch perform (a hyprland.start handler would not).
+  # Top-level program, for `extraConfig` (after the shared prelude in
+  # default.nix, which defines keep() and notify()).  Runs on every config
+  # load, so it comes back after the `hyprctl reload` that monitor hotplug
+  # and nixos-rebuild switch perform (a hyprland.start handler would not).
   topLevel = ''
-    -- hl.on / hl.timer return GC-managed handles: if the Lua handle is
-    -- collected, Hyprland drops the subscription and the callback silently
-    -- stops firing.  Anchor every long-lived handle in a global.
-    _G.__hlHandles = _G.__hlHandles or {}
-    local function keep(h) _G.__hlHandles[#_G.__hlHandles + 1] = h; return h end
-
-    -- A load resets prodToggle to off and the config to baseline; bring the
-    -- bar's focus-mode hide in line.  Deferred like the monitor manager's
-    -- first pass; harmless before Quickshell is up (focus mode starts off).
-    keep(hl.timer(function()
-      hl.exec_cmd("qs -c shell ipc call bar focusOff")
-    end, { timeout = 500, type = "oneshot" }))
-
     -- Event handler — notify when a window marks itself urgent.
     keep(hl.on("window.urgent", function(win)
-      -- win.class is app-controlled and is interpolated into the single-quoted
-      -- shell arg below; strip single quotes (the only char that can break out
-      -- of the quotes) and backslashes so a crafted class can't inject shell.
+      -- win.class is app-controlled; notify() shell-quotes it, so it is shown
+      -- verbatim and cannot inject shell.
       local who = (win and win.class) or "A window"
-      who = who:gsub("'", ""):gsub("''\\''\\", "")
-      hl.exec_cmd("notify -u low 'Attention' '" .. who .. " needs attention'")
+      notify({ u = "low" }, "Attention", who .. " needs attention")
     end))
   '';
 }

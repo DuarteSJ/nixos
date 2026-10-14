@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
-import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
 // Notification daemon (replaces dunst).  Popups stack in the bottom-right
@@ -12,6 +11,11 @@ import Quickshell.Services.Notifications
 //   right click  close all
 // Hovering a popup pauses its timeout.  Timeouts follow the old dunst
 // config: low 2 s, normal 5 s, critical sticky -- unless the sender asks.
+//
+// Replace by tag (dunst's stack tags): a notification with the hint
+// x-dunst-stack-tag (or x-canonical-private-synchronous) takes the place of
+// the shown one with the same tag -- same card, countdown restarted.  The
+// `notify -r KEY` wrapper sends these, so callers needn't track ids.
 Scope {
     id: root
 
@@ -25,7 +29,42 @@ Scope {
         bodyHyperlinksSupported: true
         imageSupported: true
         persistenceSupported: true
-        onNotification: n => n.tracked = true
+        onNotification: n => {
+            n.tracked = true;
+            root.add(n);
+        }
+    }
+
+    // One row per card, in arrival order: { n: Notification }.  A row keeps
+    // its card when a tagged replacement swaps in a new notification.
+    ListModel { id: cards }
+
+    function tagOf(n) {
+        const h = n?.hints ?? {};
+        return String(h["x-dunst-stack-tag"] ?? h["x-canonical-private-synchronous"] ?? "");
+    }
+    function rowOf(n) {
+        for (let i = 0; i < cards.count; i++) if (cards.get(i).n === n) return i;
+        return -1;
+    }
+    function add(n) {
+        n.closed.connect(() => { const i = root.rowOf(n); if (i >= 0) cards.remove(i); });
+        const tag = tagOf(n);
+        if (tag !== "") {
+            for (let i = 0; i < cards.count; i++) {
+                const old = cards.get(i).n;
+                if (old && old !== n && tagOf(old) === tag) {
+                    cards.set(i, { n: n });   // (setProperty can't hold a QObject)
+                    old.expire();           // its row holds n now: the card stays
+                    return;
+                }
+            }
+        }
+        cards.append({ n: n });
+    }
+    // Notifications kept across a shell reload (keepOnReload).
+    Component.onCompleted: {
+        for (const n of server.trackedNotifications.values) add(n);
     }
 
     function closeAll() {
@@ -35,8 +74,8 @@ Scope {
     PanelWindow {
         id: popups
 
-        screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
-        visible: server.trackedNotifications.values.length > 0
+        screen: Shell.focusedScreen
+        visible: cards.count > 0
         anchors { bottom: true; right: true }
         margins { bottom: 15; right: 15 }
         implicitWidth: 440
@@ -53,15 +92,14 @@ Scope {
             spacing: 8
 
             Repeater {
-                model: server.trackedNotifications
+                model: cards
 
                 delegate: Rectangle {
                     id: card
 
-                    required property var modelData
+                    required property var n
                     required property int index
-                    readonly property var n: modelData
-                    readonly property int total: server.trackedNotifications.values.length
+                    readonly property int total: cards.count
                     readonly property bool critical: n.urgency === NotificationUrgency.Critical
                     readonly property var defaultAction: (n.actions ?? []).find(a => a.identifier === "default") ?? null
                     readonly property var buttons: (n.actions ?? []).filter(a => a.identifier !== "default")
@@ -93,11 +131,18 @@ Scope {
                         running: card.timeout > 0 && !hover.hovered
                         onTriggered: card.n.expire()
                     }
-                    // A replacement (same id) restarts the countdown.
+                    // A replacement (same id; or same tag, i.e. a new `n`) restarts
+                    // the countdown -- after the new timeout has been bound.
+                    function rearm() {
+                        expiry.stop();
+                        if (card.timeout > 0 && !hover.hovered) expiry.start();
+                    }
+                    Timer { id: rearmSoon; interval: 0; onTriggered: card.rearm() }
+                    onNChanged: rearmSoon.restart()
                     Connections {
                         target: card.n
-                        function onSummaryChanged() { expiry.restart(); }
-                        function onBodyChanged() { expiry.restart(); }
+                        function onSummaryChanged() { rearmSoon.restart(); }
+                        function onBodyChanged() { rearmSoon.restart(); }
                     }
 
                     HoverHandler { id: hover }

@@ -6,11 +6,13 @@
   luaActions,
   vars,
   pkgs,
+  qsIpc,
+  wallpaperPkg,
 }: let
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
   inherit (scripts) toggleMic;
-  qs = "${lib.getExe' pkgs.quickshell "qs"} -c shell ipc call";
-  inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus lidClose;
+  qs = qsIpc;
+  inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus;
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
   numWsBinds = lib.flatten (lib.genList (i: let
@@ -142,7 +144,7 @@ in
     (kb (modKey "N") (exec "${lib.getExe toggleMic}"))
     (kb (modShiftKey "P") (exec "${qs} session toggle"))
     (kb (modKey "W") (exec "${qs} dashboard toggle")) # all status panels
-    (kb (modShiftKey "N") (exec "switch-bg"))
+    (kb (modShiftKey "N") (exec "${lib.getExe wallpaperPkg} next")) # cycle wallpaper
     (kb (modKey "X") (exec "hyprshot -z -m region"))
     (kb (modShiftKey "X") (exec "screenrec"))
     (kb (modShiftKey "O") monitorStatus) # which monitor profile is active
@@ -175,9 +177,6 @@ in
       locked = true;
       repeating = true;
     })
-
-    # Lid (bindl = locked)
-    (kbo (bareKey "switch:on:Lid Switch") lidClose {locked = true;})
 
     # Mouse (bindm)
     (kbo (modKey "mouse:272") (inline "hl.dsp.window.drag()") {mouse = true;})

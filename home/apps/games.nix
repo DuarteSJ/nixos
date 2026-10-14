@@ -22,7 +22,7 @@
   # `steam` itself comes from programs.steam (system PATH), not runtimeInputs.
   steam-game = pkgs.writeShellApplication {
     name = "steam-game";
-    runtimeInputs = [pkgs.procps pkgs.util-linux];
+    runtimeInputs = [pkgs.coreutils pkgs.procps pkgs.util-linux];
     text = ''
       app_id="$1"
       pattern="SteamLaunch AppId=$app_id( |$)"
@@ -34,6 +34,12 @@
       if ! pgrep -x steam >/dev/null; then
         touch "$marker"
       fi
+
+      # Every exit path (timeout, signal, normal) drops the marker unless
+      # another launcher's game is still running -- that launcher then shuts
+      # Steam down.  Otherwise a Steam left open here (e.g. after a timeout)
+      # is the user's from now on and must not be shut down by a later run.
+      trap 'pgrep -f "$any_game" >/dev/null || rm -f "$marker"' EXIT
 
       # When Steam isn't running, `steam` becomes the client and blocks, so detach.
       setsid -f steam "steam://rungameid/$app_id" >/dev/null 2>&1
@@ -52,8 +58,10 @@
         exit 0
       fi
 
-      while pgrep -f "$pattern" >/dev/null; do
-        sleep 2
+      # Block on the game's process instead of polling; loop in case Steam
+      # swaps the reaper (e.g. a launcher that re-execs).
+      while pid=$(pgrep -fo "$pattern"); do
+        tail --pid="$pid" -f /dev/null
       done
 
       # Last game out shuts Steam down. Skip if Steam is already gone (e.g. it

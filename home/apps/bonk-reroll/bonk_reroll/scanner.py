@@ -11,8 +11,18 @@ class Stop(Exception):
 
 
 class Scanner:
+    """`keys_free` blocks until a virtual key press is safe (no hotkey modifier
+    may still be held); it may return early once cancelled, re-checked after.
+
+    `settle`: a new map's counters must read identically this far apart.  It
+    spans several frames even at low frame rates (100 ms = one 10 fps frame),
+    so two reads inside one frame of a dictionary still being filled can't
+    pass as stable; it costs ~0.1 s on a reset that holds Q for ~1 s.
+    """
+
     def __init__(self, game, *, reset, pause, focused, notify, current_mode, cancelled,
-                 sleep=time.sleep, clock=time.monotonic, timeout=10.0, poll=0.01, settle=0.025):
+                 keys_free=lambda: None, sleep=time.sleep, clock=time.monotonic,
+                 timeout=10.0, poll=0.01, settle=0.1):
         self.game = game
         self.reset = reset
         self.pause = pause
@@ -20,6 +30,7 @@ class Scanner:
         self.notify = notify
         self.current_mode = current_mode
         self.cancelled = cancelled
+        self.keys_free = keys_free
         self.sleep = sleep
         self.clock = clock
         self.timeout = timeout
@@ -31,20 +42,35 @@ class Scanner:
         rerolls = 0
         while True:
             before, before_rev = self._snapshot()
-            if self.cancelled():
-                raise Stop("cancelled")
-            if not self.focused():
-                raise Stop("Megabonk lost focus")
+            self._ready_to_press()
             self.reset()
             rerolls += 1
             counts = counters_from_labels(self._wait_for_new_map(before, before_rev))
             name, minimums = self.current_mode()
             if matches(minimums, counts):
-                if self.focused():
+                self.keys_free()
+                if not self.cancelled() and self.focused():
                     self.pause()
                 self.notify(f"{name} map after {rerolls} rerolls", describe(minimums, counts))
                 return
             self.notify(f"Reroll #{rerolls} · {name}", describe(minimums, counts))
+
+    def _ready_to_press(self):
+        """Gate before each reset press; raise Stop if it must not happen.
+
+        Cancellation is checked once more right before the press: a stop
+        hotkey landing during the focus query means Super is down right now,
+        and Hyprland would merge a virtual Q into Mod+Q.
+        """
+        if self.cancelled():
+            raise Stop("cancelled")
+        self.keys_free()
+        if self.cancelled():
+            raise Stop("cancelled")
+        if not self.focused():
+            raise Stop("Megabonk lost focus")
+        if self.cancelled():
+            raise Stop("cancelled")
 
     def _snapshot(self):
         try:

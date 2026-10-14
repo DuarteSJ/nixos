@@ -41,7 +41,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     implicitWidth: winW
     // Transparent; the input mask is the card only.  A drawer that can grow
-    // taller (the dashboard's panel stack) raises this to the screen height.
+    // taller (the dashboard's panel stack) raises this to the screen height;
+    // the shader below only covers what is drawn, so that costs nothing.
     property int winH: 640
     implicitHeight: winH
     color: "transparent"
@@ -49,12 +50,26 @@ PanelWindow {
     visible: Shell.barShown && (drawer.open || drawer.active || drawer.rw > 17)
     mask: Region { item: drawer.hit }
 
+    // The shader runs over the box around the group and the card (plus the
+    // smooth-union margin), not the whole window: the dashboard window is
+    // screen-tall, but most of it is empty.
     ShaderEffect {
-        anchors.fill: parent
+        id: shape
+        readonly property real pad: k + 2
+        readonly property bool hasCard: drawer.rect.z >= 1 && drawer.rect.w >= 1
+        readonly property real gx0: Math.max(0, win.groupRect.x)
+        readonly property real gx1: Math.min(win.width, win.groupRect.x + win.groupRect.z)
+        readonly property real x0: Math.max(0, Math.floor((hasCard ? Math.min(gx0, drawer.rect.x) : gx0) - pad))
+        readonly property real x1: Math.min(win.width, Math.ceil((hasCard ? Math.max(gx1, drawer.rect.x + drawer.rect.z) : gx1) + pad))
+        readonly property real y1: Math.min(win.height, Math.ceil(Math.max(Theme.barHeight, hasCard ? drawer.rect.y + drawer.rect.w : 0) + pad))
+        x: x0; y: 0
+        width: Math.max(1, x1 - x0); height: Math.max(1, y1)
+
+        // Uniforms, in this item's coordinates.
         property vector2d res: Qt.vector2d(width, height)
-        property vector4d group: win.groupRect
+        property vector4d group: Qt.vector4d(win.groupRect.x - x0, win.groupRect.y, win.groupRect.z, win.groupRect.w)
         property real groupR: Theme.barRadius
-        property vector4d card: drawer.rect
+        property vector4d card: Qt.vector4d(drawer.rect.x - x0, drawer.rect.y, drawer.rect.z, drawer.rect.w)
         property real cardR: drawer.rr
         property real k: 16
         property color color: Theme.bg
@@ -63,13 +78,14 @@ PanelWindow {
 
     Drawer {
         id: drawer
-        attachY: Theme.barHeight
         openRadius: 14
         // Right edge stops exactly at the window's (= screen's) right edge.
         maxX: win.winW
     }
     Item {
         x: drawer.hit.x; y: drawer.hit.y; width: drawer.hit.width; height: drawer.hit.height
-        HoverHandler { id: cardHover }
+        // Disabled while the bar is hidden: that clears `hovered`, which a
+        // hidden surface would otherwise keep (it never sees the pointer leave).
+        HoverHandler { id: cardHover; enabled: Shell.barShown }
     }
 }

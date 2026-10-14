@@ -1,7 +1,6 @@
 """Mode evaluation: a map matches when every listed counter is >= its minimum."""
 
 # Counter key -> label the game uses in InteractablesStatus.
-# Keep in sync with `counters` in ../default.nix.
 LABELS = {
     "moais": "Moais",
     "shady": "Shady Guy",
@@ -20,6 +19,26 @@ LABELS = {
 DERIVED = {"shady_moais": ("shady", "moais")}
 
 COUNTERS = frozenset(LABELS) | frozenset(DERIVED)
+
+
+def validate(modes):
+    """Reject configs `matches` would silently misread (it counts unknown keys as 0)."""
+    if not modes:
+        raise ValueError("no modes configured")
+    for mode in modes:
+        name = mode.get("name")
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"mode without a name: {mode!r}")
+        minimums = mode.get("min")
+        if not isinstance(minimums, dict):
+            raise ValueError(f"mode {name}: 'min' must be a mapping of counter -> minimum")
+        unknown = sorted(set(minimums) - COUNTERS)
+        if unknown:
+            raise ValueError(f"mode {name}: unknown counter(s) {', '.join(unknown)} "
+                             f"(known: {', '.join(sorted(COUNTERS))})")
+        for key, need in minimums.items():
+            if isinstance(need, bool) or not isinstance(need, int):
+                raise ValueError(f"mode {name}: minimum for {key} must be an integer, got {need!r}")
 
 
 def counters_from_labels(by_label):

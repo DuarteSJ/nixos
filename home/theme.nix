@@ -5,10 +5,14 @@
 }: let
   inherit (lib) mkOption types;
 
-  schemeType = types.submodule {
+  schemeType = types.submodule ({name, ...}: {
     options = {
       name = mkOption {type = types.str;};
-      slug = mkOption {type = types.str;};
+      slug = mkOption {
+        description = "The scheme's key in `themes` (derived, read-only).";
+        type = types.str;
+        readOnly = true;
+      };
       palette = mkOption {type = types.attrsOf types.str;};
       batTheme = mkOption {
         description = "bat/delta syntax-theme name for this scheme (must be a theme bat ships or knows; e.g. \"Nord\", \"ansi\").";
@@ -25,12 +29,14 @@
         };
       };
     };
-  };
+    # `name` here is the module argument (the attrsOf key), not the option.
+    # A definition rather than a default, so readOnly rejects any override.
+    config.slug = name;
+  });
 
   builtinSchemes = {
     nord = {
       name = "Nord";
-      slug = "nord";
       batTheme = "Nord";
       nvf = {name = "nord";};
       palette = {
@@ -61,29 +67,20 @@ in {
   };
 
   options.colorScheme = mkOption {
-    description = "Resolved active color scheme (read-only).";
-    type = schemeType;
+    description = "Resolved active color scheme (read-only): the `themes` entry selected by vars.theme.";
+    # Already type-checked as a themes entry; re-merging it through
+    # schemeType would re-derive slug from this option's own name.
+    type = types.raw;
     readOnly = true;
   };
 
-  config = {
-    assertions =
-      [
-        {
-          assertion = config.themes ? ${config.vars.theme};
-          message = "vars.theme = \"${config.vars.theme}\" is not in themes (known: ${
-            lib.concatStringsSep ", " (lib.attrNames config.themes)
-          }).";
-        }
-      ]
-      # Guard the slug/key dual source of truth: every scheme's slug must
-      # equal its attribute key, since consumers read .slug as the key.
-      ++ lib.mapAttrsToList (key: scheme: {
-        assertion = scheme.slug == key;
-        message = "themes.${key}.slug = \"${scheme.slug}\" must equal its attr key \"${key}\".";
-      })
-      config.themes;
-
-    colorScheme = config.themes.${config.vars.theme};
-  };
+  # A missing key must fail here, not in an assertion: consumers force
+  # colorScheme while the config is evaluated, before assertions are checked.
+  config.colorScheme =
+    config.themes.${
+      config.vars.theme
+    }
+    or (throw "vars.theme = \"${config.vars.theme}\" is not in themes (known: ${
+      lib.concatStringsSep ", " (lib.attrNames config.themes)
+    }).");
 }

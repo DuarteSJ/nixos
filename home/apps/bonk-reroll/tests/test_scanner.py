@@ -92,6 +92,23 @@ class ColdGame(FakeGame):
         return super().map_state()
 
 
+class SlowFrameGame(FakeGame):
+    """The dictionary fills over a slow frame: half-built for 80 ms after a reset."""
+
+    clock = None
+    reset_at = float("-inf")
+
+    def reset(self):
+        super().reset()
+        self.reset_at = self.clock()
+
+    def feature_counts(self):
+        labels, rev = super().feature_counts()
+        if self.clock() - self.reset_at < 0.08:
+            return {}, rev + ("partial",)
+        return labels, rev
+
+
 class FakeClock:
     def __init__(self):
         self.now = 0.0
@@ -103,7 +120,8 @@ class FakeClock:
         self.now += seconds
 
 
-def make(game, *, focused=lambda: True, cancelled=lambda: False, mode=lambda: PERFECT, on_reset=None):
+def make(game, *, focused=lambda: True, cancelled=lambda: False, mode=lambda: PERFECT, on_reset=None,
+         on_keys_free=None):
     events = []
 
     def reset():
@@ -111,6 +129,11 @@ def make(game, *, focused=lambda: True, cancelled=lambda: False, mode=lambda: PE
         game.reset()
         if on_reset:
             on_reset()
+
+    def keys_free():
+        events.append("keys_free")
+        if on_keys_free:
+            on_keys_free()
 
     clock = FakeClock()
     scanner = Scanner(
@@ -121,6 +144,7 @@ def make(game, *, focused=lambda: True, cancelled=lambda: False, mode=lambda: PE
         notify=lambda title, body: events.append(("notify", title, body)),
         current_mode=mode,
         cancelled=cancelled,
+        keys_free=keys_free,
         sleep=clock.sleep,
         clock=clock.time,
     )
@@ -201,3 +225,63 @@ class ScannerTests(unittest.TestCase):
             scanner.run()
         self.assertEqual(events.count("reset"), 1)
         self.assertNotIn("pause", events)
+
+    def test_settle_outlasts_a_slow_frame(self):
+        game = SlowFrameGame([NINE_MAP])
+        scanner, events = make(game)
+        game.clock = scanner.clock
+        scanner.run()
+        self.assertEqual(events.count("reset"), 1)
+        self.assertEqual(events[-1][1], "perfect map after 1 rerolls")
+
+
+class KeyGuardTests(unittest.TestCase):
+    """No virtual key may go out while a hotkey's Super could still be held."""
+
+    def test_keys_free_gates_every_press(self):
+        scanner, events = make(FakeGame([BAD_MAP, NINE_MAP]))
+        scanner.run()
+        presses = [i for i, e in enumerate(events) if e in ("reset", "pause")]
+        self.assertEqual(len(presses), 3)
+        for i in presses:
+            self.assertEqual(events[i - 1], "keys_free", events)
+
+    def test_stop_while_waiting_for_keys_presses_nothing(self):
+        flag = []
+        scanner, events = make(FakeGame([NINE_MAP]), cancelled=lambda: bool(flag),
+                               on_keys_free=lambda: flag.append(1))
+        with self.assertRaisesRegex(Stop, "cancelled"):
+            scanner.run()
+        self.assertNotIn("reset", events)
+
+    def test_stop_during_focus_query_presses_nothing(self):
+        # The stop hotkey lands while hyprctl runs: Super is down right now.
+        flag = []
+
+        def focused():
+            flag.append(1)
+            return True
+
+        scanner, events = make(FakeGame([NINE_MAP]), cancelled=lambda: bool(flag), focused=focused)
+        with self.assertRaisesRegex(Stop, "cancelled"):
+            scanner.run()
+        self.assertNotIn("reset", events)
+
+    def test_no_pause_when_stopped_at_match(self):
+        flag = []
+        scanner, events = make(FakeGame([NINE_MAP]), cancelled=lambda: bool(flag),
+                               on_reset=lambda: None)
+        # Cancel lands after the map is read but before the pause press.
+        original = scanner.keys_free
+        presses = []
+
+        def keys_free():
+            presses.append(1)
+            original()
+            if len(presses) == 2:  # the gate before pause
+                flag.append(1)
+
+        scanner.keys_free = keys_free
+        scanner.run()
+        self.assertNotIn("pause", events)
+        self.assertEqual(events[-1][1], "perfect map after 1 rerolls")

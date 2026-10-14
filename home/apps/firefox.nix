@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
@@ -7,8 +8,6 @@
 
   # NOTE: Sidebery is NOT installed declaratively here
   nixSnowflakeIcon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-  sideberyAddonId = "{3c078156-979c-498b-8990-85f7987dd929}";
-  sideberyUuid = "dc7f34b9-b0d4-4149-b166-8ac58fb2db03";
 in {
   programs.firefox = {
     enable = true;
@@ -18,11 +17,8 @@ in {
     # Pin to legacy so managed prefs land where Firefox actually reads them.
     configPath = ".mozilla/firefox";
 
+    # id 0, name and isDefault all follow from the attr name.
     profiles.default = {
-      id = 0;
-      name = "default";
-      isDefault = true;
-
       settings = {
         # Session restore
         "browser.startup.page" = 3;
@@ -34,17 +30,12 @@ in {
         # File handling (open inline instead of auto-download)
         "browser.download.useDownloadDir" = false;
         "browser.download.always_ask_before_handling_new_types" = true;
-        "browser.download.improvements_to_download_panel" = false;
         "browser.download.open_pdf_attachments_inline" = true;
         "pdfjs.disabled" = false;
         "browser.helperApps.neverAsk.openFile" = "application/pdf,text/plain,text/html,application/json,image/png,image/jpeg,image/gif,audio/mpeg,audio/ogg,video/mp4,video/webm";
-        "browser.helperApps.neverAsk.saveToDisk" = "";
 
         # Performance
         "browser.sessionstore.interval" = 15000;
-
-        # UI preferences
-        "browser.tabs.warnOnClose" = false;
 
         # Disable native sidebar revamp launcher (use Sidebery only)
         "sidebar.revamp" = false;
@@ -56,18 +47,15 @@ in {
 
         # Force dark mode
         "ui.systemUsesDarkTheme" = 1;
-        "browser.in-content.dark-mode" = true;
         "browser.theme.toolbar-theme" = 0;
         "browser.theme.content-theme" = 0;
 
         # Enable custom CSS
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
 
-        # Pin Sidebery's moz-extension UUID so userContent.css can target its
-        # sidebar page at a stable URL (see userContent below).
-        "extensions.webextensions.uuids" = builtins.toJSON {
-          ${sideberyAddonId} = sideberyUuid;
-        };
+        # No extensions.webextensions.uuids pin: user.js rewrites that pref on
+        # every start, so a partial map regenerated every other extension's
+        # UUID (and orphaned its storage).  userContent matches Sidebery by path.
 
         # Website content color scheme: 0 = force dark, 1 = force light,
         # 2 = follow browser theme. Forcing dark broke webmail: SAPO paints the
@@ -87,22 +75,7 @@ in {
       # Custom userChrome.css for system colors
       userChrome = ''
         :root {
-          --nix-base00: #${colors.base00};
-          --nix-base01: #${colors.base01};
-          --nix-base02: #${colors.base02};
-          --nix-base03: #${colors.base03};
-          --nix-base04: #${colors.base04};
-          --nix-base05: #${colors.base05};
-          --nix-base06: #${colors.base06};
-          --nix-base07: #${colors.base07};
-          --nix-base08: #${colors.base08};
-          --nix-base09: #${colors.base09};
-          --nix-base0A: #${colors.base0A};
-          --nix-base0B: #${colors.base0B};
-          --nix-base0C: #${colors.base0C};
-          --nix-base0D: #${colors.base0D};
-          --nix-base0E: #${colors.base0E};
-          --nix-base0F: #${colors.base0F};
+          ${lib.concatStrings (lib.mapAttrsToList (k: v: "--nix-${k}: #${v};\n") colors)}
         }
 
         /* Main window background */
@@ -226,9 +199,9 @@ in {
 
         /* Sidebery sidebar background -> match the toolbar (base00).
            Sidebery paints its own bg inside the sidebar, so #sidebar-box in
-           userChrome isn't enough; we style its extension page directly. URL
-           UUID is pinned via extensions.webextensions.uuids above. */
-        @-moz-document url-prefix("moz-extension://${sideberyUuid}/sidebery/sidebar.html") {
+           userChrome isn't enough; we style its extension page directly.
+           Matched by path (any UUID), since the UUID is per profile. */
+        @-moz-document regexp("moz-extension://[^/]+/sidebar/sidebar\\.html.*") {
           #root.root {
             --frame-bg: #${colors.base00} !important;
             --toolbar-bg: #${colors.base00} !important;

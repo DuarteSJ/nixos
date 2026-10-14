@@ -1,14 +1,10 @@
 _: {
   boot.loader = {
-    efi = {
-      canTouchEfiVariables = true;
-      efiSysMountPoint = "/boot";
-    };
+    efi.canTouchEfiVariables = true;
     grub = {
       enable = true;
       efiSupport = true;
       device = "nodev";
-      useOSProber = false;
       configurationLimit = 10;
       extraEntries = ''
         menuentry "Windows" {
