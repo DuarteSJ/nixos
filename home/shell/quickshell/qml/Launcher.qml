@@ -76,36 +76,57 @@ PanelWindow {
         onLoaded: { try { launcher.counts = JSON.parse(text()); } catch (e) {} }
     }
 
+    // Mapped from open until the closing slide has left the screen.
+    property bool mapped: false
+    Connections {
+        target: Shell
+        function onLauncherOpenChanged() {
+            if (!Shell.launcherOpen) return;
+            launcher.query = ""; input.text = ""; launcher.selected = 0;
+            launcher.mapped = true;
+            input.forceActiveFocus();
+        }
+    }
+
     screen: Shell.focusedScreen
-    visible: Shell.launcherOpen
-    onVisibleChanged: if (visible) { query = ""; input.text = ""; selected = 0; input.forceActiveFocus(); }
+    visible: mapped
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 
     WlrLayershell.namespace: "qs-launcher"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    // Let go of the keyboard as soon as it starts closing, not after the slide.
+    WlrLayershell.keyboardFocus: Shell.launcherOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     MouseArea {
         anchors.fill: parent
         onClicked: Shell.launcherOpen = false
     }
 
+    // Drops in from above the screen edge and comes to rest centred; slides
+    // back up to close.  The top edge is fixed where a full (8-row) card is
+    // centred, so typing only grows/shrinks it downward.
     Rectangle {
         id: box
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Shell.launcherOpen ? Math.round((launcher.height - (64 + 8 * 52 + 12)) / 2) : -height - 2
         width: 600
         height: 64 + Math.min(launcher.results.length, 8) * 52 + (launcher.results.length ? 12 : 0)
         radius: Theme.radius
         color: Theme.bg
-        border.width: 2
-        border.color: Theme.blue
+        border.width: 1
+        border.color: Theme.glassEdge
 
         opacity: Shell.launcherOpen ? 1 : 0
-        scale: Shell.launcherOpen ? 1 : 0.97
-        Behavior on opacity { NumberAnimation { duration: 140 } }
-        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on y {
+            NumberAnimation {
+                duration: 280
+                easing.type: Easing.OutCubic
+                onRunningChanged: if (!running && !Shell.launcherOpen) launcher.mapped = false
+            }
+        }
+        Behavior on opacity { NumberAnimation { duration: 180 } }
         Behavior on height { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
         clip: true
 
@@ -117,27 +138,19 @@ PanelWindow {
             anchors { top: parent.top; left: parent.left; right: parent.right; margins: 12 }
             height: 40
             radius: 10
-            color: Theme.surface
+            color: Theme.glassFill
 
-            Rectangle {
-                id: chip
-                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 6 }
-                width: chipText.implicitWidth + 20
-                height: 28
-                radius: 8
-                color: Theme.blue
-                Text {
-                    id: chipText
-                    anchors.centerIn: parent
-                    text: "  Apps"
-                    color: Theme.bg
-                    font { family: Theme.font; pixelSize: Theme.fontSize - 1; bold: true }
-                }
+            Icon {
+                id: glyph
+                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 10 }
+                icon: "search"
+                size: 20
+                color: Theme.muted
             }
 
             TextInput {
                 id: input
-                anchors { left: chip.right; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
+                anchors { left: glyph.right; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
                 color: Theme.fg
                 selectionColor: Theme.blue
                 selectedTextColor: Theme.bg
@@ -179,7 +192,17 @@ PanelWindow {
             spacing: 2
             boundsBehavior: Flickable.StopAtBounds
             highlightMoveDuration: 90
-            highlight: Rectangle { radius: 10; color: Theme.blue }
+            highlight: Rectangle {
+                radius: 10
+                color: Theme.glassFillStrong
+                Rectangle {
+                    anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 3 }
+                    width: 3
+                    height: parent.height / 2
+                    radius: 2
+                    color: Theme.accent
+                }
+            }
 
             delegate: Item {
                 id: row
@@ -203,7 +226,7 @@ PanelWindow {
                         width: parent.width
                         text: row.modelData.name
                         elide: Text.ElideRight
-                        color: row.current ? Theme.bg : Theme.fg
+                        color: Theme.fg
                         font { family: Theme.font; pixelSize: Theme.fontSize; bold: row.current }
                     }
                     Text {
@@ -211,7 +234,7 @@ PanelWindow {
                         visible: text !== ""
                         text: row.modelData.genericName || row.modelData.comment || ""
                         elide: Text.ElideRight
-                        color: row.current ? Theme.alpha(Theme.bg, 0.75) : Theme.subtle
+                        color: row.current ? Theme.muted : Theme.subtle
                         font { family: Theme.font; pixelSize: Theme.fontSize - 3 }
                     }
                 }
