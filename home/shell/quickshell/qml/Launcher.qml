@@ -76,17 +76,31 @@ PanelWindow {
         onLoaded: { try { launcher.counts = JSON.parse(text()); } catch (e) {} }
     }
 
-    // Mapped from open until the closing slide has left the screen.
-    property bool mapped: false
+    // Open/close motion.  The card follows `dropped`, not Shell.launcherOpen,
+    // so each direction's easing is in place before its slide starts:
+    // open overshoots and settles, close dips first and then shoots up.
+    property bool mapped: false      // until the closing slide has left the screen
+    property bool dropped: false
+    property bool entering: false    // rows created now cascade in
     Connections {
         target: Shell
         function onLauncherOpenChanged() {
-            if (!Shell.launcherOpen) return;
-            launcher.query = ""; input.text = ""; launcher.selected = 0;
-            launcher.mapped = true;
-            input.forceActiveFocus();
+            if (Shell.launcherOpen) {
+                launcher.entering = true; enterWindow.restart();
+                launcher.query = ""; input.text = ""; launcher.selected = 0;
+                launcher.mapped = true;
+                slide.duration = 360; slide.easing.type = Easing.OutBack; slide.easing.overshoot = 1.3;
+                fade.duration = 120; fade.easing.type = Easing.Linear;
+                launcher.dropped = true;
+                input.forceActiveFocus();
+            } else {
+                slide.duration = 120; slide.easing.type = Easing.InBack; slide.easing.overshoot = 1.6;
+                fade.duration = 120; fade.easing.type = Easing.InQuad;
+                launcher.dropped = false;
+            }
         }
     }
+    Timer { id: enterWindow; interval: 150; onTriggered: launcher.entering = false }
 
     screen: Shell.focusedScreen
     visible: mapped
@@ -110,7 +124,7 @@ PanelWindow {
     Rectangle {
         id: box
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Shell.launcherOpen ? Math.round((launcher.height - (64 + 8 * 52 + 12)) / 2) : -height - 2
+        y: launcher.dropped ? Math.round((launcher.height - (64 + 8 * 52 + 12)) / 2) : -height - 2
         width: 600
         height: 64 + Math.min(launcher.results.length, 8) * 52 + (launcher.results.length ? 12 : 0)
         radius: Theme.radius
@@ -118,15 +132,14 @@ PanelWindow {
         border.width: 1
         border.color: Theme.glassEdge
 
-        opacity: Shell.launcherOpen ? 1 : 0
+        opacity: launcher.dropped ? 1 : 0
         Behavior on y {
             NumberAnimation {
-                duration: 280
-                easing.type: Easing.OutCubic
-                onRunningChanged: if (!running && !Shell.launcherOpen) launcher.mapped = false
+                id: slide
+                onRunningChanged: if (!running && !launcher.dropped) launcher.mapped = false
             }
         }
-        Behavior on opacity { NumberAnimation { duration: 180 } }
+        Behavior on opacity { NumberAnimation { id: fade } }
         Behavior on height { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
         clip: true
 
@@ -193,8 +206,18 @@ PanelWindow {
             boundsBehavior: Flickable.StopAtBounds
             highlightMoveDuration: 90
             highlight: Rectangle {
+                id: hl
                 radius: 10
                 color: Theme.glassFillStrong
+                // Hidden while the rows cascade in, then fades in under them.
+                Connections {
+                    target: launcher
+                    function onEnteringChanged() {
+                        if (launcher.entering) { hlIn.stop(); hl.opacity = 0; }
+                        else hlIn.restart();
+                    }
+                }
+                NumberAnimation { id: hlIn; target: hl; property: "opacity"; to: 1; duration: 220 }
                 Rectangle {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 3 }
                     width: 3
@@ -211,6 +234,22 @@ PanelWindow {
                 readonly property bool current: ListView.isCurrentItem
                 width: list.width
                 height: 50
+
+                // Cascade in, one row after the other, right after opening.
+                transform: Translate { id: shift }
+                function enter() { if (launcher.entering) cascade.restart(); }
+                Component.onCompleted: enter()
+                Connections { target: launcher; function onEnteringChanged() { row.enter(); } }
+                SequentialAnimation {
+                    id: cascade
+                    PropertyAction { target: row; property: "opacity"; value: 0 }
+                    PropertyAction { target: shift; property: "y"; value: 14 }
+                    PauseAnimation { duration: 120 + row.index * 35 }
+                    ParallelAnimation {
+                        NumberAnimation { target: row; property: "opacity"; to: 1; duration: 220 }
+                        NumberAnimation { target: shift; property: "y"; to: 0; duration: 220; easing.type: Easing.OutBack }
+                    }
+                }
 
                 IconImage {
                     id: icon
