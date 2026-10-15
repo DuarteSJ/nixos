@@ -89,18 +89,18 @@ PanelWindow {
                 launcher.entering = true; enterWindow.restart();
                 launcher.query = ""; input.text = ""; launcher.selected = 0;
                 launcher.mapped = true;
-                slide.duration = 360; slide.easing.type = Easing.OutBack; slide.easing.overshoot = 1.3;
-                fade.duration = 120; fade.easing.type = Easing.Linear;
+                slide.duration = 160; slide.easing.type = Easing.OutBack; slide.easing.overshoot = 1.3;
+                fade.duration = 80; fade.easing.type = Easing.Linear;
                 launcher.dropped = true;
                 input.forceActiveFocus();
             } else {
-                slide.duration = 120; slide.easing.type = Easing.InBack; slide.easing.overshoot = 1.6;
-                fade.duration = 120; fade.easing.type = Easing.InQuad;
+                slide.duration = 80; slide.easing.type = Easing.InBack; slide.easing.overshoot = 1.6;
+                fade.duration = 80; fade.easing.type = Easing.InQuad;
                 launcher.dropped = false;
             }
         }
     }
-    Timer { id: enterWindow; interval: 150; onTriggered: launcher.entering = false }
+    Timer { id: enterWindow; interval: 80; onTriggered: launcher.entering = false }
 
     screen: Shell.focusedScreen
     visible: mapped
@@ -140,7 +140,7 @@ PanelWindow {
             }
         }
         Behavior on opacity { NumberAnimation { id: fade } }
-        Behavior on height { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        Behavior on height { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
         clip: true
 
         MouseArea { anchors.fill: parent }   // swallow clicks inside
@@ -244,7 +244,7 @@ PanelWindow {
                     id: cascade
                     PropertyAction { target: row; property: "opacity"; value: 0 }
                     PropertyAction { target: shift; property: "y"; value: 14 }
-                    PauseAnimation { duration: 120 + row.index * 35 }
+                    PauseAnimation { duration: 80 + row.index * 35 }
                     ParallelAnimation {
                         NumberAnimation { target: row; property: "opacity"; to: 1; duration: 220 }
                         NumberAnimation { target: shift; property: "y"; to: 0; duration: 220; easing.type: Easing.OutBack }
