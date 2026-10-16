@@ -245,22 +245,6 @@ in {
             definedAliases = ["@hm"];
           };
 
-          "Rust Book" = {
-            urls = [
-              {
-                template = "https://rust-book.cs.brown.edu/";
-                params = [
-                  {
-                    name = "search";
-                    value = "{searchTerms}";
-                  }
-                ];
-              }
-            ];
-            icon = "https://doc.rust-lang.org/favicon.ico";
-            definedAliases = ["@rb"];
-          };
-
           "reddit" = {
             urls = [
               {
