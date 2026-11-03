@@ -23,6 +23,7 @@
       swayimg
       mpv
       usbutils
+      qpdf
 
       # Desktop utilities (blueman comes from services.blueman in
       # system/hardware.nix, together with its D-Bus helper)
