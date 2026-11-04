@@ -8,6 +8,7 @@
     ./users.nix
     ./locale.nix
     ./keyboard.nix
+    ./hibernate.nix
   ];
 
   networking.hostName = "desktop";

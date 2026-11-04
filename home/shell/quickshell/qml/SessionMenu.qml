@@ -2,16 +2,18 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-// Full-screen dimmed overlay with lock / suspend / logout / reboot / off.
+// Full-screen dimmed overlay with lock / suspend / hibernate / logout / reboot / off.
 // h/l or arrows to move, Enter to pick, Esc or a click outside to leave.
 PanelWindow {
     id: menu
 
-    // Suspend locks on its own (hypridle locks before every sleep, see
-    // hyprlock.nix), and logout uses the Lua dispatcher Hyprland 0.55 expects.
+    // Suspend and hibernate lock on their own (hypridle locks before every
+    // sleep, see hyprlock.nix), and logout uses the Lua dispatcher Hyprland
+    // 0.55 expects.
     readonly property var actions: [
         { icon: "lock",               label: "lock",      cmd: ["hyprlock"] },
         { icon: "bedtime",            label: "sleep",     cmd: ["systemctl", "suspend"] },
+        { icon: "save",               label: "hibernate", cmd: ["systemctl", "hibernate"] },
         { icon: "logout",             label: "log out",   cmd: ["hyprctl", "dispatch", "hl.dsp.exit()"] },
         { icon: "restart_alt",        label: "restart",   cmd: ["systemctl", "reboot"] },
         { icon: "power_settings_new", label: "shut down", cmd: ["systemctl", "poweroff"] },
