@@ -186,7 +186,7 @@ in {
             input = {
               repeat_delay = 200;
               repeat_rate = 50;
-              kb_layout = "uspt";
+              kb_layout = "eu"; # EurKEY: same layout on Windows, accents via AltGr
               touchpad.natural_scroll = true;
             };
           })

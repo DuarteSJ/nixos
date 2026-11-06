@@ -7,7 +7,6 @@
     ./nix.nix
     ./users.nix
     ./locale.nix
-    ./keyboard.nix
     ./hibernate.nix
   ];
 
