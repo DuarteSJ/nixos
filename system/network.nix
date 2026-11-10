@@ -24,4 +24,11 @@
     enable = true;
     settings.Resolve.Domains = ["~."];
   };
+
+  services.tailscale = {
+    enable = true;
+    openFirewall = true;
+    disableUpstreamLogging = true;
+    extraSetFlags = ["--ssh"];
+  };
 }
