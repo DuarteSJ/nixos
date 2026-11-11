@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   _module.args.shellShared = {
     aliases = {
       rb = "sudo -v && nixos-rebuild switch --flake /etc/nixos#desktop --sudo";
@@ -47,7 +51,16 @@
             echo -e "\033[1;31m✗ Error:\033[0m File '$1' not found."
             return 1
           fi
-          if wl-copy < "$1"; then
+          # Images go in as PNG: WhatsApp/Discord/Claude Code ignore image/jpeg.
+          local ok
+          case "$1" in
+            *.png|*.PNG) wl-copy --type image/png < "$1" ;;
+            *.jpg|*.JPG|*.jpeg|*.JPEG|*.webp|*.WEBP|*.gif|*.GIF|*.bmp|*.BMP)
+              ${pkgs.imagemagick}/bin/magick "$1" png:- | wl-copy --type image/png ;;
+            *) wl-copy < "$1" ;;
+          esac
+          ok=$?
+          if [[ $ok -eq 0 ]]; then
             echo -e "\033[1;32m✓ Success:\033[0m $1's content copied."
           else
             echo -e "\033[1;31m✗ Error:\033[0m Failed to copy."
