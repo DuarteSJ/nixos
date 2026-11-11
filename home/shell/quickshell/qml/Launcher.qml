@@ -119,15 +119,20 @@ PanelWindow {
     }
 
     // Drops in from above the screen edge and comes to rest centred; slides
-    // back up to close.  The top edge is fixed where a full (8-row) card is
+    // back up to close.  The top edge is fixed where a full (7-row) card is
     // centred, so typing only grows/shrinks it downward.
+    readonly property int rowH: 52
+    readonly property int maxRows: 7
+    // Header, field, footer and their gaps; rows come on top.
+    readonly property int chrome: 140
+
     Rectangle {
         id: box
         anchors.horizontalCenter: parent.horizontalCenter
-        y: launcher.dropped ? Math.round((launcher.height - (64 + 8 * 52 + 12)) / 2) : -height - 2
-        width: 600
-        height: 64 + Math.min(launcher.results.length, 8) * 52 + (launcher.results.length ? 12 : 0)
-        radius: Theme.radius
+        y: launcher.dropped ? Math.round((launcher.height - (launcher.chrome + launcher.maxRows * launcher.rowH)) / 2) : -height - 2
+        width: 620
+        height: launcher.chrome + Math.min(launcher.results.length, launcher.maxRows) * launcher.rowH
+        radius: 26
         color: Theme.bg
         border.width: 1
         border.color: Theme.glassEdge
@@ -145,37 +150,66 @@ PanelWindow {
 
         MouseArea { anchors.fill: parent }   // swallow clicks inside
 
-        // ── search row ──────────────────────────────────────────────────
+        // ── header ──────────────────────────────────────────────────────
+        Item {
+            id: header
+            anchors { top: parent.top; left: parent.left; right: parent.right; margins: 16; topMargin: 14 }
+            height: 30
+
+            Rectangle {
+                id: badge
+                width: 30; height: 30; radius: 9
+                color: Theme.glassFill
+                Icon { anchors.centerIn: parent; icon: "apps"; size: 18; color: Theme.fgBright }
+            }
+            Text {
+                anchors { left: badge.right; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                text: "SEARCH"
+                color: Theme.fgBright
+                font { family: Theme.font; pixelSize: 13; bold: true; letterSpacing: 1.5 }
+            }
+            Rectangle {
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                width: 26; height: 26; radius: 13
+                color: closeMouse.containsMouse ? Theme.glassFillStrong : "transparent"
+                Icon { anchors.centerIn: parent; icon: "close"; size: 16; color: Theme.muted }
+                MouseArea { id: closeMouse; anchors.fill: parent; hoverEnabled: true; onClicked: Shell.launcherOpen = false }
+            }
+        }
+
+        // ── search field ────────────────────────────────────────────────
         Rectangle {
-            id: searchRow
-            anchors { top: parent.top; left: parent.left; right: parent.right; margins: 12 }
-            height: 40
-            radius: 10
+            id: field
+            anchors { top: header.bottom; left: parent.left; right: parent.right; margins: 16; topMargin: 12 }
+            height: 42
+            radius: 14
             color: Theme.glassFill
+            border.width: 1
+            border.color: input.activeFocus ? Theme.alpha(Theme.accent, 0.5) : Theme.glassEdge
 
             Icon {
                 id: glyph
-                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 10 }
+                anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                 icon: "search"
-                size: 20
+                size: 19
                 color: Theme.muted
             }
 
             TextInput {
                 id: input
-                anchors { left: glyph.right; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
-                color: Theme.fg
-                selectionColor: Theme.blue
+                anchors { left: glyph.right; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 14 }
+                color: Theme.fgBright
+                selectionColor: Theme.accent
                 selectedTextColor: Theme.bg
-                font { family: Theme.font; pixelSize: Theme.fontSize }
+                font { family: Theme.font; pixelSize: 16 }
                 clip: true
                 onTextChanged: launcher.query = text
 
                 Text {
                     visible: input.text === ""
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Search…"
-                    color: Theme.subtle
+                    text: "Search apps…"
+                    color: Theme.muted
                     font: input.font
                 }
 
@@ -198,17 +232,19 @@ PanelWindow {
         // ── results ─────────────────────────────────────────────────────
         ListView {
             id: list
-            anchors { top: searchRow.bottom; left: parent.left; right: parent.right; bottom: parent.bottom; margins: 12; topMargin: 8 }
+            anchors { top: field.bottom; left: parent.left; right: parent.right; bottom: footer.top; margins: 10; topMargin: 8; bottomMargin: 4 }
             model: launcher.results
             currentIndex: launcher.selected
             clip: true
-            spacing: 2
             boundsBehavior: Flickable.StopAtBounds
-            highlightMoveDuration: 90
+            highlightMoveDuration: 140
+            highlightMoveVelocity: -1
             highlight: Rectangle {
                 id: hl
-                radius: 10
+                radius: 14
                 color: Theme.glassFillStrong
+                border.width: 1
+                border.color: Theme.glassEdge
                 // Hidden while the rows cascade in, then fades in under them.
                 Connections {
                     target: launcher
@@ -219,10 +255,8 @@ PanelWindow {
                 }
                 NumberAnimation { id: hlIn; target: hl; property: "opacity"; to: 1; duration: 220 }
                 Rectangle {
-                    anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 3 }
-                    width: 3
-                    height: parent.height / 2
-                    radius: 2
+                    anchors { left: parent.left; leftMargin: 6; verticalCenter: parent.verticalCenter }
+                    width: 3; height: 20; radius: 1.5
                     color: Theme.accent
                 }
             }
@@ -233,7 +267,7 @@ PanelWindow {
                 required property int index
                 readonly property bool current: ListView.isCurrentItem
                 width: list.width
-                height: 50
+                height: launcher.rowH
 
                 // Cascade in, one row after the other, right after opening.
                 transform: Translate { id: shift }
@@ -253,28 +287,28 @@ PanelWindow {
 
                 IconImage {
                     id: icon
-                    anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                    implicitSize: 30
+                    anchors { left: parent.left; leftMargin: 18; verticalCenter: parent.verticalCenter }
+                    implicitSize: 32
                     source: Quickshell.iconPath(row.modelData.icon, "application-x-executable")
                 }
 
                 Column {
-                    anchors { left: icon.right; right: parent.right; leftMargin: 12; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                    spacing: 1
+                    anchors { left: icon.right; right: parent.right; leftMargin: 14; rightMargin: 14; verticalCenter: parent.verticalCenter }
+                    spacing: 2
                     Text {
                         width: parent.width
                         text: row.modelData.name
                         elide: Text.ElideRight
-                        color: Theme.fg
-                        font { family: Theme.font; pixelSize: Theme.fontSize; bold: row.current }
+                        color: row.current ? Theme.fgBright : Theme.fg
+                        font { family: Theme.font; pixelSize: 15; bold: row.current }
                     }
                     Text {
                         width: parent.width
                         visible: text !== ""
                         text: row.modelData.genericName || row.modelData.comment || ""
                         elide: Text.ElideRight
-                        color: row.current ? Theme.muted : Theme.subtle
-                        font { family: Theme.font; pixelSize: Theme.fontSize - 3 }
+                        color: Theme.muted
+                        font { family: Theme.font; pixelSize: 12 }
                     }
                 }
 
@@ -285,6 +319,26 @@ PanelWindow {
                     onEntered: launcher.selected = row.index
                     onClicked: launcher.launch(row.modelData)
                 }
+            }
+        }
+
+        // ── footer ──────────────────────────────────────────────────────
+        Item {
+            id: footer
+            anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 18; bottomMargin: 12 }
+            height: 18
+            opacity: 0.8
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "↑↓ move   ·   ↵ open   ·   esc close"
+                color: Theme.muted
+                font { family: Theme.font; pixelSize: 11 }
+            }
+            Text {
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                text: launcher.results.length ? (launcher.selected + 1) + " / " + launcher.results.length : "no matches"
+                color: Theme.muted
+                font { family: Theme.font; pixelSize: 11 }
             }
         }
     }
