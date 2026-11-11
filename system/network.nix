@@ -29,6 +29,6 @@
     enable = true;
     openFirewall = true;
     disableUpstreamLogging = true;
-    extraSetFlags = ["--ssh"];
+    extraSetFlags = ["--ssh" "--operator=duartesj"];
   };
 }
