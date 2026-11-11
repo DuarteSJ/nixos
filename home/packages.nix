@@ -11,6 +11,7 @@
       eza
       ripgrep
       jq
+      file
       zip
       unzip
       wl-clipboard
