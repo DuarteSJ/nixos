@@ -1,7 +1,11 @@
 # GPU, audio, bluetooth, peripherals.
 {pkgs, ...}: {
   hardware = {
-    bluetooth.enable = true;
+    bluetooth = {
+      enable = true;
+      # Off after every boot until turned on (bar / blueman).
+      powerOnBoot = false;
+    };
     graphics = {
       enable = true;
       enable32Bit = true;

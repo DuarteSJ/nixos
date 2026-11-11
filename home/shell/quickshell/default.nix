@@ -1,5 +1,5 @@
 # Quickshell desktop shell: top bar, session menu, app launcher, lock screen,
-# notification daemon and volume/brightness pop-up (replaces waybar, rofi,
+# notification daemon and brightness pop-up (replaces waybar, rofi,
 # dunst and hyprlock).  QML lives in ./qml; only Theme.qml is generated, from
 # the palette and vars, so the shell never hardcodes a colour.
 #

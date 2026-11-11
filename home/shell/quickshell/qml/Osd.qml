@@ -1,15 +1,14 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Services.Pipewire
 
-// Volume / brightness pop-up that slides up from the bottom edge.  Volume
-// reacts to PipeWire on its own; brightness is pinged over IPC by the
-// brightness keys (qs -c shell ipc call osd brightness).
+// Brightness pop-up that slides up from the bottom edge, pinged over IPC by
+// the brightness keys (qs -c shell ipc call osd brightness).  Volume has
+// none: the bar's volume module shows it.
 PanelWindow {
     id: osd
 
-    property string icon: "volume_up"
+    property string icon: "brightness_7"
     property real value: 0
     property bool shown: false
 
@@ -47,23 +46,6 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
 
     Timer { id: hide; interval: 1400; onTriggered: osd.shown = false }
-
-    // Ignore the burst of change signals while Pipewire binds at startup.
-    property bool armed: false
-    Timer { running: true; interval: 1500; onTriggered: osd.armed = true }
-
-    PwObjectTracker { objects: [Pipewire.defaultAudioSink] }
-    Connections {
-        target: Pipewire.defaultAudioSink?.audio ?? null
-        function onVolumeChanged() { osd.fromSink(); }
-        function onMutedChanged() { osd.fromSink(); }
-    }
-    function fromSink() {
-        const a = Pipewire.defaultAudioSink?.audio;
-        if (!a || !armed) return;
-        flash(a.muted ? "volume_off" : a.volume < 0.34 ? "volume_mute" : a.volume < 0.67 ? "volume_down" : "volume_up",
-              a.muted ? 0 : a.volume);
-    }
 
     Rectangle {
         id: card

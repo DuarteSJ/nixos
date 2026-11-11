@@ -12,6 +12,9 @@
   inherit (helpers) inline modKey modShiftKey bareKey exec focusDir swapDir focusWs moveToWs moveToSpecial toggleSpecial resizeBy kb kbo;
   inherit (scripts) toggleMic;
   qs = qsIpc;
+  # Media keys: Spotify while it runs, else whatever player there is.  Bare
+  # `playerctl` takes the first player, often a browser tab (WhatsApp Web).
+  media = "playerctl --player=spotify,%any";
   inherit (luaActions) prodToggle incGaps decGaps cursorZoom cycleLayout cycleWindowMode monitorStatus;
 
   # 1..10 → keys 1..9,0; SUPER+N focus, SUPER+SHIFT+N move
@@ -97,22 +100,22 @@
     }
     {
       key = "XF86AudioNext";
-      cmd = "playerctl next";
+      cmd = "${media} next";
       opts = {locked = true;};
     }
     {
       key = "XF86AudioPause";
-      cmd = "playerctl play-pause";
+      cmd = "${media} play-pause";
       opts = {locked = true;};
     }
     {
       key = "XF86AudioPlay";
-      cmd = "playerctl play-pause";
+      cmd = "${media} play-pause";
       opts = {locked = true;};
     }
     {
       key = "XF86AudioPrev";
-      cmd = "playerctl previous";
+      cmd = "${media} previous";
       opts = {locked = true;};
     }
   ];
