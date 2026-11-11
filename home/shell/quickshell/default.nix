@@ -1,6 +1,6 @@
-# Quickshell desktop shell: top bar, session menu, app launcher,
-# notification daemon and volume/brightness pop-up (replaces waybar, rofi
-# and dunst).  QML lives in ./qml; only Theme.qml is generated, from
+# Quickshell desktop shell: top bar, session menu, app launcher, lock screen,
+# notification daemon and volume/brightness pop-up (replaces waybar, rofi,
+# dunst and hyprlock).  QML lives in ./qml; only Theme.qml is generated, from
 # the palette and vars, so the shell never hardcodes a colour.
 #
 #   qs -c shell ipc call bar     toggle|reveal|hide|focusOn|focusOff   ("show" is swallowed by the qs CLI)
@@ -9,6 +9,7 @@
 #   qs -c shell ipc call dashboard toggle
 #   qs -c shell ipc call osd      brightness
 #   qs -c shell ipc call rec     start|stop
+#   qs -c shell ipc call lock    lock|preview   (preview: same screen, no lock)
 {
   config,
   lib,
@@ -102,7 +103,6 @@ in {
         pkgs.bash
         pkgs.brightnessctl
         pkgs.coreutils
-        pkgs.hyprlock
         pkgs.libnotify
         pkgs.networkmanager
         pkgs.pavucontrol

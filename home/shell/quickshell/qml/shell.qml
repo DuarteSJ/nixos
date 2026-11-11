@@ -14,6 +14,7 @@ ShellRoot {
     Launcher {}
     Notifications {}
     Osd { id: osd }
+    LockScreen {}
 
     // qs -c shell ipc call <target> <function>
     IpcHandler {
@@ -51,6 +52,11 @@ ShellRoot {
                 Shell.dashboard = true;
             }
         }
+    }
+    IpcHandler {
+        target: "lock"
+        function lock(): void { Shell.locked = true; }
+        function preview(): void { Shell.lockPreview = !Shell.lockPreview; }
     }
     IpcHandler {
         target: "rec"

@@ -15,6 +15,8 @@ Singleton {
     property bool recording: false
     property bool dashboard: false       // every status panel open (Super+W)
     property string dashboardScreen: ""  // ...on this monitor (focused at toggle)
+    property bool locked: false          // real session lock (LockScreen.qml)
+    property bool lockPreview: false     // the same screen, no lock
 
     // Screen of the focused Hyprland monitor (popups open there).
     readonly property var focusedScreen:

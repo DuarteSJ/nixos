@@ -28,6 +28,10 @@
 
   services.printing.enable = true;
 
+  # PAM service for the quickshell lock screen (home/shell/quickshell,
+  # LockScreen.qml checks the password with PamContext { config: "qs-lock" }).
+  security.pam.services.qs-lock = {};
+
   # (OpenVPN comes via the NetworkManager plugin in network.nix.)
   environment.systemPackages = [pkgs.android-tools];
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
