@@ -52,7 +52,10 @@ _: {
     };
 
     # Reachable off-LAN. Run `tailscale up` once to authenticate.
-    tailscale.enable = true;
+    tailscale = {
+      enable = true;
+      extraSetFlags = ["--ssh"];
+    };
 
     # Run with the lid closed.
     logind.settings.Login = {
