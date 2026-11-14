@@ -15,7 +15,7 @@
 # screen can't disagree, and a reload restores the choice instead of
 # snapping back to the first image.
 #
-# Also imported by home/scripts/switch-bg.nix, which puts the same package
+# Also imported by home/laptop/scripts/switch-bg.nix, which puts the same package
 # on PATH.
 {
   pkgs,

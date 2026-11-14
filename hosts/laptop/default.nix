@@ -21,7 +21,7 @@
     gamemode.enable = true;
   };
 
-  # bonk-reroll (home/apps/bonk-reroll) presses quick reset through a virtual
+  # bonk-reroll (home/laptop/apps/bonk-reroll) presses quick reset through a virtual
   # keyboard. (Reading Megabonk's memory needs no sysctl: the game opts in to
   # being traced itself, verified with ptrace_scope = 1.)
   hardware.uinput.enable = true;
@@ -31,7 +31,7 @@
 
   services.printing.enable = true;
 
-  # PAM service for the quickshell lock screen (home/shell/quickshell,
+  # PAM service for the quickshell lock screen (home/laptop/shell/quickshell,
   # LockScreen.qml checks the password with PamContext { config: "qs-lock" }).
   security.pam.services.qs-lock = {};
 
@@ -39,5 +39,9 @@
   environment.systemPackages = [pkgs.android-tools];
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  home-manager.users.duartesj = import ../../home;
+  # username/homeDirectory come from users.users via the NixOS module.
+  home-manager.users.duartesj = {
+    imports = [../../home/laptop];
+    home.stateVersion = "26.05";
+  };
 }

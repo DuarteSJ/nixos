@@ -4,7 +4,7 @@
 #
 # dunst let callers pick any replace id (`dunstify -r 7777 ...`), but per the
 # notification spec the *server* owns ids.  So `-r KEY` becomes a stack tag
-# (hint x-dunst-stack-tag): the shell (home/shell/quickshell, Notifications.qml)
+# (hint x-dunst-stack-tag): the shell (home/laptop/shell/quickshell, Notifications.qml)
 # swaps the shown notification with the same tag for the new one, in place.
 # No state is kept here.  Everything else goes straight to notify-send.
 {

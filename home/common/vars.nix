@@ -8,7 +8,7 @@
       description = ''
         Surface corner radius: hyprland windows, notifications, the
         launcher.  On the Hyprland side it enters through the single
-        `baseline` table in home/desktop/hyprland/default.nix, which feeds
+        `baseline` table in home/laptop/desktop/hyprland/default.nix, which feeds
         the static config, focus mode's restore and the gap keys alike.
 
         Anything nested INSIDE a surface (the launcher's inner boxes, the bar's
@@ -27,7 +27,7 @@
         so only the corners that sit on no edge are rounded at all -- and those
         want a different weight than a free-floating tiled window.
 
-        Applied per group in home/shell/quickshell/qml/Group.qml:
+        Applied per group in home/laptop/shell/quickshell/qml/Group.qml:
           left    bottom-right only   (top + left edges are walls)
           centre  both bottom corners (only the top edge is a wall)
           right   bottom-left only    (top + right edges are walls)

@@ -133,6 +133,14 @@ in {
       }
     ];
   };
+  # Shell shortcuts, here rather than in terminal/shell so they only exist
+  # where obsidian.nvim does (bash and zsh both read home.shellAliases).
+  home.shellAliases = {
+    odl = "${config.vars.editor} +'Obsidian today'";
+    onew = "${config.vars.editor} +'Obsidian new'";
+    osearch = "${config.vars.editor} +'Obsidian search'";
+  };
+
   home.activation.createObsidianDirs = lib.hm.dag.entryAfter ["writeBoundary"] ''
     $DRY_RUN_CMD mkdir -p $VERBOSE_ARG ${notes}/{templates,daily,zettelkasten}
   '';

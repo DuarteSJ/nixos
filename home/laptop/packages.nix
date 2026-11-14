@@ -5,15 +5,7 @@
 }: {
   home.packages =
     (with pkgs; [
-      # CLI tools
-      gh
-      curl
-      eza
-      ripgrep
-      jq
-      file
-      zip
-      unzip
+      # CLI tools (the host-agnostic ones are in ../common/packages.nix)
       wl-clipboard
       brightnessctl
       playerctl

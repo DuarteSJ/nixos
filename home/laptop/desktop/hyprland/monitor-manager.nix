@@ -1,6 +1,6 @@
 # Profile-based monitor reconciliation.
 #
-# Data model (see home/desktop/monitors.nix): an ordered list of profiles;
+# Data model (see home/laptop/desktop/monitors.nix): an ordered list of profiles;
 # the first whose `requires` are all present wins.  Matching is
 # non-exclusive, so an unknown display never unmatches a known profile, and
 # profiles are partial, so an output no profile names is never touched — it

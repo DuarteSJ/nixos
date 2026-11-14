@@ -1,4 +1,4 @@
-# Old AMD HP laptop running as a headless server (was "homelab"; restored
+# Old AMD ASUS laptop running as a headless server (was "homelab"; restored
 # from git history, removed in 40fe62f).
 _: {
   imports = [
@@ -17,7 +17,7 @@ _: {
   };
 
   networking = {
-    hostName = "old-hp";
+    hostName = "old-asus";
     # Old laptop almost certainly uses wifi; NetworkManager is the simplest path.
     networkmanager.enable = true;
     # The ISP's DHCP-provided IPv6 resolver flaps, so glibc round-robins onto a
@@ -69,5 +69,9 @@ _: {
   # SSH, behind firewall + Tailscale.
   security.sudo.wheelNeedsPassword = false;
 
-  home-manager.users.duartesj = import ./home.nix;
+  # Headless: only the shared home config, nothing from ../../home/laptop.
+  home-manager.users.duartesj = {
+    imports = [../../home/common];
+    home.stateVersion = "26.05";
+  };
 }

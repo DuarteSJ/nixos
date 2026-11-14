@@ -53,8 +53,8 @@
   in {
     nixosConfigurations = {
       laptop = mkHost ./hosts/laptop;
-      # Old HP laptop, headless server.
-      old-hp = mkHost ./hosts/old-hp;
+      # Old ASUS laptop, headless server.
+      old-asus = mkHost ./hosts/old-asus;
     };
   };
 }

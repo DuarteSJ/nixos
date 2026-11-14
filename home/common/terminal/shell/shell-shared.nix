@@ -15,10 +15,7 @@
       ls = "ls --color=auto";
       grep = "grep --color=auto";
       nv = config.vars.editor;
-      # obsidian shortcuts
-      odl = "${config.vars.editor} +'Obsidian today'";
-      onew = "${config.vars.editor} +'Obsidian new'";
-      osearch = "${config.vars.editor} +'Obsidian search'";
+      # (obsidian shortcuts odl/onew/osearch: home/laptop/nvim/extra/notes.nix)
       # fastfetch
       cleanfetch = "fastfetch --config examples/8.jsonc";
       fetchall = "fastfetch --config examples/25.jsonc";
