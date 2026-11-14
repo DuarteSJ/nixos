@@ -13,7 +13,7 @@ import Quickshell.Services.Pam
 //                      trying it out safely.  Esc or the right password
 //                      closes it, and it closes itself after 45 s.
 //
-// The password is checked by PAM service "qs-lock" (system/default.nix).
+// The password is checked by PAM service "qs-lock" (hosts/laptop/default.nix).
 //
 // If the shell crashes while locked: Hyprland's
 // misc.allow_session_lock_restore lets a new client take the lock over, and

@@ -1,4 +1,8 @@
 _: {
+  # Dual boot: Windows keeps the RTC in local time, so reading it as UTC put
+  # the clock 1-2 h off after every Windows session until NTP caught up.
+  time.hardwareClockInLocalTime = true;
+
   boot.loader = {
     efi.canTouchEfiVariables = true;
     grub = {

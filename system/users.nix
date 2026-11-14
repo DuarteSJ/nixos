@@ -3,7 +3,9 @@
     isNormalUser = true;
     description = "Duarte S. Jose";
     shell = pkgs.zsh;
-    extraGroups = ["wheel" "networkmanager" "gamemode" "uinput"];
+    # Host-only groups (gamemode, uinput) are added by the host that creates
+    # them.
+    extraGroups = ["wheel" "networkmanager"];
   };
 
   programs.zsh = {

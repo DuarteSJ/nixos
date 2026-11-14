@@ -27,7 +27,7 @@
       qpdf
 
       # Desktop utilities (blueman comes from services.blueman in
-      # system/hardware.nix, together with its D-Bus helper)
+      # hosts/laptop/hardware.nix, together with its D-Bus helper)
       hyprpicker
       pavucontrol
       networkmanagerapplet

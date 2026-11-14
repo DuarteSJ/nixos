@@ -5,7 +5,8 @@
 }: {
   _module.args.shellShared = {
     aliases = {
-      rb = "sudo -v && nixos-rebuild switch --flake /etc/nixos#desktop --sudo";
+      # No #name: nixos-rebuild picks the configuration named like the hostname.
+      rb = "sudo -v && nixos-rebuild switch --flake /etc/nixos --sudo";
       l = "eza --color=always --group-directories-first --icons";
       ll = "l -l";
       la = "l -a";

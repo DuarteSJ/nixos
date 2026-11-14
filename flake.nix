@@ -33,21 +33,28 @@
     nixpkgs,
     home-manager,
     ...
-  } @ inputs: {
-    nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = {inherit inputs;};
-      modules = [
-        ./system
-        home-manager.nixosModules.home-manager
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = {inherit inputs;};
-          };
-        }
-      ];
+  } @ inputs: let
+    mkHost = hostModule:
+      nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          hostModule
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs = {inherit inputs;};
+            };
+          }
+        ];
+      };
+  in {
+    nixosConfigurations = {
+      laptop = mkHost ./hosts/laptop;
+      # Old HP laptop, headless server.
+      old-hp = mkHost ./hosts/old-hp;
     };
   };
 }

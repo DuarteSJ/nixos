@@ -4,13 +4,13 @@
     ./boot.nix
     ./hardware.nix
     ./network.nix
-    ./nix.nix
-    ./users.nix
-    ./locale.nix
     ./hibernate.nix
+    ../../system/nix.nix
+    ../../system/users.nix
+    ../../system/locale.nix
   ];
 
-  networking.hostName = "desktop";
+  networking.hostName = "laptop";
   system.stateVersion = "26.05";
 
   programs = {
@@ -26,6 +26,9 @@
   # being traced itself, verified with ptrace_scope = 1.)
   hardware.uinput.enable = true;
 
+  # Groups created by gamemode and uinput above.
+  users.users.duartesj.extraGroups = ["gamemode" "uinput"];
+
   services.printing.enable = true;
 
   # PAM service for the quickshell lock screen (home/shell/quickshell,
@@ -36,5 +39,5 @@
   environment.systemPackages = [pkgs.android-tools];
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  home-manager.users.duartesj = import ../home;
+  home-manager.users.duartesj = import ../../home;
 }
