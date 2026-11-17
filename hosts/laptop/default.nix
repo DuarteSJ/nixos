@@ -31,7 +31,7 @@
 
   services.printing.enable = true;
 
-  # PAM service for the quickshell lock screen (home/laptop/shell/quickshell,
+  # PAM service for the quickshell lock screen (home/laptop/desktop/quickshell,
   # LockScreen.qml checks the password with PamContext { config: "qs-lock" }).
   security.pam.services.qs-lock = {};
 

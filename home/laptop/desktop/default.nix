@@ -1,9 +1,12 @@
+# Graphical session: Hyprland (compositor, monitors, wallpaper), the
+# quickshell desktop shell (bar, launcher, notifications, lock screen), the
+# hypr* helper daemons, and the cursor theme.
 {...}: {
   imports = [
     ./hyprland
-    ./monitors.nix
+    ./quickshell
+    ./cursor.nix
     ./hypridle.nix
-    ./hyprpaper.nix
     ./hyprshot.nix
     ./hyprsunset.nix
   ];

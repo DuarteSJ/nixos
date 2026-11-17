@@ -7,7 +7,6 @@
 
     ./packages.nix
     ./desktop
-    ./shell
     ./terminal
     ./nvim
     ./apps

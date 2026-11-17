@@ -56,11 +56,11 @@
 
   scripts = import ./scripts.nix {inherit pkgs notifyPkg;};
 
-  monitorManager = import ./monitor-manager.nix {
+  monitorManager = import ./monitors/manager.nix {
     inherit lib specOf outputs profiles announceUnknown;
   };
 
-  wallpaper = import ./wallpaper.nix {
+  wallpaper = import ./wallpaper/script.nix {
     inherit pkgs notifyPkg;
     hyprland = osConfig.programs.hyprland.package;
     themeName = config.colorScheme.slug;
@@ -135,6 +135,13 @@
     end, { timeout = 500, type = "oneshot" }))
   '';
 in {
+  # monitors: the `monitors` option schema + this machine's profiles.
+  # wallpaper: hyprpaper daemon + `wallpaper` on PATH.
+  imports = [
+    ./monitors
+    ./wallpaper
+  ];
+
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {

@@ -27,7 +27,7 @@
         so only the corners that sit on no edge are rounded at all -- and those
         want a different weight than a free-floating tiled window.
 
-        Applied per group in home/laptop/shell/quickshell/qml/Group.qml:
+        Applied per group in home/laptop/desktop/quickshell/qml/Group.qml:
           left    bottom-right only   (top + left edges are walls)
           centre  both bottom corners (only the top edge is a wall)
           right   bottom-left only    (top + right edges are walls)
