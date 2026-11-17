@@ -33,14 +33,6 @@
       vial
       stremio-linux-shell
 
-      # LaTeX: scheme-small plus what the documents under ~ (thesis, CV,
-      # KTH assignments, acmart paper + samples) actually load, taken from
-      # their latexmk -recorder .fls; ~0.9 GiB instead of scheme-full's
-      # 6.1 GiB (which also pulled openjdk).  All of them build with this set
-      # (pdf/lua/xelatex, bibtex + biber) with the same pages, warnings and
-      # loaded files as with scheme-full.  A new document missing a package:
-      # add it here.  (perl is not needed: latexmk & co. are wrapped with
-      # their own.)
       (texliveSmall.withPackages (ps:
         with ps; [
           # tools: vimtex compiles through latexmk; biblatex needs biber
