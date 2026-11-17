@@ -1,8 +1,7 @@
-{
-  lib,
-  config,
-  ...
-}: {
+# Knobs read by more than one module.  Anything with a single consumer lives
+# at that consumer instead (gaps in hyprland, bar radius in quickshell, cursor
+# in cursor.nix, paths next to what uses them).
+{lib, ...}: {
   options.vars = {
     rounding = lib.mkOption {
       description = ''
@@ -14,45 +13,10 @@
         Anything nested INSIDE a surface (the launcher's inner boxes, the bar's
         recording chip, the Spotify panel) is a local aesthetic choice and is
         hardcoded at its single use site instead.  The bar's module groups get
-        their own knob, `barRounding` below.
+        their own radius (barRadius in the quickshell Theme).
       '';
       type = lib.types.int;
       default = 2;
-    };
-
-    barRounding = lib.mkOption {
-      description = ''
-        Corner radius for the bar's module groups.  Separate from `rounding`
-        because the bar is flush against the top, left and right screen edges,
-        so only the corners that sit on no edge are rounded at all -- and those
-        want a different weight than a free-floating tiled window.
-
-        Applied per group in home/laptop/desktop/quickshell/qml/Group.qml:
-          left    bottom-right only   (top + left edges are walls)
-          centre  both bottom corners (only the top edge is a wall)
-          right   bottom-left only    (top + right edges are walls)
-      '';
-      type = lib.types.int;
-      default = 8;
-    };
-
-    gapsOuter = lib.mkOption {
-      description = ''
-        Hyprland outer gap (windows to screen edge).  Hyprland only: the
-        bar does not read it.
-      '';
-      type = lib.types.int;
-      default = 8;
-    };
-
-    gapsInner = lib.mkOption {
-      description = ''
-        Hyprland inner gap (between tiled windows).  Defaults to half of
-        `gapsOuter`; any value works.  The gap +/- keys keep the
-        gapsInner:gapsOuter ratio as they step the outer gap.
-      '';
-      type = lib.types.int;
-      default = config.vars.gapsOuter / 2;
     };
 
     font = lib.mkOption {
@@ -87,38 +51,6 @@
       description = "Active color scheme slug (must exist in themes; see theme.nix).";
       type = lib.types.str;
       default = "nord";
-    };
-
-    cursor = lib.mkOption {
-      description = "Cursor theme configuration";
-      type = lib.types.submodule {
-        options = {
-          name = lib.mkOption {
-            type = lib.types.str;
-            default = "Bibata-Modern-Ice";
-          };
-          size = lib.mkOption {
-            type = lib.types.int;
-            default = 24;
-          };
-        };
-      };
-    };
-
-    paths = lib.mkOption {
-      description = "Common user paths";
-      type = lib.types.submodule {
-        options = {
-          notes = lib.mkOption {
-            type = lib.types.str;
-            default = "${config.home.homeDirectory}/notes";
-          };
-          wallpapers = lib.mkOption {
-            type = lib.types.str;
-            default = "${config.home.homeDirectory}/Pictures/wallpapers";
-          };
-        };
-      };
     };
   };
 }

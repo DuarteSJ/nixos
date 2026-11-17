@@ -24,7 +24,7 @@
     end)()'';
 
   # Inner gap as a fraction of the outer one, from the configured pair, so
-  # stepping the gaps keeps a custom vars.gapsInner in proportion (and lands
+  # stepping the gaps keeps a custom inner gap in proportion (and lands
   # exactly on it again at the configured outer gap).  Half when the outer
   # gap is 0 and there is no ratio to keep.
   innerRatio = let

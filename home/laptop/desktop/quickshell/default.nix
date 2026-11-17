@@ -51,7 +51,11 @@
         readonly property string iconFont: "Material Symbols Rounded"
 
         readonly property int barHeight: 27
-        readonly property int barRadius: ${toString vars.barRounding}
+        // Bar module groups.  Flush with the top/left/right screen edges, so
+        // only corners on no edge round (Group.qml: left = bottom-right,
+        // centre = both bottom, right = bottom-left), and they want a
+        // different weight than a free-floating window (radius below).
+        readonly property int barRadius: 8
         readonly property int radius: ${toString vars.rounding}
 
         // Surfaces inside panels: fields, chips, highlighted rows.

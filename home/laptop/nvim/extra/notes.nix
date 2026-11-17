@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.generators) mkLuaInline;
-  inherit (config.vars.paths) notes;
+  notes = "${config.home.homeDirectory}/notes";
 
   dateFormat = "%d-%m-%Y";
 

@@ -1,15 +1,21 @@
 {
   config,
-  osConfig,
   pkgs,
   lib,
   notifyPkg,
+  wallpaper, # from ./wallpaper (_module.args)
   ...
 }: let
   inherit (config) monitors;
   inherit (monitors) outputs profiles announceUnknown;
   inherit (config) vars;
   inherit (config.colorScheme.palette) base0D base0C base02;
+
+  # Outer gap: windows to screen edge.  Inner gap: between tiled windows;
+  # any value works, the gap +/- keys keep the inner:outer ratio as they
+  # step the outer gap (lua-actions.nix).  The bar reads neither.
+  gapsOuter = 8;
+  gapsInner = gapsOuter / 2;
 
   toLua = lib.generators.toLua {multiline = false;};
 
@@ -20,8 +26,8 @@
   baseline = {
     animations.enabled = true;
     general = {
-      gaps_in = vars.gapsInner;
-      gaps_out = vars.gapsOuter;
+      gaps_in = gapsInner;
+      gaps_out = gapsOuter;
       col = {
         active_border = {
           colors = ["rgba(${base0D}cc)" "rgba(${base0C}77)"];
@@ -58,13 +64,6 @@
 
   monitorManager = import ./monitors/manager.nix {
     inherit lib specOf outputs profiles announceUnknown;
-  };
-
-  wallpaper = import ./wallpaper/script.nix {
-    inherit pkgs notifyPkg;
-    hyprland = osConfig.programs.hyprland.package;
-    themeName = config.colorScheme.slug;
-    wallpapersPath = vars.paths.wallpapers;
   };
 
   # Quickshell IPC prefix, absolute so it doesn't depend on Hyprland's PATH.

@@ -3,8 +3,8 @@
 #
 # Images are pushed over hyprpaper's IPC (on by default) by that script, run
 # on every Hyprland config load (../default.nix) and from the keybind, so
-# there are no static preload/wallpaper entries here.  ../default.nix imports
-# the same script; both calls build the same derivation.
+# there are no static preload/wallpaper entries here.  The script is built
+# once here and handed to ../default.nix as the `wallpaper` module arg.
 {
   config,
   osConfig,
@@ -16,9 +16,11 @@
     inherit pkgs notifyPkg;
     hyprland = osConfig.programs.hyprland.package;
     themeName = config.colorScheme.slug;
-    wallpapersPath = config.vars.paths.wallpapers;
+    wallpapersPath = "${config.home.homeDirectory}/Pictures/wallpapers";
   };
 in {
+  _module.args.wallpaper = wallpaper;
+
   services.hyprpaper = {
     enable = true;
     settings.splash = false;
