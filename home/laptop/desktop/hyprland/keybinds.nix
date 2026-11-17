@@ -5,7 +5,6 @@
   scripts,
   luaActions,
   vars,
-  pkgs,
   qsIpc,
   wallpaperPkg,
 }: let

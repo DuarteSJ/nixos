@@ -74,7 +74,7 @@
   };
 
   bind = import ./keybinds.nix {
-    inherit lib helpers scripts luaActions vars pkgs qsIpc;
+    inherit lib helpers scripts luaActions vars qsIpc;
     wallpaperPkg = wallpaper.package;
   };
 
