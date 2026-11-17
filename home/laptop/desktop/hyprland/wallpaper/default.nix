@@ -15,8 +15,7 @@
   wallpaper = import ./script.nix {
     inherit pkgs notifyPkg;
     hyprland = osConfig.programs.hyprland.package;
-    themeName = config.colorScheme.slug;
-    wallpapersPath = "${config.home.homeDirectory}/Pictures/wallpapers";
+    wallpapersDir = config.colorScheme.wallpapers;
   };
 in {
   _module.args.wallpaper = wallpaper;

@@ -21,8 +21,7 @@
   pkgs,
   hyprland,
   notifyPkg,
-  themeName,
-  wallpapersPath,
+  wallpapersDir,
 }: let
   inherit (pkgs) lib;
 
@@ -36,7 +35,7 @@
       pkgs.coreutils
     ];
     text = ''
-      THEME_DIR=${lib.escapeShellArg "${wallpapersPath}/${themeName}"}
+      WALLPAPER_DIR=${lib.escapeShellArg wallpapersDir}
       # monitor:orientation=path, one per line.  A path, not an index: an
       # index silently points elsewhere once the directory changes.
       STATE_FILE="''${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-current"
@@ -54,7 +53,7 @@
       # within the curated per-theme dir).
       list_wallpapers() {
         mapfile -t wallpapers < <(
-          find "$THEME_DIR/$1" -maxdepth 1 -type f \
+          find "$WALLPAPER_DIR/$1" -maxdepth 1 -type f \
             \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) \
             2>/dev/null | sort -V
         )
@@ -133,7 +132,7 @@
 
       cmd_next() {
         local mon transform orient cur idx wp name
-        [[ -d "$THEME_DIR" ]] || notify_error "Directory '$THEME_DIR' not found"
+        [[ -d "$WALLPAPER_DIR" ]] || notify_error "Directory '$WALLPAPER_DIR' not found"
         # `|| true`: under `set -e`, read returns nonzero on EOF (no focused
         # monitor) and would abort before the guard below can notify.
         read -r mon transform < <(
@@ -144,7 +143,7 @@
         orient=$(orientation_of "$transform")
         list_wallpapers "$orient"
         (( ''${#wallpapers[@]} > 0 )) \
-          || notify_error "No wallpapers found in $THEME_DIR/$orient"
+          || notify_error "No wallpapers found in $WALLPAPER_DIR/$orient"
 
         cur=$(current_of "$mon")
         idx=$(index_of "$cur")
