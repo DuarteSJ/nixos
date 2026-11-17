@@ -48,7 +48,7 @@
     };
 
     theme = lib.mkOption {
-      description = "Active color scheme slug (must exist in themes; see theme.nix).";
+      description = "Active color scheme: a key of `themes` (see theme.nix).";
       type = lib.types.str;
       default = "nord";
     };

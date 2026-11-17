@@ -5,19 +5,22 @@
 }: let
   inherit (lib) mkOption types;
 
-  schemeType = types.submodule ({name, ...}: {
+  schemeType = types.submodule {
     options = {
-      name = mkOption {type = types.str;};
-      slug = mkOption {
-        description = "The scheme's key in `themes` (derived, read-only).";
-        type = types.str;
-        readOnly = true;
-      };
       palette = mkOption {type = types.attrsOf types.str;};
       batTheme = mkOption {
         description = "bat/delta syntax-theme name for this scheme (must be a theme bat ships or knows; e.g. \"Nord\", \"ansi\").";
         type = types.str;
         default = "ansi";
+      };
+      wallpapers = mkOption {
+        description = ''
+          Absolute path of this scheme's wallpaper directory, holding
+          `horizontal/` and `vertical/` subdirectories (picked per monitor
+          orientation).  Outside the store: the images aren't in this repo.
+        '';
+        type = types.str;
+        example = "/home/me/Pictures/wallpapers/nord";
       };
       nvf = mkOption {
         description = "nvf vim.theme settings for this scheme (merged into programs.nvf.settings.vim.theme); at minimum the theme name.";
@@ -29,15 +32,12 @@
         };
       };
     };
-    # `name` here is the module argument (the attrsOf key), not the option.
-    # A definition rather than a default, so readOnly rejects any override.
-    config.slug = name;
-  });
+  };
 
   builtinSchemes = {
     nord = {
-      name = "Nord";
       batTheme = "Nord";
+      wallpapers = "${config.home.homeDirectory}/Pictures/wallpapers/nord";
       nvf = {name = "nord";};
       palette = {
         base00 = "2E3440";
@@ -61,15 +61,14 @@
   };
 in {
   options.themes = mkOption {
-    description = "All known color schemes, keyed by slug. Active one is selected via vars.theme.";
+    description = "All known color schemes, keyed by name. Active one is selected via vars.theme.";
     type = types.attrsOf schemeType;
     default = builtinSchemes;
   };
 
   options.colorScheme = mkOption {
     description = "Resolved active color scheme (read-only): the `themes` entry selected by vars.theme.";
-    # Already type-checked as a themes entry; re-merging it through
-    # schemeType would re-derive slug from this option's own name.
+    # Already type-checked as a themes entry; no need to merge it again.
     type = types.raw;
     readOnly = true;
   };
