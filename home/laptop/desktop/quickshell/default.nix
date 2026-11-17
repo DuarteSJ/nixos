@@ -1,6 +1,7 @@
 # Quickshell desktop shell: top bar, session menu, app launcher, lock screen,
 # notification daemon and brightness pop-up (replaces waybar, rofi,
-# dunst and hyprlock).  QML lives in ./qml; only Theme.qml is generated, from
+# dunst and hyprlock).  QML lives in ./qml (one folder per area, imported as
+# `qs.<folder>`); only services/Theme.qml is generated, from
 # the palette and vars, so the shell never hardcodes a colour.
 #
 #   qs -c shell ipc call bar     toggle|reveal|hide|focusOn|focusOff   ("show" is swallowed by the qs CLI)
@@ -76,8 +77,8 @@
   shellDir = pkgs.runCommand "quickshell-shell" {nativeBuildInputs = [pkgs.qt6.qtshadertools];} ''
     cp -r ${./qml} $out
     chmod -R u+w $out
-    cp ${theme} $out/Theme.qml
-    for f in $out/shaders/*.frag; do
+    cp ${theme} $out/services/Theme.qml
+    for f in $out/*/shaders/*.frag; do
       qsb --glsl "100es,120,150" --hlsl 50 --msl 12 -o "$f.qsb" "$f"
     done
   '';

@@ -1,0 +1,123 @@
+import QtQuick
+import qs.services
+import qs.panels
+
+// Hover panels for the status modules (sound, wifi, bluetooth, system,
+// battery), growing out of the bar's right group (see AttachedDrawer.qml).
+// The card buds out under the hovered icon, grows into the panel, and
+// slides to the next icon when you move along the bar.  With the dashboard
+// on (Shell.dashboard, Super+W) it shows every panel stacked instead.
+AttachedDrawer {
+    id: popup
+
+    required property var status          // Status.qml
+
+    side: "right"
+    winW: 520
+
+    readonly property int panelW: 340
+    property string key: ""               // panel shown
+    property bool hold: false
+
+    // Centre of the last hovered icon, in window coordinates (kept while
+    // the pointer is on the card, so the card doesn't chase itself).
+    property real anchorX: winW - 120
+    Connections {
+        target: popup.status
+        function onHoverItemChanged() {
+            const it = popup.status.hoverItem;
+            if (it) popup.anchorX = it.mapToItem(popup.barWindow.contentItem, it.width / 2, 0).x - popup.originX;
+        }
+    }
+
+    // Dashboard: only on the monitor that was focused when it was toggled.
+    readonly property bool all: Shell.dashboard
+        && barWindow.hyprMonitor?.name === Shell.dashboardScreen
+    // The stack stays shown while the dashboard's card closes, so it shrinks
+    // from its full height instead of snapping to an empty card first.
+    property bool showAll: false
+    function shows(k) { return showAll || key === k; }
+    readonly property real wantedH: stack.implicitHeight + 32
+
+    winH: barWindow.screen.height         // the dashboard stack is tall
+    drawer.anchorX: all ? winW : anchorX
+    drawer.openWidth: panelW
+    drawer.openHeight: wantedH
+    // Outside the dashboard, never open with no panel picked (an empty card).
+    drawer.open: all || ((hold || hovered) && key !== "")
+
+    onAllChanged: {
+        if (all) { showAll = true; return; }
+        // Leaving the dashboard: hover was ignored while it was on, so
+        // restart the hover state from wherever the pointer is now.
+        key = status.hoverKey;
+        hold = key !== "";
+        if (hold) showAll = false;      // straight to the hovered panel
+    }
+    // A panel picked by hover (incl. during the dashboard's close) wins.
+    onKeyChanged: if (key !== "" && !all) showAll = false
+    Connections {
+        target: popup.drawer
+        function onActiveChanged() { if (!popup.drawer.active) popup.showAll = popup.all; }
+    }
+
+    // A hidden bar (Super+B, focus mode) gets no pointer-leave: drop the
+    // hover state so the panel doesn't come back open with the bar.
+    Connections {
+        target: Shell
+        function onBarShownChanged() {
+            if (Shell.barShown) return;
+            openDelay.stop(); stay.stop(); swap.stop();
+            popup.hold = false;
+            popup.key = "";
+        }
+    }
+
+    // ── hover logic: short delay to open, grace period to reach the card ─
+    Timer { id: openDelay; interval: 150; onTriggered: if (popup.status.hoverKey !== "") { popup.key = popup.status.hoverKey; popup.hold = true; } }
+    Timer { id: stay; interval: 250; onTriggered: if (popup.status.hoverKey === "") popup.hold = false }
+    Timer { id: swap; interval: 110; onTriggered: { if (popup.status.hoverKey !== "") popup.key = popup.status.hoverKey; popup.drawer.contentShown = true; } }
+    Connections {
+        target: popup.status
+        function onHoverKeyChanged() {
+            const k = popup.status.hoverKey;
+            if (popup.all) return;          // dashboard: hovering doesn't switch
+            if (k === "") { openDelay.stop(); stay.restart(); return; }
+            stay.stop();
+            if (!popup.drawer.open) { openDelay.restart(); return; }
+            if (k !== popup.key) { popup.drawer.contentShown = false; swap.restart(); }
+        }
+    }
+
+    Column {
+        id: stack
+        x: 16; y: 12
+        width: popup.panelW - 32
+        spacing: 22
+        AudioPanel {
+            drawer: popup.drawer
+            width: parent.width
+            visible: popup.shows("audio")
+        }
+        NetworkPanel {
+            drawer: popup.drawer
+            width: parent.width
+            visible: popup.shows("network")
+        }
+        BluetoothPanel {
+            drawer: popup.drawer
+            width: parent.width
+            visible: popup.shows("bluetooth")
+        }
+        SystemPanel {
+            drawer: popup.drawer
+            width: parent.width
+            visible: popup.shows("system")
+        }
+        BatteryPanel {
+            drawer: popup.drawer
+            width: parent.width
+            visible: popup.shows("battery")
+        }
+    }
+}

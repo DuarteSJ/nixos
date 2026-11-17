@@ -3,6 +3,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.services
+import qs.bar
+import qs.overlays
+import qs.lock
 
 ShellRoot {
     Variants {
